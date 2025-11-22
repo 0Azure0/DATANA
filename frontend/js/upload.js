@@ -25,13 +25,10 @@ if (dropArea){
 if (analyzeBtn){
   analyzeBtn.addEventListener('click', async ()=>{
   if (!selected){ uploadMsg.textContent = 'Vui lòng chọn file'; return; }
-    const token = localStorage.getItem('auth_token');
-    if (!token){ uploadMsg.textContent = 'Bạn cần đăng nhập trước khi phân tích'; return; }
     uploadMsg.textContent = 'Đang gửi file...';
     const fd = new FormData(); fd.append('file', selected);
-    const headers = { 'Authorization': 'Bearer '+token };
     try{
-      const res = await fetch(UP_API, { method: 'POST', headers, body: fd });
+      const res = await fetch(UP_API, { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok){ uploadMsg.textContent = data.error || 'Lỗi phân tích'; return; }
       uploadMsg.textContent = 'Phân tích hoàn tất';

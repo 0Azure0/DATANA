@@ -20,66 +20,7 @@ const demoRec = document.getElementById('demoRec');
 
 let selectedFile = null;
 
-// --- Auth modal elements ---
-const authModal = document.getElementById('authModal');
-const closeAuth = document.getElementById('closeAuth');
-const tabLogin = document.getElementById('tabLogin');
-const tabRegister = document.getElementById('tabRegister');
-const loginBtnTop = document.getElementById('loginBtnTop');
-const signupBtnTop = document.getElementById('signupBtnTop');
-const doLogin = document.getElementById('doLogin');
-const doRegister = document.getElementById('doRegister');
-const authUser = document.getElementById('authUser');
-const authPass = document.getElementById('authPass');
-const regUser2 = document.getElementById('regUser2');
-const regPass2 = document.getElementById('regPass2');
-const authMsg = document.getElementById('authMsg');
-const regMsg = document.getElementById('regMsg');
-
-function openAuth(mode='login'){
-  authModal.setAttribute('aria-hidden','false');
-  if (mode==='login'){ document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; tabLogin.classList.add('active'); tabRegister.classList.remove('active'); }
-  else { document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; tabRegister.classList.add('active'); tabLogin.classList.remove('active'); }
-}
-
-function closeAuthModal(){ authModal.setAttribute('aria-hidden','true'); authMsg.textContent=''; regMsg.textContent=''; }
-loginBtnTop.addEventListener('click', ()=> openAuth('login'));
-signupBtnTop.addEventListener('click', ()=> openAuth('register'));
-closeAuth.addEventListener('click', closeAuthModal);
-tabLogin.addEventListener('click', ()=> openAuth('login'));
-tabRegister.addEventListener('click', ()=> openAuth('register'));
-
-// Login action
-doLogin.addEventListener('click', async ()=>{
-  const u = authUser.value.trim(); const p = authPass.value.trim(); authMsg.textContent='';
-  if (!u||!p){ authMsg.textContent='Vui lòng nhập username & password'; return; }
-  try{
-    const res = await fetch(`${API_URL}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u,password:p}) });
-    const data = await res.json();
-    if (!res.ok){ authMsg.textContent = data.error || 'Đăng nhập thất bại'; return; }
-    localStorage.setItem('auth_token', data.token);
-    closeAuthModal();
-    uploadMessage.textContent = 'Đăng nhập thành công';
-    // show logout state
-    loginBtnTop.textContent = data.username; signupBtnTop.textContent = 'Đăng xuất';
-    signupBtnTop.onclick = async ()=>{ await fetch(`${API_URL}/logout`,{method:'POST',headers:{'Authorization': 'Bearer '+localStorage.getItem('auth_token')}}); localStorage.removeItem('auth_token'); location.reload(); };
-  }catch(err){ authMsg.textContent='Lỗi đăng nhập'; }
-});
-
-// Register action
-doRegister.addEventListener('click', async ()=>{
-  const u = regUser2.value.trim(); const p = regPass2.value.trim(); regMsg.textContent='';
-  if (!u||!p){ regMsg.textContent='Vui lòng nhập username & password'; return; }
-  try{
-    const res = await fetch(`${API_URL}/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u,password:p}) });
-    const data = await res.json();
-    if (!res.ok){ regMsg.textContent = data.error || 'Đăng ký thất bại'; return; }
-    regMsg.style.color = '#0b6623'; regMsg.textContent = 'Đăng ký thành công, vui lòng đăng nhập';
-    // prefills
-    authUser.value = u; authPass.value = '';
-    setTimeout(()=> openAuth('login'), 800);
-  }catch(err){ regMsg.textContent='Lỗi đăng ký'; }
-});
+// Auth removed: login/register modal and related handlers deleted
 
 
 // Mobile nav
@@ -124,14 +65,10 @@ analyzeBtn.addEventListener('click', async ()=>{
   formData.append('file', selectedFile);
 
   try{
-    const headers = {};
-    const t = localStorage.getItem('auth_token');
-    if (t) headers['Authorization'] = 'Bearer '+t;
-    const res = await fetch(`${API_URL}/analyze`, { method:'POST', headers: headers, body: formData });
+    const res = await fetch(`${API_URL}/analyze`, { method:'POST', body: formData });
     const data = await res.json();
     if (!res.ok){
-      if (res.status === 401) uploadMessage.textContent = 'Bạn cần đăng nhập trước khi phân tích (nhấn Đăng nhập)';
-      else uploadMessage.textContent = data.error || 'Lỗi khi phân tích';
+      uploadMessage.textContent = data.error || 'Lỗi khi phân tích';
       return;
     }
 
@@ -295,18 +232,16 @@ async function sendChatMessage(){
   chatMessages.appendChild(loadingWrap); scrollChat();
 
   try{
-    const token = localStorage.getItem('auth_token');
-    const headers = {'Content-Type':'application/json'};
-    if (token) headers['Authorization'] = 'Bearer '+token;
-    const res = await fetch(`${API_URL}/chat`, { method:'POST', headers, body: JSON.stringify({message: txt}) });
+  const headers = {'Content-Type':'application/json'};
+  const res = await fetch(`${API_URL}/chat`, { method:'POST', headers, body: JSON.stringify({message: txt}) });
     const data = await res.json();
     // remove loader
     loadingWrap.remove();
     if (res.ok){
       appendChatBubble('ai', data.reply || '...');
-      // store history per token
+      // store history (anon)
       try{
-        const key = 'datana_chat_'+(token||'anon');
+        const key = 'datana_chat_anon';
         const hist = JSON.parse(localStorage.getItem(key) || '[]'); hist.push({role:'user',text:txt, time:Date.now()}); hist.push({role:'ai',text:data.reply||'',time:Date.now()}); localStorage.setItem(key, JSON.stringify(hist));
       }catch(e){/*ignore*/}
     } else {
@@ -320,8 +255,7 @@ if (chatInput) chatInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter
 
 // load chat history for current token
 function loadChatHistory(){
-  const token = localStorage.getItem('auth_token') || 'anon';
-  const key = 'datana_chat_'+token;
+  const key = 'datana_chat_anon';
   try{
     const hist = JSON.parse(localStorage.getItem(key) || '[]');
     chatMessages.innerHTML = '';

@@ -46,9 +46,7 @@ async function send(){
   chatWindow.scrollTop = chatWindow.scrollHeight;
   
   try{
-    const token = localStorage.getItem('auth_token');
     const headers = {'Content-Type':'application/json'};
-    if (token) headers['Authorization'] = 'Bearer ' + token;
     const res = await fetch(CHAT_API, {method: 'POST', headers, body: JSON.stringify({message: txt})});
     const data = await res.json();
     loader.remove();
@@ -66,8 +64,7 @@ chatInput.addEventListener('keydown', e=>{ if (e.key==='Enter' && !e.shiftKey){ 
 
 // load simple history from localStorage
 function loadHistory(){
-  const token = localStorage.getItem('auth_token') || 'anon';
-  const key = 'datana_chat_' + token;
+  const key = 'datana_chat_anon';
   try{
     const arr = JSON.parse(localStorage.getItem(key) || '[]');
     arr.forEach(h=> append(h.role, h.text));

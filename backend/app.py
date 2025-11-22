@@ -18,32 +18,11 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import pandas as pd
-import os
-from werkzeug.utils import secure_filename
-from analyzer import analyze_data
-from recommendations import generate_recommendations
-import uuid
-import json
-import hashlib
 
-app = Flask(__name__)
-CORS(app)
+# Last analysis stored server-side (no per-user sessions)
+LAST_ANALYSIS = None
 
-# Simple in-memory session store (token -> username). For demo only.
-SESSIONS = {}
-
-# Configuration
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'xlsx', 'csv', 'xls'}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Server limits
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 
 
@@ -52,101 +31,19 @@ def allowed_file(filename):
 
 
 def get_session(req):
-    """Return (token, session_dict) if token valid, else (None, None). Session dict holds {'username':..., 'last_analysis':...}"""
-    auth = req.headers.get('Authorization', '')
-    if auth.startswith('Bearer '):
-        token = auth.split(' ', 1)[1].strip()
-        sess = SESSIONS.get(token)
-        return token, sess
     return None, None
 
 def require_auth(req):
-    token, sess = get_session(req)
-    return sess
+    return None
 
 
-@app.route('/login', methods=['POST'])
-def login():
-    """Simple login. Expects JSON {username, password}. Returns token."""
-    try:
-        payload = request.get_json(force=True)
-        username = payload.get('username')
-        password = payload.get('password')
-
-        # Load users
-        users_path = os.path.join(os.path.dirname(__file__), 'users.json')
-        users = {}
-        if os.path.exists(users_path):
-            try:
-                with open(users_path, 'r', encoding='utf-8') as f:
-                    users = json.load(f)
-            except Exception:
-                users = {}
-
-        if username in users:
-            stored = users[username]
-            # stored expected to have 'password_hash'
-            pw_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
-            if pw_hash == stored.get('password_hash'):
-                token = str(uuid.uuid4())
-                SESSIONS[token] = {'username': username}
-                return jsonify({'token': token, 'username': username})
-            else:
-                return jsonify({'error': 'Tên đăng nhập hoặc mật khẩu không đúng'}), 401
-        else:
-            return jsonify({'error': 'Tên đăng nhập hoặc mật khẩu không đúng'}), 401
-    except Exception as e:
-        return jsonify({'error': f'Lỗi: {str(e)}'}), 400
-
-
-@app.route('/register', methods=['POST'])
-def register():
-    """Register new user. Expects JSON {username, password}."""
-    try:
-        payload = request.get_json(force=True)
-        username = payload.get('username')
-        password = payload.get('password')
-        if not username or not password:
-            return jsonify({'error': 'Username và password là bắt buộc'}), 400
-
-        users_path = os.path.join(os.path.dirname(__file__), 'users.json')
-        users = {}
-        if os.path.exists(users_path):
-            try:
-                with open(users_path, 'r', encoding='utf-8') as f:
-                    users = json.load(f)
-            except Exception:
-                users = {}
-
-        if username in users:
-            return jsonify({'error': 'Username đã tồn tại'}), 400
-
-        pw_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        users[username] = {'password_hash': pw_hash}
-        with open(users_path, 'w', encoding='utf-8') as f:
-            json.dump(users, f, ensure_ascii=False, indent=2)
-
-        return jsonify({'status': 'registered', 'username': username}), 201
-    except Exception as e:
-        return jsonify({'error': f'Lỗi: {str(e)}'}), 500
-
-
-@app.route('/logout', methods=['POST'])
-def logout():
-    auth = request.headers.get('Authorization', '')
-    if auth.startswith('Bearer '):
-        token = auth.split(' ', 1)[1].strip()
-        SESSIONS.pop(token, None)
-    return jsonify({'status': 'logged_out'})
+# Login/register/logout removed. App no longer requires auth for analyze/chat.
 
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
-        sess = require_auth(request)
-        if not sess:
-            return jsonify({'error': 'Unauthorized. Please login.'}), 401
-        username = sess.get('username')
+        # No auth required: accept file and analyze
 
         # Check if file is in request
         if 'file' not in request.files:
@@ -199,20 +96,18 @@ def analyze():
             revenue_by_month,
             product_metrics
         )
-        # Store last analysis in session for chat access
-        # make a JSON-serializable summary
-        session_token, _ = get_session(request)
-        if session_token and session_token in SESSIONS:
-            SESSIONS[session_token]['last_analysis'] = {
-                'statistics': statistics,
-                'time_analysis': time_analysis,
-                'product_analysis': product_analysis,
-                'region_analysis': region_analysis,
-                'customer_analysis': customer_analysis,
-                'top_products': top_products,
-                'revenue_by_month': revenue_by_month,
-                'product_metrics': product_metrics
-            }
+        # Store last analysis in server memory for chat access
+        global LAST_ANALYSIS
+        LAST_ANALYSIS = {
+            'statistics': statistics,
+            'time_analysis': time_analysis,
+            'product_analysis': product_analysis,
+            'region_analysis': region_analysis,
+            'customer_analysis': customer_analysis,
+            'top_products': top_products,
+            'revenue_by_month': revenue_by_month,
+            'product_metrics': product_metrics
+        }
         # Clean up uploaded file
         try:
             os.remove(filepath)
@@ -250,19 +145,15 @@ def chat():
     Returns {"reply": "..."}
     """
     try:
-        token, sess = get_session(request)
-        if not sess:
-            return jsonify({'error': 'Unauthorized. Please login.'}), 401
-
         payload = request.get_json(force=True)
         msg = (payload.get('message') or '').strip()
         if not msg:
             return jsonify({'reply': 'Vui lòng nhập câu hỏi.'}), 400
 
-        analysis = sess.get('last_analysis')
+        analysis = LAST_ANALYSIS
         # If no analysis available
         if not analysis:
-            return jsonify({'reply': 'Chưa có dữ liệu phân tích trong phiên. Vui lòng tải file lên và phân tích trước khi hỏi.'}), 200
+            return jsonify({'reply': 'Chưa có dữ liệu phân tích. Vui lòng tải file lên và phân tích trước khi hỏi.'}), 200
 
         # Very simple intent parsing
         q = msg.lower()

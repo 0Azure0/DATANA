@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Về DATANA — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="site-header container">
+    <div class="brand">DATANA</div>
+    <div class="auth-header">
+      <div id="loginMsgHeader" class="muted">Vui lòng đăng nhập</div>
+      <input id="loginUser" type="text" placeholder="Tài khoản" />
+      <input id="loginPass" type="password" placeholder="Mật khẩu" />
+      <button id="loginBtn" class="btn-primary">Đăng nhập</button>
+      <button id="registerBtn" class="btn-secondary">Đăng ký</button>
+      <button id="logoutBtn" class="btn-link" style="display:none;">Đăng xuất</button>
+    </div>
+    <nav class="nav"><a href="index.html">Home</a><a href="upload.html">Upload</a></nav>
+  </header>
+
+  <main class="container">
+    <h1>📚 Về DATANA</h1>
+    <p class="muted">Giải pháp phân tích dữ liệu đơn giản cho doanh nghiệp nhỏ và vừa</p>
+
+    <section class="animate-in">
+      <h2>Tại sao chọn DATANA?</h2>
+      <p>DATANA giúp các chủ doanh nghiệp và quản lý kinh doanh:</p>
+      <ul style="list-style:none; padding:0;">
+        <li style="padding:8px 0;"><span class="badge badge-success">✓</span> Phân tích doanh thu và lợi nhuận nhanh chóng</li>
+        <li style="padding:8px 0;"><span class="badge badge-success">✓</span> Xác định sản phẩm bán chạy và khu vực mạnh</li>
+        <li style="padding:8px 0;"><span class="badge badge-success">✓</span> Nhận gợi ý chiến lược marketing từ dữ liệu</li>
+        <li style="padding:8px 0;"><span class="badge badge-success">✓</span> Chat với AI để hỏi về dữ liệu của bạn</li>
+        <li style="padding:8px 0;"><span class="badge badge-success">✓</span> Không cần kỹ năng Excel hay BI phức tạp</li>
+      </ul>
+    </section>
+
+    <section class="animate-in">
+      <h2>Hướng dẫn sử dụng nhanh</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; margin-top:16px;">
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:8px;">📤</div>
+          <h3 style="margin-top:0; margin-bottom:8px;">Bước 1: Tải file</h3>
+          <p class="muted" style="margin:0;">Chuẩn bị file Excel/CSV với dữ liệu bán hàng (cần có cột: sản phẩm, doanh thu, khu vực, ngày tháng)</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:8px;">📊</div>
+          <h3 style="margin-top:0; margin-bottom:8px;">Bước 2: Xem Dashboard</h3>
+          <p class="muted" style="margin:0;">Hệ thống tự động tạo 7 biểu đồ, KPI và bảng dữ liệu trong vài giây</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:8px;">💡</div>
+          <h3 style="margin-top:0; margin-bottom:8px;">Bước 3: Đọc Gợi ý</h3>
+          <p class="muted" style="margin:0;">AI phân tích dữ liệu và đưa ra 5 nhóm gợi ý (sản phẩm, giá, marketing, khu vực, vận hành)</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:8px;">🤖</div>
+          <h3 style="margin-top:0; margin-bottom:8px;">Bước 4: Chat</h3>
+          <p class="muted" style="margin:0;">Hỏi AI về doanh thu, nguyên nhân giảm, và các khuyến nghị khác</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="animate-in">
+      <h2>Liên hệ & Hỗ trợ</h2>
+      <div class="alert alert-info">
+        📧 Email: <strong>support@datana.local</strong><br>
+        💬 Hỏi AI trực tiếp trong ứng dụng hoặc trên trang Chat
+      </div>
+    </section>
+
+    <section class="animate-in">
+      <h2>Điều khoản sử dụng</h2>
+      <p class="muted">DATANA là công cụ miễn phí, không lưu dữ liệu của bạn trên server sau khi phân tích xong. Tất cả dữ liệu được xử lý local hoặc xoá ngay sau khi phân tích.</p>
+    </section>
+  </main>
+
+  <script src="../js/auth.js"></script>
+</body>
+</html>

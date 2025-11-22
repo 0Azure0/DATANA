@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/charts.js" defer></script>
+  <script src="../js/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="site-header container">
+    <div class="brand">DATANA</div>
+    <div class="auth-header">
+      <div id="loginMsgHeader" class="muted">Vui lòng đăng nhập</div>
+      <input id="loginUser" type="text" placeholder="Tài khoản" />
+      <input id="loginPass" type="password" placeholder="Mật khẩu" />
+      <button id="loginBtn" class="btn-primary">Đăng nhập</button>
+      <button id="registerBtn" class="btn-secondary">Đăng ký</button>
+      <button id="logoutBtn" class="btn-link" style="display:none;">Đăng xuất</button>
+    </div>
+    <nav class="nav"><a href="index.html">Home</a><a href="upload.html">Upload</a><a href="suggestions.html">Gợi ý</a><a href="chat.html">Chat</a></nav>
+  </header>
+
+  <main class="container dashboard-grid">
+    <h1>📊 Dashboard</h1>
+    
+    <section class="kpis">
+      <div class="kpi highlight animate-in">
+        <h4 id="kpi_rev">-</h4>
+        <p>Tổng doanh thu</p>
+      </div>
+      <div class="kpi highlight animate-in">
+        <h4 id="kpi_profit">-</h4>
+        <p>Tổng lợi nhuận</p>
+      </div>
+      <div class="kpi highlight animate-in">
+        <h4 id="kpi_topprod">-</h4>
+        <p>Top sản phẩm</p>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="chart-card animate-in"><h5>📈 Line — Doanh thu theo tháng</h5><div class="chart-canvas"><canvas id="chartLine"></canvas></div></div>
+      <div class="chart-card animate-in"><h5>📊 Bar — Doanh thu theo khu vực</h5><div class="chart-canvas"><canvas id="chartBar"></canvas></div></div>
+      <div class="chart-card animate-in"><h5>🔥 Stacked Bar — Sản phẩm theo khu vực</h5><div class="chart-canvas"><canvas id="chartStack"></canvas></div></div>
+      <div class="chart-card animate-in"><h5>🍰 Donut — Tỷ trọng sản phẩm</h5><div class="chart-canvas"><canvas id="chartDonut"></canvas></div></div>
+      <div class="chart-card animate-in"><h5>📈 Area — Tăng trưởng doanh thu</h5><div class="chart-canvas"><canvas id="chartArea"></canvas></div></div>
+      <div class="chart-card animate-in"><h5>💫 Scatter — Giá vs Số lượng</h5><div class="chart-canvas"><canvas id="chartScatter"></canvas></div></div>
+      <div class="chart-card animate-in"><h5>🎯 Radar — Hiệu suất sản phẩm</h5><div class="chart-canvas"><canvas id="chartRadar"></canvas></div></div>
+    </section>
+
+    <section class="data-table animate-in">
+      <h4>📋 Bảng dữ liệu</h4>
+      <div class="data-table-wrapper"><div id="tableWrap"></div></div>
+    </section>
+  </main>
+
+  <script src="../js/auth.js"></script>
+</body>
+</html>

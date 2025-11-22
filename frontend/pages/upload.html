@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Upload — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="site-header container">
+    <div class="brand">DATANA</div>
+    <div class="auth-header">
+      <div id="loginMsgHeader" class="muted">Vui lòng đăng nhập</div>
+      <input id="loginUser" type="text" placeholder="Tài khoản" />
+      <input id="loginPass" type="password" placeholder="Mật khẩu" />
+      <button id="loginBtn" class="btn-primary">Đăng nhập</button>
+      <button id="registerBtn" class="btn-secondary">Đăng ký</button>
+      <button id="logoutBtn" class="btn-link" style="display:none;">Đăng xuất</button>
+    </div>
+    <nav class="nav"><a href="index.html">Home</a><a href="dashboard.html">Dashboard</a><a href="suggestions.html">Gợi ý</a><a href="chat.html">Chat</a></nav>
+  </header>
+
+  <main class="container">
+    <h1>📤 Tải file Excel/CSV</h1>
+    <p class="muted">Kéo & thả file .xlsx hoặc .csv hoặc chọn file để bắt đầu phân tích</p>
+
+    <div class="upload-card animate-in" id="uploadCard">
+      <input type="file" id="fileInput" accept=".xlsx,.csv" />
+      <div id="dropArea" class="drop-area">
+        <div class="drop-text">📁 Kéo thả file vào đây hoặc nhấp để chọn</div>
+        <div class="file-info" id="fileName">Chưa chọn file</div>
+        <button id="analyzeBtn" class="btn-primary">🚀 Phân tích</button>
+      </div>
+      <div class="progress" style="display:none;" id="uploadProgress">
+        <div class="progress-bar" id="progressBar" style="width:0%;"></div>
+      </div>
+      <div id="uploadMsg" class="muted" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top:24px;">
+      💡 <strong>Hướng dẫn:</strong> File cần có ít nhất các cột: sản phẩm/tên, doanh thu, khu vực, ngày tháng (hoặc tháng)
+    </div>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/upload.js"></script>
+</body>
+</html>

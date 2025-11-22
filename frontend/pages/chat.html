@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat AI — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/chat.css">
+</head>
+<body>
+  <header class="site-header container">
+    <div class="brand">DATANA</div>
+    <div class="auth-header">
+      <div id="loginMsgHeader" class="muted">Vui lòng đăng nhập</div>
+      <input id="loginUser" type="text" placeholder="Tài khoản" />
+      <input id="loginPass" type="password" placeholder="Mật khẩu" />
+      <button id="loginBtn" class="btn-primary">Đăng nhập</button>
+      <button id="registerBtn" class="btn-secondary">Đăng ký</button>
+      <button id="logoutBtn" class="btn-link" style="display:none;">Đăng xuất</button>
+    </div>
+    <nav class="nav"><a href="index.html">Home</a><a href="upload.html">Upload</a><a href="dashboard.html">Dashboard</a></nav>
+  </header>
+
+  <main class="container chat-page">
+    <aside class="chat-list">
+      <h4>💬 Lịch sử chat</h4>
+      <div id="chatHistory"></div>
+    </aside>
+    <section class="chat-panel">
+      <div id="chatWindow" class="chat-window"></div>
+      <div class="chat-controls">
+        <input id="chatInput" placeholder="Hỏi về dữ liệu của bạn... (ví dụ: 'Tại sao doanh thu tháng 3 giảm?')" />
+        <button id="sendBtn" class="btn-primary">Gửi</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/chat.js"></script>
+</body>
+</html>

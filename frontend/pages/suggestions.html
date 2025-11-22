@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gợi ý chiến lược — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="site-header container">
+    <div class="brand">DATANA</div>
+    <div class="auth-header">
+      <div id="loginMsgHeader" class="muted">Vui lòng đăng nhập</div>
+      <input id="loginUser" type="text" placeholder="Tài khoản" />
+      <input id="loginPass" type="password" placeholder="Mật khẩu" />
+      <button id="loginBtn" class="btn-primary">Đăng nhập</button>
+      <button id="registerBtn" class="btn-secondary">Đăng ký</button>
+      <button id="logoutBtn" class="btn-link" style="display:none;">Đăng xuất</button>
+    </div>
+    <nav class="nav"><a href="index.html">Home</a><a href="upload.html">Upload</a><a href="dashboard.html">Dashboard</a><a href="chat.html">Chat</a></nav>
+  </header>
+
+  <main class="container">
+    <h1>🎯 Gợi ý chiến lược</h1>
+    <p class="muted">Phân tích chuyên sâu và gợi ý theo từng lĩnh vực kinh doanh</p>
+
+    <section id="suggestionsArea">
+      <!-- Suggestions will be loaded here -->
+    </section>
+
+    <div id="noDataMsg" class="alert alert-warning" style="display:none;">
+      ⚠️ Chưa có gợi ý. Vui lòng <a href="upload.html" style="color:inherit; text-decoration:underline;">tải file và phân tích</a> trước.
+    </div>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/suggestions.js"></script>
+</body>
+</html>

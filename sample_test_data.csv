@@ -1,0 +1,17 @@
+Date,Product ID,Product Name,Quantity Sold,Revenue,COGS,Profit,Region,Salesperson,Category
+2025-01-05,SP001,Áo Thun Nam,12,240000,120000,120000,Hà Nội,Nguyễn A,Thời Trang
+2025-01-10,SP002,Quần Jeans Nữ,5,175000,90000,85000,TP.HCM,Trần B,Thời Trang
+2025-01-15,SP003,Smartphone X,3,7500000,5000000,2500000,Đà Nẵng,Phạm C,Điện Thoại
+2025-02-02,SP001,Áo Thun Nam,20,400000,200000,200000,TP.HCM,Nguyễn A,Thời Trang
+2025-02-14,SP004,Loa Bluetooth,7,980000,500000,480000,Hà Nội,Trần D,Điện Tử
+2025-02-20,SP005,Bình Giữ Nhiệt,30,450000,150000,300000,Đà Nẵng,Ngô E,Gia Dụng
+2025-03-03,SP003,Smartphone X,2,5000000,3200000,1800000,TP.HCM,Phạm C,Điện Thoại
+2025-03-18,SP006,Đồng Hồ Thông Minh,4,1200000,700000,500000,Hải Phòng,Trần B,Điện Tử
+2025-03-22,SP002,Quần Jeans Nữ,8,280000,144000,136000,Đà Nẵng,Nguyễn A,Thời Trang
+2025-04-01,SP007,Tai Nghe,15,675000,300000,375000,TP.HCM,Ngô E,Điện Tử
+2025-04-11,SP005,Bình Giữ Nhiệt,10,150000,50000,100000,Hà Nội,Trần D,Gia Dụng
+2025-04-20,SP008,Máy Pha Cà Phê,1,3500000,2000000,1500000,Đà Nẵng,Nguyễn A,Đồ Gia Dụng
+2025-05-05,SP001,Áo Thun Nam,25,500000,250000,250000,TP.HCM,Nguyễn A,Thời Trang
+2025-05-12,SP009,Tủ Lạnh Mini,2,4200000,3000000,1200000,Hà Nội,Phạm C,Đồ Gia Dụng
+2025-06-03,SP003,Smartphone X,1,2500000,1800000,700000,TP.HCM,Trần B,Điện Thoại
+2025-06-15,SP010,Ốp Lưng,40,200000,80000,120000,Hải Phòng,Ngô E,Phụ Kiện

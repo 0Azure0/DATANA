@@ -22,17 +22,51 @@
             </button>
 
             <nav class="nav" id="mainNav">
-                <a href="#features">Tính năng</a>
-                <a href="#how">Cách hoạt động</a>
-                <a href="#demo">Demo</a>
-                <a href="#contact">Liên hệ</a>
-                <div class="auth-header">
-                    <div id="loginMsgHeader" class="muted">Vui lòng đăng nhập</div>
-                    <input id="loginUser" type="text" placeholder="Tài khoản" />
-                    <input id="loginPass" type="password" placeholder="Mật khẩu" />
-                    <button id="loginBtn" class="btn-outline">Đăng nhập</button>
-                    <button id="registerBtn" class="btn-primary">Đăng ký</button>
-                    <button id="logoutBtn" class="btn-link" style="display:none;">Đăng xuất</button>
+                <a href="#features" class="nav-link">Tính năng</a>
+                <a href="#how" class="nav-link">Cách hoạt động</a>
+                <a href="#demo" class="nav-link">Demo</a>
+                <a href="#contact" class="nav-link">Liên hệ</a>
+                
+                <!-- Auth Section -->
+                <div class="auth-section" id="authSection">
+                    <!-- Not Logged In State -->
+                    <div class="auth-not-logged" id="authNotLogged">
+                        <a href="auth.html" class="btn-sign-up">Đăng nhập</a>
+                    </div>
+                    
+                    <!-- Logged In State -->
+                    <div class="auth-logged" id="authLogged" style="display: none;">
+                        <div class="user-menu-wrapper">
+                            <button class="user-button" id="userMenuBtn">
+                                <div class="avatar" id="userAvatar">U</div>
+                                <span class="user-name" id="userName">User</span>
+                                <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <div class="user-menu" id="userMenu">
+                                <a href="#profile" class="menu-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 8C9.1 8 10 7.1 10 6C10 4.9 9.1 4 8 4C6.9 4 6 4.9 6 6C6 7.1 6.9 8 8 8ZM8 10C6.3 10 3 10.9 3 12.5V14H13V12.5C13 10.9 9.7 10 8 10Z"/>
+                                    </svg>
+                                    Hồ sơ
+                                </a>
+                                <a href="#settings" class="menu-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8.5 2H7.5V4.5C7.5 4.78 7.28 5 7 5H4.5V3.5C4.5 3.22 4.22 3 3.94 3C3.66 3 3.5 3.22 3.5 3.5V5H2C1.45 5 1 5.45 1 6V12C1 12.55 1.45 13 2 13H12C12.55 13 13 12.55 13 12V6C13 5.45 12.55 5 12 5H8.5V2Z"/>
+                                    </svg>
+                                    Cài đặt
+                                </a>
+                                <div class="menu-divider"></div>
+                                <button id="logoutBtn" class="menu-item logout">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M10 2H14C14.55 2 15 2.45 15 3V13C15 13.55 14.55 14 14 14H10V12.5H13V3.5H10V2ZM2.5 12L5.5 9L2.5 6V8H0V10H2.5V12Z"/>
+                                    </svg>
+                                    Đăng xuất
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </nav>
         </div>
@@ -218,29 +252,6 @@
             <button class="close" id="closeResult">✕</button>
             <h3>Kết quả phân tích</h3>
             <div id="resultContent"></div>
-        </div>
-    </div>
-
-    <!-- Login/Register Modal -->
-    <div id="authModal" class="result-modal" aria-hidden="true">
-        <div class="result-panel auth-panel">
-            <button class="close" id="closeAuth">✕</button>
-            <div class="auth-tabs">
-                <button id="tabLogin" class="tab active">Đăng nhập</button>
-                <button id="tabRegister" class="tab">Đăng ký</button>
-            </div>
-            <div id="loginForm" class="auth-form">
-                <label>Username<input id="authUser" type="text" /></label>
-                <label>Password<input id="authPass" type="password" /></label>
-                <div class="auth-actions"><button id="doLogin" class="btn-primary">Đăng nhập</button></div>
-                <div id="authMsg" class="muted" style="margin-top:8px;color:#b00020"></div>
-            </div>
-            <div id="registerForm" class="auth-form" style="display:none;">
-                <label>Username<input id="regUser2" type="text" /></label>
-                <label>Password<input id="regPass2" type="password" /></label>
-                <div class="auth-actions"><button id="doRegister" class="btn-primary">Đăng ký</button></div>
-                <div id="regMsg" class="muted" style="margin-top:8px;color:#0b6623"></div>
-            </div>
         </div>
     </div>
 

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập — DATANA</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 24px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin: 0 auto 16px;
+        }
+
+        .auth-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .auth-subtitle {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        /* Tabs */
+        .auth-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            background: #f6f9ff;
+            padding: 6px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #e6eefc;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #f9fbff;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #cbd5e1;
+        }
+
+        /* Remember & Forgot */
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-wrapper input {
+            cursor: pointer;
+        }
+
+        .form-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .form-footer a:hover {
+            color: #764ba2;
+        }
+
+        /* Buttons */
+        .submit-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Messages */
+        .form-message {
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .form-message.success {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #86efac;
+            display: block;
+        }
+
+        .form-message.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            display: block;
+        }
+
+        .form-message.info {
+            background: #eff6ff;
+            color: #0c4a6e;
+            border: 1px solid #93c5fd;
+            display: block;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: #cbd5e1;
+            font-size: 0.85rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e6eefc;
+        }
+
+        .divider span {
+            padding: 0 12px;
+        }
+
+        /* Social buttons */
+        .social-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 11px 14px;
+            border: 1.5px solid #e6eefc;
+            background: #f9fbff;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .social-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        /* Links */
+        .auth-links {
+            text-align: center;
+            margin-top: 24px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-links a:hover {
+            color: #764ba2;
+        }
+
+        /* Header */
+        .auth-page-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(230, 238, 252, 0.5);
+        }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #0f172a;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* Back button */
+        .back-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+            padding: 8px 12px;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 32px 24px;
+                border-radius: 12px;
+            }
+
+            .auth-title {
+                font-size: 1.3rem;
+            }
+
+            .auth-container {
+                padding: 16px;
+            }
+
+            .auth-page-header {
+                padding: 12px 16px;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="auth-page-header">
+        <a href="index.html" class="logo-link">
+            <div class="logo-icon">D</div>
+            <span class="logo-text">DATANA</span>
+        </a>
+        <a href="index.html" class="back-btn">← Quay lại</a>
+    </header>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">D</div>
+                <h1 class="auth-title">Chào mừng bạn</h1>
+                <p class="auth-subtitle">Đăng nhập hoặc đăng ký để bắt đầu</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Đăng nhập</button>
+                <button class="tab-btn" data-tab="register">Đăng ký</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login" class="tab-content active">
+                <div id="loginMsg" class="form-message"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="loginUsername">Tài khoản</label>
+                        <input
+                            type="text"
+                            id="loginUsername"
+                            class="form-input"
+                            placeholder="Nhập username hoặc email"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">Mật khẩu</label>
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            class="form-input"
+                            placeholder="Nhập mật khẩu của bạn"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-footer">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Ghi nhớ tôi</span>
+                        </label>
+                        <a href="#">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="loginSubmit">Đăng nhập</button>
+                </form>
+
+                <div class="auth-links">
+                    Chưa có tài khoản?
+                    <a class="switch-tab" data-tab="register">Đăng ký ngay</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register" class="tab-content">
+                <div id="registerMsg" class="form-message"></div>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label class="form-label" for="registerUsername">Tài khoản</label>
+                        <input
+                            type="text"
+                            id="registerUsername"
+                            class="form-input"
+                            placeholder="Chọn một username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registerEmail">Email</label>
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            class="form-input"
+                            placeholder="your.email@example.com"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registerPassword">Mật khẩu</label>
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            class="form-input"
+                            placeholder="Tối thiểu 6 ký tự"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registerConfirm">Xác nhận mật khẩu</label>
+                        <input
+                            type="password"
+                            id="registerConfirm"
+                            class="form-input"
+                            placeholder="Xác nhận mật khẩu"
+                            required
+                        >
+                    </div>
+
+                    <label class="checkbox-wrapper" style="margin-bottom: 24px;">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <span>Tôi đồng ý với <a href="#" style="color: #667eea;">Điều khoản dịch vụ</a></span>
+                    </label>
+
+                    <button type="submit" class="submit-btn" id="registerSubmit">Đăng ký</button>
+                </form>
+
+                <div class="auth-links">
+                    Đã có tài khoản?
+                    <a class="switch-tab" data-tab="login">Đăng nhập</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(tab).classList.add('active');
+            });
+        });
+
+        // Quick tab switch
+        document.querySelectorAll('.switch-tab').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tab = link.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+                document.getElementById(tab).classList.add('active');
+            });
+        });
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const msgEl = document.getElementById('loginMsg');
+            const submitBtn = document.getElementById('loginSubmit');
+
+            if (!username || !password) {
+                showMessage(msgEl, 'Vui lòng nhập đầy đủ thông tin', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            showMessage(msgEl, 'Đang đăng nhập...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('auth_user', data.username || username);
+                    showMessage(msgEl, '✓ Đăng nhập thành công! Chuyển hướng...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    showMessage(msgEl, data.error || 'Đăng nhập thất bại', 'error');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                showMessage(msgEl, 'Lỗi kết nối. Vui lòng thử lại.', 'error');
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Register form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirm = document.getElementById('registerConfirm').value;
+            const msgEl = document.getElementById('registerMsg');
+            const submitBtn = document.getElementById('registerSubmit');
+
+            if (!username || !email || !password || !confirm) {
+                showMessage(msgEl, 'Vui lòng nhập đầy đủ thông tin', 'error');
+                return;
+            }
+
+            if (password !== confirm) {
+                showMessage(msgEl, 'Mật khẩu không khớp', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage(msgEl, 'Mật khẩu phải có ít nhất 6 ký tự', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            showMessage(msgEl, 'Đang đăng ký...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(msgEl, '✓ Đăng ký thành công! Chuyển sang đăng nhập...', 'success');
+                    document.getElementById('registerForm').reset();
+                    setTimeout(() => {
+                        document.querySelector('[data-tab="login"]').click();
+                        document.getElementById('loginUsername').focus();
+                    }, 1500);
+                    submitBtn.disabled = false;
+                } else {
+                    showMessage(msgEl, data.error || 'Đăng ký thất bại', 'error');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                showMessage(msgEl, 'Lỗi kết nối. Vui lòng thử lại.', 'error');
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Helper function
+        function showMessage(element, text, type) {
+            element.textContent = text;
+            element.className = `form-message ${type}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,9 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+Flask-Login
 pandas
 openpyxl
-flask
-flask-cors
+google-generativeai
+werkzeug
+importlib-metadata

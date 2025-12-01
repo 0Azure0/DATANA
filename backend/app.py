@@ -1,268 +1,316 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import pandas as pd
-import os
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from analyzer import analyze_data
-from recommendations import generate_recommendations
+import os
+import uuid
+import pandas as pd
+import json
 
-app = Flask(__name__)
+# ==============================================================================
+# --- CẤU HÌNH NGƯỜI DÙNG (BẠN CHỈ CẦN SỬA Ở ĐÂY) ---
+# ==============================================================================
+
+# BƯỚC 1: Dán API Key Gemini của bạn vào giữa hai dấu ngoặc kép bên dưới.
+# Lấy key tại: https://aistudio.google.com/app/apikey
+# Ví dụ: MY_GEMINI_KEY = "AIzaSy..."
+MY_GEMINI_KEY = "AIzaSyCKQOVgJGK15b1_qzOzgQBZqphHvZI5qjk" 
+
+# ==============================================================================
+
+app = Flask(__name__, static_folder="../frontend", static_url_path="/")
+
+# --- IMPORT MODULE PHÂN TÍCH ---
+try:
+    import analyzer
+    import recommendations
+except ImportError:
+    print("CẢNH BÁO: Thiếu file analyzer.py hoặc recommendations.py")
+
+# --- CẤU HÌNH KẾT NỐI AI (GOOGLE GEMINI) ---
+try:
+    import google.generativeai as genai
+    
+    # Ưu tiên lấy key từ biến cấu hình ở trên, nếu không có thì thử tìm trong biến môi trường
+    final_api_key = MY_GEMINI_KEY if "DÁN_KEY" not in MY_GEMINI_KEY else os.environ.get("GEMINI_API_KEY")
+
+    # Kiểm tra xem Key có hợp lệ không
+    if not final_api_key or "DÁN_KEY" in final_api_key:
+        print("\n" + "="*50)
+        print(" THÔNG BÁO: CHƯA CÓ API KEY GEMINI")
+        print(" -> Hệ thống sẽ chạy ở chế độ OFFLINE (Trả lời theo kịch bản).")
+        print(" -> Để bật AI: Hãy dán Key vào dòng 17 trong file app.py")
+        print("="*50 + "\n")
+        model = None
+        GEMINI_AVAILABLE = False
+    else:
+        # Cấu hình thành công
+        genai.configure(api_key=final_api_key)
+        # Sử dụng model Gemini 1.5 Flash (nhanh và hiệu quả) hoặc Gemini Pro
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        GEMINI_AVAILABLE = True
+        print(f">>> Đã kết nối Google Gemini thành công! (Key starts with {final_api_key[:8]}...)")
+
+except Exception as e:
+    print(f"Lỗi khởi tạo Gemini: {e}")
+    print("Gợi ý: Hãy chạy 'pip install google-generativeai'")
+    model = None
+    GEMINI_AVAILABLE = False
+
+# --- CẤU HÌNH APP ---
+app.config['SECRET_KEY'] = 'datana-secret-key-123' 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
+
 CORS(app)
+db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-# Configuration
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'xlsx', 'csv', 'xls'}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+# --- DATABASE MODEL ---
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+@login_manager.user_loader
+def load_user(user_id):
+    # Cập nhật cú pháp mới cho SQLAlchemy 2.0+ (db.session.get)
+    return db.session.get(User, int(user_id))
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# --- KHỞI TẠO THƯ MỤC ---
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Last analysis stored server-side (no per-user sessions)
-LAST_ANALYSIS = None
-
-# Server limits
-app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
-
+USER_SESSIONS = {}
+ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# --- ROUTES GIAO DIỆN ---
+@app.route("/")
+def index():
+    if not os.path.exists(os.path.join(app.static_folder, "index.html")):
+        return "Frontend chưa được build hoặc sai đường dẫn static_folder", 404
+    return send_from_directory(app.static_folder, "index.html")
 
-def get_session(req):
-    return None, None
+@app.route("/pages/<path:path>")
+def serve_pages(path):
+    return send_from_directory(os.path.join(app.static_folder, "pages"), path)
 
-def require_auth(req):
-    return None
-
-
-# Login/register/logout removed. App no longer requires auth for analyze/chat.
-
-
-@app.route('/analyze', methods=['POST'])
-def analyze():
+# --- ROUTES AUTH ---
+@app.route("/api/register", methods=["POST"])
+def register():
     try:
-        # No auth required: accept file and analyze
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
 
-        # Check if file is in request
-        if 'file' not in request.files:
-            return jsonify({'error': 'Không có file trong request'}), 400
+        if User.query.filter_by(username=username).first():
+            return jsonify({"error": "Tên đăng nhập đã tồn tại"}), 400
 
-        file = request.files['file']
+        hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
+        new_user = User(username=username, password=hashed_pw)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"message": "Đăng ký thành công!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        if file.filename == '':
-            return jsonify({'error': 'File không có tên'}), 400
+@app.route("/api/login", methods=["POST"])
+def login():
+    try:
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return jsonify({"message": "Đăng nhập thành công", "username": user.username}), 200
+        return jsonify({"error": "Sai tên đăng nhập hoặc mật khẩu"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        if not allowed_file(file.filename):
-            return jsonify({'error': 'Định dạng file không hỗ trợ. Chỉ chấp nhận .xlsx, .csv, .xls'}), 400
+@app.route("/api/logout")
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"message": "Đã đăng xuất"}), 200
 
-        # Save file
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+@app.route("/api/user_info")
+def user_info():
+    if current_user.is_authenticated:
+        return jsonify({"logged_in": True, "username": current_user.username})
+    return jsonify({"logged_in": False})
 
-        # Read and analyze data
-        try:
-            if filename.lower().endswith('.csv'):
-                df = pd.read_csv(filepath)
-            else:
-                df = pd.read_excel(filepath)
-        except Exception as e:
-            # cleanup
-            try:
-                os.remove(filepath)
-            except Exception:
-                pass
-            return jsonify({'error': f'Lỗi đọc file: {str(e)}'}), 400
+# --- ROUTES PHÂN TÍCH ---
+@app.route("/analyze", methods=["POST"])
+def analyze_endpoint():
+    if 'file' not in request.files: return jsonify({"error": "Missing file"}), 400
+    file = request.files['file']
+    if file.filename == '' or not allowed_file(file.filename): return jsonify({"error": "Invalid file"}), 400
 
-        # Analyze data (returns expanded structures)
-        (statistics,
-         time_analysis,
-         product_analysis,
-         region_analysis,
-         customer_analysis,
-         top_products,
-         revenue_by_month,
-         product_metrics,
-         raw_data,
-         columns) = analyze_data(df)
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    
+    try:
+        if filename.lower().endswith('.csv'): df = pd.read_csv(filepath)
+        else: df = pd.read_excel(filepath)
+        
+        # Gọi module phân tích
+        (statistics, time_analysis, product_analysis, region_analysis,
+         customer_analysis, top_products, revenue_by_month,
+         product_metrics, raw_data, columns) = analyzer.analyze_data(df)
 
-        # Generate recommendations (pass expanded data)
-        recommendations = generate_recommendations(
+        # Gọi module gợi ý
+        recs = recommendations.generate_recommendations(
             statistics,
             region_analysis.get('revenue_by_region', {}),
             top_products,
             revenue_by_month,
             product_metrics
         )
-        # Store last analysis in server memory for chat access
-        global LAST_ANALYSIS
-        LAST_ANALYSIS = {
-            'statistics': statistics,
-            'time_analysis': time_analysis,
-            'product_analysis': product_analysis,
-            'region_analysis': region_analysis,
-            'customer_analysis': customer_analysis,
-            'top_products': top_products,
-            'revenue_by_month': revenue_by_month,
-            'product_metrics': product_metrics
+        
+        # Lưu Session
+        session_id = str(uuid.uuid4())
+        USER_SESSIONS[session_id] = {
+            "statistics": statistics,
+            "time_analysis": time_analysis,
+            "top_products": top_products,
+            "revenue_by_month": revenue_by_month,
+            "recommendations": recs,
+            "filename": filename
         }
-        # Clean up uploaded file
-        try:
-            os.remove(filepath)
-        except Exception:
-            pass
+        
+        try: os.remove(filepath)
+        except: pass
 
         return jsonify({
-            'statistics': statistics,
-            'time_analysis': time_analysis,
-            'product_analysis': product_analysis,
-            'region_analysis': region_analysis,
-            'customer_analysis': customer_analysis,
-            'top_products': top_products,
-            'revenue_by_month': revenue_by_month,
-            'product_metrics': product_metrics,
-            'recommendations': recommendations,
-            'raw_data': raw_data,
-            'columns': columns
-        })
+            "session_id": session_id,
+            "statistics": statistics,
+            "time_analysis": time_analysis,
+            "product_analysis": product_analysis, 
+            "region_analysis": region_analysis,
+            "customer_analysis": customer_analysis,
+            "top_products": top_products,
+            "revenue_by_month": revenue_by_month,
+            "product_metrics": product_metrics,
+            "recommendations": recs,
+            "raw_data": raw_data,
+            "columns": columns
+        }), 200
 
     except Exception as e:
-        return jsonify({'error': f'Lỗi server: {str(e)}'}), 500
+        print(f"Lỗi phân tích: {e}")
+        return jsonify({"error": f"Lỗi server: {str(e)}"}), 500
 
-
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'OK'}), 200
-
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    """Simple rule-based chat over the last analysis stored in session.
-
-    Expects JSON {"message": "..."} and Authorization header.
-    Returns {"reply": "..."}
-    """
+# --- ROUTES CHAT (SỬ DỤNG GEMINI) ---
+@app.route("/chat", methods=["POST"])
+def chat_endpoint():
     try:
-        payload = request.get_json(force=True)
-        msg = (payload.get('message') or '').strip()
-        if not msg:
-            return jsonify({'reply': 'Vui lòng nhập câu hỏi.'}), 400
+        data = request.json
+        message = data.get("message", "").strip()
+        session_id = data.get("session_id")
+        
+        if not message:
+            return jsonify({"assistant": "Vui lòng nhập câu hỏi."}), 400
+            
+        # Lấy dữ liệu Context
+        session_data = USER_SESSIONS.get(session_id, {})
+        data_stats = session_data.get("statistics", {}) 
+        top_products = session_data.get("top_products", [])
+        recs = session_data.get("recommendations", [])
 
-        analysis = LAST_ANALYSIS
-        # If no analysis available
-        if not analysis:
-            return jsonify({'reply': 'Chưa có dữ liệu phân tích. Vui lòng tải file lên và phân tích trước khi hỏi.'}), 200
+        # --- XỬ LÝ RECS (Nếu là Dictionary thì gộp lại thành list) ---
+        final_recs_list = []
+        if isinstance(recs, dict):
+            for content in recs.values():
+                if isinstance(content, list):
+                    final_recs_list.extend(content)
+                elif isinstance(content, str):
+                    final_recs_list.append(content)
+        elif isinstance(recs, list):
+            final_recs_list = recs
+        
+        # 1. ƯU TIÊN GỌI GEMINI API (ONLINE MODE)
+        if GEMINI_AVAILABLE and model:
+            try:
+                # Tạo chuỗi context ngắn gọn cho AI
+                context_str = f"""
+                Dữ liệu kinh doanh hiện tại:
+                - Tổng doanh thu: {data_stats.get('total_revenue', 0):,} VNĐ
+                - Lợi nhuận: {data_stats.get('total_profit', 0):,} VNĐ
+                - Top sản phẩm: {', '.join([str(p['name']) for p in top_products[:5]])}
+                - Gợi ý đã có: {'; '.join(final_recs_list[:5]) if final_recs_list else 'Không có'}
+                """
+                
+                # Cấu trúc prompt cho Gemini
+                prompt = f"""
+                Bạn là chuyên gia phân tích dữ liệu (Data Analyst). 
+                Dựa vào thông tin sau:
+                {context_str}
+                
+                Hãy trả lời câu hỏi của người dùng một cách ngắn gọn, súc tích và hữu ích.
+                Câu hỏi: {message}
+                """
+                
+                # Gọi Gemini API
+                response = model.generate_content(prompt)
+                ai_reply = response.text
+                return jsonify({"assistant": ai_reply}), 200
 
-        # Very simple intent parsing
-        q = msg.lower()
-        reply = ''
+            except Exception as e:
+                print(f"Lỗi gọi Gemini API: {e}")
+                # Nếu lỗi mạng hoặc hết quota -> Tự động trôi xuống phần Offline
+                pass 
+        
+        # 2. FALLBACK (OFFLINE MODE)
+        lower_msg = message.lower()
+        
+        # Từ khóa thông minh
+        suggestion_keywords = ["làm gì", "gợi ý", "đề xuất", "cải thiện", "chiến lược", "kế hoạch", "tư vấn"]
+        revenue_keywords = ["doanh thu", "tiền", "bán được"]
+        product_keywords = ["sản phẩm", "bán chạy", "top"]
+        profit_keywords = ["lợi nhuận", "lãi"]
 
-        # Check revenue month question
-        if 'doanh thu' in q and 'tháng' in q:
-            import re
-            m = re.search(r'tháng\s*(\d{1,2})', q)
-            months = analysis.get('revenue_by_month', {})
-            if m and months:
-                mm = m.group(1).zfill(2)
-                # try to find month key ending with -MM
-                cand = None
-                for k in months.keys():
-                    if k.endswith('-'+mm) or k.endswith('/'+mm) or k == mm:
-                        cand = k
-                if cand:
-                    val = months.get(cand, 0)
-                    # compare to previous
-                    keys = list(months.keys())
-                    if cand in keys:
-                        idx = keys.index(cand)
-                        if idx > 0:
-                            prevk = keys[idx-1]
-                            prevv = months.get(prevk,0)
-                            if prevv>0:
-                                change = (val - prevv)/prevv*100
-                                reply = f"Doanh thu {cand} là {int(val):,} VNĐ, {'tăng' if change>=0 else 'giảm'} {abs(change):.0f}% so với {prevk}."
-                            else:
-                                reply = f"Doanh thu {cand} là {int(val):,} VNĐ."   
-                        else:
-                            reply = f"Doanh thu {cand} là {int(val):,} VNĐ."
-                else:
-                    # fallback: give last month
-                    if months:
-                        k = list(months.keys())[-1]
-                        v = months[k]
-                        reply = f"Doanh thu gần nhất ({k}) là {int(v):,} VNĐ." 
+        prefix = "(Chế độ Offline) " if not GEMINI_AVAILABLE else ""
+
+        if any(k in lower_msg for k in revenue_keywords):
+            rev = data_stats.get('total_revenue', 0)
+            return jsonify({"assistant": f"{prefix}💰 Tổng doanh thu là: **{rev:,.0f} VNĐ**."}), 200
+        
+        elif any(k in lower_msg for k in product_keywords):
+            prods = [str(p['name']) for p in top_products]
+            return jsonify({"assistant": f"{prefix}🏆 Top sản phẩm bán chạy nhất: **{', '.join(prods)}**."}), 200
+        
+        elif any(k in lower_msg for k in profit_keywords):
+            prof = data_stats.get('total_profit', 0)
+            return jsonify({"assistant": f"{prefix}📈 Tổng lợi nhuận đạt được: **{prof:,.0f} VNĐ**."}), 200
+        
+        elif any(k in lower_msg for k in suggestion_keywords):
+            if final_recs_list:
+                # Hiển thị tối đa 5 gợi ý đầu tiên để tránh quá dài
+                recs_text = "\n".join([f"- {r}" for r in final_recs_list[:5]])
+                return jsonify({"assistant": f"{prefix}💡 Dựa trên dữ liệu, tôi đề xuất:\n{recs_text}"}), 200
             else:
-                reply = 'Không tìm thấy dữ liệu doanh thu theo tháng.'
-
-        # Ask about why revenue dropped
-        elif ('tại sao' in q or 'tại sao doanh thu' in q or 'tại sao' in q) and 'giảm' in q:
-            months = analysis.get('revenue_by_month', {})
-            if len(months) >= 2:
-                keys = list(months.keys())
-                last = months[keys[-1]]
-                prev = months[keys[-2]]
-                change = (last - prev)/prev*100 if prev>0 else 0
-                # try to find region causing drop
-                region = analysis.get('region_analysis', {}).get('revenue_by_region', {})
-                worst_region = None
-                if region:
-                    sorted_r = sorted(region.items(), key=lambda x: x[1])
-                    worst_region = sorted_r[0][0]
-                reasons = []
-                if change < -5:
-                    reasons.append(f"Doanh thu giảm {abs(change):.0f}% so với tháng trước.")
-                if worst_region:
-                    reasons.append(f"Doanh thu giảm chủ yếu ở khu vực {worst_region}.")
-                reasons.append('Nguyên nhân có thể: giảm nhu cầu mùa vụ, chiến dịch quảng cáo kết thúc, hoặc vấn đề tồn kho.')
-                reply = ' '.join(reasons)
-            else:
-                reply = 'Không đủ dữ liệu thời gian để xác định nguyên nhân giảm doanh thu.'
-
-        # Ask which product to advertise
-        elif ('quảng cáo' in q or 'chạy qc' in q or 'nên chạy' in q) and 'sản phẩm' in q:
-            tops = analysis.get('top_products', [])
-            if tops:
-                p = tops[0]
-                reply = f"Nên tập trung quảng cáo cho '{p.get('name')}', hiện đứng top về doanh thu ({int(p.get('revenue',0)):,} VNĐ). Thử tăng budget cho campaigns liên quan đến sản phẩm này." 
-            else:
-                reply = 'Không có dữ liệu sản phẩm để gợi ý.'
-
-        # Ask for product suggestions
-        elif 'sản phẩm' in q or 'top sản phẩm' in q:
-            tops = analysis.get('top_products', [])
-            if tops:
-                names = [t.get('name') for t in tops[:5]]
-                reply = f"Top sản phẩm: {', '.join(names)}. Có thể ưu tiên tồn kho và marketing cho các sản phẩm này." 
-            else:
-                reply = 'Không có dữ liệu sản phẩm.'
-
-        else:
-            # generic fallback: summarize top 3 insights from recommendations
-            recs = generate_recommendations(
-                analysis.get('statistics', {}),
-                analysis.get('region_analysis', {}).get('revenue_by_region', {}),
-                analysis.get('top_products', []),
-                analysis.get('revenue_by_month', {}),
-                analysis.get('product_metrics', {})
-            )
-            # pick a few short lines
-            picks = []
-            for key in ['overall_strategy','marketing_suggestions','product_suggestions','region_suggestions']:
-                arr = recs.get(key, [])
-                if arr:
-                    picks.append(arr[0])
-            if picks:
-                reply = ' '.join(picks[:3])
-            else:
-                reply = 'Mình chưa thể trả lời chính xác. Vui lòng hỏi cụ thể hơn về doanh thu, sản phẩm hoặc khu vực.'
-
-        return jsonify({'reply': reply}), 200
+                return jsonify({"assistant": f"{prefix}Tôi cần thêm dữ liệu để đưa ra lời khuyên cụ thể."}), 200
+        
+        return jsonify({"assistant": f"{prefix}Xin lỗi, tôi chưa hiểu ý bạn. Bạn có thể hỏi về: Doanh thu, Lợi nhuận, Sản phẩm bán chạy hoặc Gợi ý chiến lược."}), 200
 
     except Exception as e:
-        return jsonify({'reply': f'Lỗi server: {str(e)}'}), 500
+        print(f"Lỗi Chat Endpoint: {e}")
+        return jsonify({"assistant": "Đã xảy ra lỗi hệ thống."}), 500
 
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+        print(">>> Database ready!")
+    app.run(host="0.0.0.0", port=5000, debug=True)

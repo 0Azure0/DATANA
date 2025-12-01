@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Báo cáo — DATANA</title>
+  
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/charts.js" defer></script>
+  <script src="../js/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="brand" style="text-decoration: none;">DATANA</a>
+      <nav>
+        <ul>
+          <li><a href="../index.html" class="nav-link">Trang chủ</a></li>
+          <li><a href="upload.html" class="nav-link">Tải lên</a></li>
+          <li><a href="dashboard.html" class="nav-link active" style="color: var(--text-main);">Báo cáo</a></li>
+          <li><a href="chat.html" class="nav-link">Trợ lý AI</a></li>
+          <li><a href="about.html" class="nav-link">Giới thiệu</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container dashboard-container">
+    <div class="dashboard-header">
+        <h1>📊 Báo cáo hiệu quả kinh doanh</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'tab-overview')">Tổng quan & Xu hướng</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-region')">Khu vực & So sánh</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-product')">Sản phẩm & Tỷ trọng</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-data')">Dữ liệu chi tiết</button>
+        </div>
+    </div>
+    
+    <section class="kpis">
+      <div class="kpi highlight">
+        <h4 id="kpi_rev">-</h4>
+        <p>Tổng doanh thu</p>
+      </div>
+      <div class="kpi highlight">
+        <h4 id="kpi_profit">-</h4>
+        <p>Tổng lợi nhuận</p>
+      </div>
+      <div class="kpi highlight">
+        <h4 id="kpi_topprod">-</h4>
+        <p>Top sản phẩm</p>
+      </div>
+    </section>
+
+    <div id="tab-overview" class="tab-content active">
+        <div class="charts-grid">
+            <div class="chart-card"><h5>📈 Xu hướng doanh thu (Line)</h5><div class="chart-canvas"><canvas id="chartLine"></canvas></div></div>
+            <div class="chart-card"><h5>📈 Tăng trưởng tích lũy (Area)</h5><div class="chart-canvas"><canvas id="chartArea"></canvas></div></div>
+        </div>
+    </div>
+
+    <div id="tab-region" class="tab-content">
+        <div class="charts-grid">
+            <div class="chart-card"><h5>📊 Doanh thu theo khu vực (Bar)</h5><div class="chart-canvas"><canvas id="chartBar"></canvas></div></div>
+            <div class="chart-card"><h5>🔥 Top sản phẩm theo vùng (Stacked)</h5><div class="chart-canvas"><canvas id="chartStack"></canvas></div></div>
+        </div>
+    </div>
+
+    <div id="tab-product" class="tab-content">
+        <div class="charts-grid three-cols">
+            <div class="chart-card"><h5>🍰 Tỷ trọng doanh thu (Donut)</h5><div class="chart-canvas"><canvas id="chartDonut"></canvas></div></div>
+            <div class="chart-card"><h5>🎯 Hiệu suất sản phẩm (Radar)</h5><div class="chart-canvas"><canvas id="chartRadar"></canvas></div></div>
+            <div class="chart-card"><h5>💫 Giá & Số lượng (Scatter)</h5><div class="chart-canvas"><canvas id="chartScatter"></canvas></div></div>
+        </div>
+    </div>
+
+    <div id="tab-data" class="tab-content">
+        <section class="data-table-wrapper">
+            <div id="tableWrap"></div>
+        </section>
+    </div>
+
+  </main>
+
+  <script>
+    // Logic chuyển Tab đơn giản
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        
+        // 1. Ẩn tất cả nội dung tab
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active");
+        }
+        
+        // 2. Bỏ class active ở tất cả nút
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+        
+        // 3. Hiện tab được chọn
+        document.getElementById(tabName).style.display = "block";
+        // setTimeout để fix lỗi chart.js không vẽ được khi display:none
+        setTimeout(() => {
+             document.getElementById(tabName).classList.add("active");
+             // Trigger resize event để chart vẽ lại cho đúng kích thước
+             window.dispatchEvent(new Event('resize'));
+        }, 50);
+       
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Login logic (giữ nguyên)
+    async function checkLogin() {
+        try {
+            const res = await fetch('/api/user_info');
+            const data = await res.json();
+            const navUl = document.querySelector('nav ul');
+            if (data.logged_in) {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" onclick="logout()" class="nav-link" style="color: #ef4444;">Đăng xuất (${data.username})</a>`;
+                navUl.appendChild(li);
+            } else {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="login.html" class="btn-primary" style="padding: 8px 16px;">Đăng nhập</a>`;
+                navUl.appendChild(li);
+            }
+        } catch(e) {}
+    }
+    async function logout() {
+        await fetch('/api/logout');
+        localStorage.removeItem('datana_user');
+        window.location.reload();
+    }
+    checkLogin();
+  </script>
+</body>
+</html>

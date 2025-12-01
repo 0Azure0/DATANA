@@ -1,0 +1,419 @@
+/* css/main.css - FINAL FIXED VERSION */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Bảng màu Dark Mode */
+    --bg-body: #0f172a;       
+    --bg-card: #1e293b;       
+    --text-main: #f8fafc;     
+    --text-muted: #94a3b8;    
+    --primary: #6366f1;       
+    --primary-hover: #4f46e5;
+    --border-color: rgba(255, 255, 255, 0.1);
+    
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+/* --- RESET & GLOBAL STYLES --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    background-color: var(--bg-body);
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    height: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-main);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+p {
+    color: var(--text-muted);
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
+
+/* --- HEADER LAYOUT (CẤU TRÚC CHUẨN) --- */
+.site-header {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-body);
+    width: 100%;
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    /* 1. Gom tất cả về bên trái trước */
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* LOGO: Nằm yên bên trái */
+.brand {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+/* MENU & NÚT BẤM: Đẩy hết sang phải */
+.site-header nav {
+    /* 2. Dùng margin-left: auto để đẩy khối này sang phải */
+    margin-left: auto; 
+    display: flex;
+    align-items: center;
+    gap: 24px; /* Khoảng cách giữa Menu và Nút bấm */
+}
+
+.site-header nav ul {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover, 
+.nav-link.active {
+    color: var(--text-main);
+}
+
+/* --- BUTTONS --- */
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+/* --- UTILITIES --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* --- RESPONSIVE (MOBILE) --- */
+@media (max-width: 768px) {
+    .site-header .container {
+        flex-direction: column;
+        gap: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    .site-header nav {
+        margin-left: 0; /* Trên mobile thì không cần đẩy sang phải nữa */
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .site-header nav ul {
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+/* --- KHUNG DEMO TRANG CHỦ --- */
+.placeholder-visual {
+    width: 100%;
+    max-width: 900px;
+    height: 400px;
+    margin: 40px auto;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px); /* Bắt đầu thấp hơn vị trí gốc 30px */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Trở về vị trí gốc */
+    }
+}
+
+/* 2. Keyframes cho hiệu ứng Lia (Shine) */
+@keyframes shine {
+    0% {
+        left: -100%; /* Bắt đầu từ bên trái ngoài nút */
+    }
+    20% {
+        left: 100%; /* Chạy sang phải hết nút */
+    }
+    100% {
+        left: 100%; /* Đợi một chút rồi lặp lại */
+    }
+}
+
+/* --- ÁP DỤNG HIỆU ỨNG --- */
+
+/* Tiêu đề chính (H1) */
+.hero h1 {
+    opacity: 0; /* Ẩn mặc định để chờ animation */
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 0.2s; /* Chờ 0.2s mới chạy */
+}
+
+/* Đoạn mô tả (P) */
+.hero p {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 0.4s; /* Chạy sau tiêu đề */
+}
+
+/* Nút bấm (Upload) */
+.hero a.btn-primary {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 0.6s; /* Chạy sau đoạn mô tả */
+    
+    position: relative; /* Để hiệu ứng lia hoạt động */
+    overflow: hidden; /* Cắt phần vệt sáng thừa ra ngoài */
+}
+
+/* Tạo vệt sáng lia qua nút Primary */
+.hero a.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%, /* Màu sáng ở giữa */
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg); /* Nghiêng vệt sáng */
+    animation: shine 3s infinite; /* Lặp lại vô hạn mỗi 3 giây */
+    pointer-events: none; /* Không chặn click chuột */
+}
+
+/* Khung Demo Dashboard */
+.demo-wrapper {
+    opacity: 0;
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.8s; /* Hiện sau cùng */
+}
+/* ... (Giữ nguyên phần code cũ ở trên) ... */
+
+/* --- ADVANCED ANIMATIONS (HIỆU ỨNG NGẦU LÒI) --- */
+
+/* 1. Keyframes: Trồi lên từ dưới */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 2. Keyframes: Rơi xuống từ trên */
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 3. Keyframes: Phóng to nhẹ (Zoom In) */
+@keyframes zoomIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 4. Keyframes: Hiệu ứng trôi nổi (Floating) */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* 5. Keyframes: Lia sáng (Shimmer) - Phiên bản nâng cao */
+@keyframes shimmer {
+    0% { left: -100%; opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { left: 100%; opacity: 0; }
+}
+
+/* --- ÁP DỤNG HIỆU ỨNG VÀO PHẦN TỬ --- */
+
+/* Tiêu đề chính (H1) - Rơi từ trên xuống */
+.hero h1 {
+    opacity: 0;
+    animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation-delay: 0.2s;
+}
+
+/* Đoạn mô tả (P) - Trồi từ dưới lên */
+.hero p {
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation-delay: 0.4s;
+}
+
+/* Nút bấm (Upload) - Xuất hiện sau cùng */
+.hero a.btn-primary {
+    opacity: 0;
+    animation: zoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Hiệu ứng nảy (bounce) */
+    animation-delay: 0.6s;
+    
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hiệu ứng Hover cho nút bấm: Nổi lên & Phát sáng */
+.hero a.btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4); /* Bóng màu tím */
+}
+
+/* Vệt sáng chạy qua nút (Lia) */
+.hero a.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+    );
+    transform: skewX(-20deg);
+    animation: shimmer 3s infinite; /* Lặp lại mỗi 3s */
+}
+
+/* Khung Demo Dashboard - Phóng to & Trôi nổi */
+.demo-wrapper {
+    opacity: 0;
+    animation: zoomIn 1s ease-out forwards, float 6s ease-in-out infinite; /* Kết hợp 2 hiệu ứng */
+    animation-delay: 0.8s, 1.8s; /* Float bắt đầu sau khi Zoom xong */
+}
+
+/* --- HIỆU ỨNG CHO CÁC KHỐI TÍNH NĂNG (FEATURES) --- */
+/* (Áp dụng nếu bạn có phần features bên dưới) */
+.features div {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* So le thời gian xuất hiện cho các thẻ */
+.features div:nth-child(1) { animation-delay: 1.0s; }
+.features div:nth-child(2) { animation-delay: 1.2s; }
+.features div:nth-child(3) { animation-delay: 1.4s; }
+/* ... (Code cũ giữ nguyên) ... */
+
+/* --- SỬA LỖI LOGO QUÁ TO & BO TRÒN --- */
+
+.logo-image {
+    /* Đặt chiều cao cố định, chiều rộng sẽ tự co theo */
+    height: 50px; 
+    
+    /* Đảm bảo ảnh không bị méo */
+    width: auto; 
+    object-fit: contain; 
+    
+    /* Xóa nền đen của ảnh (nếu có) để hòa vào header */
+    mix-blend-mode: screen; 
+    
+    /* Thêm chút khoảng cách bên phải nếu cần */
+    margin-right: 15px;
+
+    /* --- MỚI THÊM: BO TRÒN LOGO --- */
+    border-radius: 50%; /* Bo tròn hoàn toàn */
+    /* Hoặc dùng px nếu muốn bo góc nhẹ: border-radius: 8px; */
+}
+
+/* Đảm bảo container của logo không bị giãn */
+.brand {
+    flex-shrink: 0; 
+    display: flex;
+    align-items: center;
+    
+    /* --- KHÔI PHỤC STYLE CHO CHỮ DATANA --- */
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+
+/* ... (Code cũ giữ nguyên) ... */

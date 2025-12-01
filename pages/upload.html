@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tải lên dữ liệu — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .upload-container {
+        max-width: 800px;
+        margin: 40px auto;
+        text-align: center;
+    }
+
+    /* Vùng thả file xịn xò */
+    .drop-zone {
+        background-color: var(--bg-card);
+        border: 2px dashed var(--border-color);
+        border-radius: 16px;
+        padding: 60px 40px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    /* Hiệu ứng khi kéo file vào */
+    .drop-zone.drag-over {
+        border-color: var(--primary);
+        background-color: rgba(99, 102, 241, 0.1); /* Màu tím nhạt */
+        transform: scale(1.02);
+    }
+
+    .drop-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .file-info-display {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        display: none; /* Ẩn mặc định */
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid var(--primary);
+    }
+
+    /* Ẩn nút input mặc định xấu xí */
+    #fileInput { display: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="brand" style="text-decoration: none;">DATANA</a>
+      <nav>
+        <ul>
+          <li><a href="../index.html" class="nav-link">Trang chủ</a></li>
+          <li><a href="upload.html" class="nav-link active" style="color: var(--text-main);">Tải lên</a></li>
+          <li><a href="dashboard.html" class="nav-link">Báo cáo</a></li>
+          <li><a href="chat.html" class="nav-link">Trợ lý AI</a></li>
+          <li><a href="about.html" class="nav-link">Giới thiệu</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="upload-container">
+        <h1>Tải dữ liệu Excel/CSV</h1>
+        <p style="margin-bottom: 30px;">Hệ thống sẽ tự động phân tích và tạo báo cáo từ file của bạn.</p>
+
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+
+        <div class="drop-zone" id="dropArea">
+            <span class="drop-icon">📂</span>
+            <h3 style="color: var(--text-main); margin-bottom: 10px;">Kéo thả file vào đây</h3>
+            <p class="muted">hoặc <span style="color: var(--primary); font-weight: bold; text-decoration: underline;">nhấn để chọn file</span> từ máy tính</p>
+            <p class="muted" style="font-size: 0.85rem; margin-top: 10px;">Hỗ trợ: .xlsx, .csv (Max 10MB)</p>
+        </div>
+
+        <div id="fileDisplay" class="file-info-display">
+            <span>📄</span>
+            <strong id="fileName">dulieu_thang_10.xlsx</strong>
+            <span id="removeFile" style="cursor: pointer; color: #ef4444; margin-left: 10px;">(Xóa)</span>
+        </div>
+
+        <button id="analyzeBtn" class="btn-primary" style="padding: 16px 40px; font-size: 1.1rem; margin-top: 20px;" disabled>
+            🚀 Bắt đầu Phân tích
+        </button>
+
+        <div style="margin-top: 40px; text-align: left; background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--text-main); margin-bottom: 10px;">💡 Yêu cầu file chuẩn:</h4>
+            <ul style="color: var(--text-muted); padding-left: 20px; line-height: 1.8;">
+                <li>File cần có dòng tiêu đề (Header).</li>
+                <li>Các cột quan trọng: <strong>Ngày tháng, Sản phẩm, Doanh thu, Khu vực, Số lượng</strong>.</li>
+                <li>Không chứa các ô gộp (Merged Cells) phức tạp.</li>
+            </ul>
+            <div style="margin-top: 15px;">
+                <a href="#" style="font-size: 0.9rem;">📥 Tải file mẫu tại đây</a>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <script src="../js/upload.js"></script>
+</body>
+</html>

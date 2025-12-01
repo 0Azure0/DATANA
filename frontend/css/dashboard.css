@@ -1,148 +1,131 @@
-/* ============================================================
-   DASHBOARD — Modern SaaS Charts & KPI Design
-   Clean, Elegant, Responsive
-   ============================================================ */
+/* css/dashboard.css - Tabbed Version */
 
-/* Dashboard container */
-.dashboard-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 26px;
-    padding: 24px;
+.dashboard-container {
+    padding-top: 20px;
+    padding-bottom: 40px;
 }
 
-/* -------------------------
-   KPI CARDS
--------------------------- */
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+/* --- TAB NAVIGATION STYLES --- */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    overflow-x: auto; /* Cho phép cuộn ngang trên mobile */
+}
+
+.tab-btn {
+    background-color: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+/* Trạng thái Active của nút Tab */
+.tab-btn.active {
+    background-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* --- TAB CONTENT --- */
+.tab-content {
+    display: none; /* Mặc định ẩn */
+    animation: fadeIn 0.4s ease;
+}
+
+/* Tab đầu tiên (mặc định hiện) */
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- GRID LAYOUTS CHO CHART --- */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+/* Lưới 3 cột cho tab Sản phẩm */
+.charts-grid.three-cols {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* --- KPI CARDS --- */
 .kpis {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
 }
 
 .kpi {
-    background: #ffffff;
-    padding: 18px;
-    border-radius: 14px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
     text-align: center;
-    box-shadow: 0 6px 22px rgba(15, 23, 42, 0.06);
-    transition: all 0.25s ease;
 }
 
-.kpi:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09);
-}
+.kpi h4 { color: var(--primary); font-size: 1.8rem; margin-bottom: 5px; }
+.kpi p { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
 
-.kpi-title {
-    font-size: 0.95rem;
-    color: #64748b;
-    margin-bottom: 6px;
-}
-
-.kpi-value {
-    font-size: 1.55rem;
-    font-weight: 700;
-    color: #0f172a;
-}
-
-/* -------------------------
-   CHART CARDS
--------------------------- */
-.charts {
-    display: flex;
-    flex-direction: column; /* stack one chart per row */
-    gap: 18px;
-}
-
+/* --- CHART CARDS --- */
 .chart-card {
-    background: #ffffff;
-    padding: 18px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(15,23,42,0.06);
-    transition: all .25s ease;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    height: 400px; /* Chiều cao cố định cho khung chart */
+    display: flex;
+    flex-direction: column;
 }
 
-.chart-card canvas{ width:100% !important; height:320px !important; display:block; }
-
-.chart-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 26px rgba(15,23,42,0.08);
+.chart-card h5 {
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-.chart-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 12px;
-}
-
-/* -------------------------
-   DATA TABLE SECTION
--------------------------- */
-.data-table-wrapper {
-    background: #ffffff;
-    padding: 18px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(15,23,42,0.06);
-    overflow-x: auto;
-    /* allow smooth scrolling and prevent layout shifts */
-    -webkit-overflow-scrolling: touch;
-}
-
-.data-table {
+.chart-canvas {
+    flex: 1;
+    position: relative;
     width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed; /* prevent long cells from stretching layout */
-    margin-top: 8px;
+    height: 100%;
 }
 
-.data-table thead {
-    background: #667eea;
-    color: white;
+/* --- TABLE STYLES --- */
+.data-table-wrapper {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 0;
+    overflow-x: auto;
 }
 
-.data-table th {
-    padding: 14px 12px;
-    text-align: left;
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.data-table td {
-    padding: 12px 12px;
-    border-bottom: 1px solid #e2e8f0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.data-table tbody tr:hover {
-    background: #f1f5ff;
-    transition: .2s;
-}
-
-/* -------------------------
-   KPI CARDS ENHANCEMENTS
--------------------------- */
-.kpi h4 { margin:0; font-size:1.8rem; color:var(--accent); word-break:break-word; }
-.kpi p { margin:4px 0 0 0; font-size:0.9rem; color:var(--muted); }
-.kpi.highlight { background:linear-gradient(135deg,rgba(102,126,234,0.08),rgba(79,172,254,0.08)); border:1px solid rgba(102,126,234,0.12); }
-
-/* -------------------------
-   SECTION TITLE
--------------------------- */
-.data-table h4 { margin:0 0 12px 0; font-size:1.1rem; color:#1e293b; font-weight:700; }
-
-/* -------------------------
-   RESPONSIVE
--------------------------- */
-@media (max-width: 900px) {
-    .dashboard-grid {
-        padding: 16px;
-    }
-    .data-table th, .data-table td{ font-size:0.9rem; padding:10px 8px; }
-    .kpi h4 { font-size:1.4rem; }
-}
+table { width: 100%; border-collapse: collapse; color: var(--text-main); min-width: 600px; }
+thead th { background-color: rgba(255, 255, 255, 0.05); padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--primary); }
+tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); }
+tbody tr:hover { background-color: rgba(255, 255, 255, 0.02); }

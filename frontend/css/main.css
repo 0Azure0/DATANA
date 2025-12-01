@@ -1,434 +1,419 @@
-/* ============================================================
-   MAIN CSS — Modern SaaS UI / Dashboard / AI Platform
-   By ChatGPT — Optimized for your Excel Analysis Website
-   ============================================================ */
+/* css/main.css - FINAL FIXED VERSION */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* -----------------------
-   THEME VARIABLES
------------------------- */
 :root {
-    --maxw: 1200px;
-    --accent: #667eea;
-    --accent-2: #4facfe;
-    --muted: #6b7280;
-    --bg: #f6f8ff;
-    --card: #ffffff;
-    --radius: 12px;
-    --glass: rgba(255,255,255,0.7);
-
-    --shadow-sm: 0 4px 18px rgba(15,23,42,0.05);
-    --shadow-md: 0 8px 30px rgba(15,23,42,0.06);
-    --shadow-lg: 0 12px 35px rgba(15,23,42,0.10);
+    /* Bảng màu Dark Mode */
+    --bg-body: #0f172a;       
+    --bg-card: #1e293b;       
+    --text-main: #f8fafc;     
+    --text-muted: #94a3b8;    
+    --primary: #6366f1;       
+    --primary-hover: #4f46e5;
+    --border-color: rgba(255, 255, 255, 0.1);
+    
+    --radius-md: 8px;
+    --radius-lg: 12px;
 }
 
-html, body {
-    height: 100%;
+/* --- RESET & GLOBAL STYLES --- */
+* {
+    box-sizing: border-box;
     margin: 0;
-    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-    background: linear-gradient(180deg, var(--bg) 0%, #eef2ff 100%);
-    color: #0b122a;
-    -webkit-font-smoothing: antialiased;
+    padding: 0;
 }
 
-.container {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 28px;
+html {
+    background-color: var(--bg-body);
 }
 
-/* -----------------------
-   HEADER
------------------------- */
-.site-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 0;
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    height: auto;
 }
 
-.brand {
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.brand .logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-main);
     font-weight: 700;
+    margin-bottom: 1rem;
 }
 
-.nav {
-    display: flex;
-    gap: 18px;
-    align-items: center;
+p {
+    color: var(--text-muted);
 }
 
-.nav a {
-    color: #0b122a;
+a {
+    color: var(--primary);
     text-decoration: none;
-    font-weight: 600;
-    padding: 8px 10px;
-    border-radius: 8px;
+    transition: color 0.2s;
 }
 
-.nav a:hover {
-    background: rgba(102,126,234,0.08);
+a:hover {
+    color: var(--primary-hover);
 }
 
-/* -----------------------
-   AUTH HEADER (login/register)
------------------------- */
-.auth-header{
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-.auth-header input[type="text"], .auth-header input[type="password"]{
-    padding:8px 10px;
-    border-radius:8px;
-    border:1px solid rgba(15,23,42,0.06);
-    background: rgba(255,255,255,0.9);
-    width:140px;
-    max-width:20vw;
-}
-.auth-header .btn-primary, .auth-header .btn-secondary, .auth-header .btn-link{
-    padding:8px 10px;
-    border-radius:8px;
-    font-size:0.9rem;
-}
-.auth-header #loginMsgHeader{
-    color:var(--muted);
-    font-size:0.9rem;
-    white-space:nowrap;
+/* --- HEADER LAYOUT (CẤU TRÚC CHUẨN) --- */
+.site-header {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-body);
+    width: 100%;
 }
 
-@media (max-width:900px){
-    .auth-header input[type="text"], .auth-header input[type="password"]{ display:none; }
-    .auth-header .btn-primary{ padding:8px 10px; }
-    .auth-header #loginMsgHeader{ display:none; }
+.site-header .container {
+    display: flex;
+    align-items: center;
+    /* 1. Gom tất cả về bên trái trước */
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
 }
 
-/* -----------------------
-   HERO SECTION
------------------------- */
-.hero {
-    padding: 42px 0;
-}
-
-.hero h1 {
-    font-size: 2.1rem;
+/* LOGO: Nằm yên bên trái */
+.brand {
+    font-size: 1.5rem;
     font-weight: 800;
-    margin-bottom: 12px;
-    color: #0b122a;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 20px;
+    flex-shrink: 0;
 }
 
-.hero p {
-    color: var(--muted);
-    margin-bottom: 18px;
-    line-height: 1.55;
-}
-
-.cta-row {
+/* MENU & NÚT BẤM: Đẩy hết sang phải */
+.site-header nav {
+    /* 2. Dùng margin-left: auto để đẩy khối này sang phải */
+    margin-left: auto; 
     display: flex;
-    gap: 12px;
-    margin-top: 18px;
+    align-items: center;
+    gap: 24px; /* Khoảng cách giữa Menu và Nút bấm */
 }
 
-.btn-primary {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #fff;
-    padding: 12px 18px;
-    border-radius: 12px;
-    text-decoration: none;
-    display: inline-flex;
-    gap: 8px;
+.site-header nav ul {
+    display: flex;
+    gap: 2rem;
     align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover, 
+.nav-link.active {
+    color: var(--text-main);
+}
+
+/* --- BUTTONS --- */
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
     border: none;
     cursor: pointer;
-    box-shadow: var(--shadow-md);
-    transition: 0.25s;
+    transition: background-color 0.2s, transform 0.1s;
+    display: inline-block;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    background-color: var(--primary-hover);
 }
 
-.btn-outline {
-    background: transparent;
-    border: 1px solid rgba(102,126,234,0.12);
-    padding: 10px 14px;
-    border-radius: 10px;
-    cursor: pointer;
+.btn-primary:active {
+    transform: translateY(1px);
 }
 
-/* Generic Button */
-.btn {
-    padding: 10px 16px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: 0.25s;
+/* --- UTILITIES --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-.btn-secondary {
-    background: #f3f4f6;
-    color: #111;
+/* --- RESPONSIVE (MOBILE) --- */
+@media (max-width: 768px) {
+    .site-header .container {
+        flex-direction: column;
+        gap: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    .site-header nav {
+        margin-left: 0; /* Trên mobile thì không cần đẩy sang phải nữa */
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .site-header nav ul {
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
 }
 
-.btn-secondary:hover {
-    background: #e5e7eb;
-}
-
-/* -----------------------
-   CARDS + SHARED ELEMENTS
------------------------- */
-.card,
-.upload-card,
-.chart-card,
-.kpi,
-.review-item {
-    background: var(--card);
-    padding: 16px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-    transition: all 0.25s ease;
-}
-
-/* -----------------------
-   UPLOAD CARD + DROP AREA
------------------------- */
-.upload-card{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    align-items:stretch;
-}
-.drop-area{
-    border: 1px dashed rgba(15,23,42,0.06);
-    padding:18px;
-    border-radius:10px;
-    display:flex;
-    gap:12px;
-    align-items:center;
-    justify-content:space-between;
-    min-height:64px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
-}
-.drop-area .drop-text{ flex:1; color:var(--muted); }
-.drop-area .file-info{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.drop-area button{ margin-left:12px; white-space:nowrap; }
-
-/* small form rows used site-wide */
-.form-row{ display:flex; flex-direction:column; gap:6px; }
-.form-row label{ font-weight:600; font-size:0.95rem; }
-.form-row input{ padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,42,0.06); }
-
-
-.card:hover,
-.chart-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-}
-
-.section-title {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
-
-.muted {
-    color: var(--muted);
-}
-
-/* Placeholder with shimmer */
-.placeholder {
-    height: 180px;
-    background: linear-gradient(90deg, #eef6ff, #fff);
-    border-radius: 10px;
+/* --- KHUNG DEMO TRANG CHỦ --- */
+.placeholder-visual {
+    width: 100%;
+    max-width: 900px;
+    height: 400px;
+    margin: 40px auto;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
+    color: var(--text-muted);
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px); /* Bắt đầu thấp hơn vị trí gốc 30px */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Trở về vị trí gốc */
+    }
 }
 
-.placeholder::after {
-    content: "";
+/* 2. Keyframes cho hiệu ứng Lia (Shine) */
+@keyframes shine {
+    0% {
+        left: -100%; /* Bắt đầu từ bên trái ngoài nút */
+    }
+    20% {
+        left: 100%; /* Chạy sang phải hết nút */
+    }
+    100% {
+        left: 100%; /* Đợi một chút rồi lặp lại */
+    }
+}
+
+/* --- ÁP DỤNG HIỆU ỨNG --- */
+
+/* Tiêu đề chính (H1) */
+.hero h1 {
+    opacity: 0; /* Ẩn mặc định để chờ animation */
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 0.2s; /* Chờ 0.2s mới chạy */
+}
+
+/* Đoạn mô tả (P) */
+.hero p {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 0.4s; /* Chạy sau tiêu đề */
+}
+
+/* Nút bấm (Upload) */
+.hero a.btn-primary {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 0.6s; /* Chạy sau đoạn mô tả */
+    
+    position: relative; /* Để hiệu ứng lia hoạt động */
+    overflow: hidden; /* Cắt phần vệt sáng thừa ra ngoài */
+}
+
+/* Tạo vệt sáng lia qua nút Primary */
+.hero a.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%, /* Màu sáng ở giữa */
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg); /* Nghiêng vệt sáng */
+    animation: shine 3s infinite; /* Lặp lại vô hạn mỗi 3 giây */
+    pointer-events: none; /* Không chặn click chuột */
+}
+
+/* Khung Demo Dashboard */
+.demo-wrapper {
+    opacity: 0;
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.8s; /* Hiện sau cùng */
+}
+/* ... (Giữ nguyên phần code cũ ở trên) ... */
+
+/* --- ADVANCED ANIMATIONS (HIỆU ỨNG NGẦU LÒI) --- */
+
+/* 1. Keyframes: Trồi lên từ dưới */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 2. Keyframes: Rơi xuống từ trên */
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 3. Keyframes: Phóng to nhẹ (Zoom In) */
+@keyframes zoomIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 4. Keyframes: Hiệu ứng trôi nổi (Floating) */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* 5. Keyframes: Lia sáng (Shimmer) - Phiên bản nâng cao */
+@keyframes shimmer {
+    0% { left: -100%; opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { left: 100%; opacity: 0; }
+}
+
+/* --- ÁP DỤNG HIỆU ỨNG VÀO PHẦN TỬ --- */
+
+/* Tiêu đề chính (H1) - Rơi từ trên xuống */
+.hero h1 {
+    opacity: 0;
+    animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation-delay: 0.2s;
+}
+
+/* Đoạn mô tả (P) - Trồi từ dưới lên */
+.hero p {
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation-delay: 0.4s;
+}
+
+/* Nút bấm (Upload) - Xuất hiện sau cùng */
+.hero a.btn-primary {
+    opacity: 0;
+    animation: zoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Hiệu ứng nảy (bounce) */
+    animation-delay: 0.6s;
+    
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hiệu ứng Hover cho nút bấm: Nổi lên & Phát sáng */
+.hero a.btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4); /* Bóng màu tím */
+}
+
+/* Vệt sáng chạy qua nút (Lia) */
+.hero a.btn-primary::after {
+    content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation: shimmer 1.8s infinite;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+    );
+    transform: skewX(-20deg);
+    animation: shimmer 3s infinite; /* Lặp lại mỗi 3s */
 }
 
-@keyframes shimmer {
-    to { left: 100%; }
+/* Khung Demo Dashboard - Phóng to & Trôi nổi */
+.demo-wrapper {
+    opacity: 0;
+    animation: zoomIn 1s ease-out forwards, float 6s ease-in-out infinite; /* Kết hợp 2 hiệu ứng */
+    animation-delay: 0.8s, 1.8s; /* Float bắt đầu sau khi Zoom xong */
 }
 
-/* -----------------------
-   DASHBOARD GRID
------------------------- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-    gap: 18px;
-    margin-top: 22px;
+/* --- HIỆU ỨNG CHO CÁC KHỐI TÍNH NĂNG (FEATURES) --- */
+/* (Áp dụng nếu bạn có phần features bên dưới) */
+.features div {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
 }
 
-/* -----------------------
-   FOOTER
------------------------- */
-.site-footer {
-    background: transparent;
-    padding: 28px 0;
-    color: var(--muted);
-    border-top: 1px solid rgba(15,23,42,0.03);
-    margin-top: 32px;
+/* So le thời gian xuất hiện cho các thẻ */
+.features div:nth-child(1) { animation-delay: 1.0s; }
+.features div:nth-child(2) { animation-delay: 1.2s; }
+.features div:nth-child(3) { animation-delay: 1.4s; }
+/* ... (Code cũ giữ nguyên) ... */
+
+/* --- SỬA LỖI LOGO QUÁ TO & BO TRÒN --- */
+
+.logo-image {
+    /* Đặt chiều cao cố định, chiều rộng sẽ tự co theo */
+    height: 50px; 
+    
+    /* Đảm bảo ảnh không bị méo */
+    width: auto; 
+    object-fit: contain; 
+    
+    /* Xóa nền đen của ảnh (nếu có) để hòa vào header */
+    mix-blend-mode: screen; 
+    
+    /* Thêm chút khoảng cách bên phải nếu cần */
+    margin-right: 15px;
+
+    /* --- MỚI THÊM: BO TRÒN LOGO --- */
+    border-radius: 50%; /* Bo tròn hoàn toàn */
+    /* Hoặc dùng px nếu muốn bo góc nhẹ: border-radius: 8px; */
 }
 
-.site-footer p {
-    margin: 0;
+/* Đảm bảo container của logo không bị giãn */
+.brand {
+    flex-shrink: 0; 
+    display: flex;
+    align-items: center;
+    
+    /* --- KHÔI PHỤC STYLE CHO CHỮ DATANA --- */
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* -----------------------
-   UTILITY
------------------------- */
-.small { font-size: 0.9rem; color: var(--muted); }
 
-.kbd {
-    background: #f3f4f6;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-weight: 700;
-}
-
-/* -----------------------
-   DARK MODE (Auto detect)
------------------------- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #0e121a;
-        --card: #1a1f2b;
-        --muted: #a1a1aa;
-        --accent: #4f46e5;
-        --accent-2: #6366f1;
-        color-scheme: dark;
-    }
-
-    body {
-        background: linear-gradient(180deg, #0e121a 0%, #111827 100%);
-        color: #e5e7eb;
-    }
-
-    .nav a { color: #e5e7eb; }
-}
-
-/* -----------------------
-   BADGES & TAGS
------------------------- */
-.badge { display:inline-block; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:600; background:rgba(102,126,234,0.15); color:var(--accent); }
-.badge-success { background:#d1fae5; color:#047857; }
-.badge-warning { background:#fef3c7; color:#d97706; }
-.badge-error { background:#fee2e2; color:#dc2626; }
-.badge-info { background:#dbeafe; color:#0369a1; }
-
-/* -----------------------
-   ANIMATIONS
------------------------- */
-@keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-@keyframes slideDown { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
-@keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-
-.animate-in { animation:fadeIn 0.3s ease-out; }
-.animate-pulse { animation:pulse 2s infinite; }
-.animate-spin { animation:spin 1s linear infinite; }
-.animate-slide { animation:slideDown 0.3s ease-out; }
-
-/* -----------------------
-   SPINNER/LOADER
------------------------- */
-.spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(102,126,234,0.2); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
-
-/* -----------------------
-   MESSAGE/ALERT BOXES
------------------------- */
-.alert { padding:12px 14px; border-radius:8px; margin:12px 0; border-left:3px solid var(--accent); background:rgba(102,126,234,0.08); }
-.alert-success { border-left-color:#10b981; background:rgba(16,185,129,0.08); color:#065f46; }
-.alert-warning { border-left-color:#f59e0b; background:rgba(245,158,11,0.08); color:#7c2d12; }
-.alert-error { border-left-color:#ef4444; background:rgba(239,68,68,0.08); color:#7f1d1d; }
-
-/* -----------------------
-   SUGGESTION CARDS
------------------------- */
-.suggestion-group { margin-bottom:24px; }
-.suggestion-group h3 { display:flex; align-items:center; gap:8px; margin-bottom:12px; color:#1e293b; font-size:1.1rem; }
-.suggestion-list { list-style:none; padding:0; display:flex; flex-direction:column; gap:8px; }
-.suggestion-item { padding:12px; background:#f8fafc; border-radius:8px; border-left:3px solid var(--accent); color:#1e293b; font-size:0.95rem; line-height:1.4; transition:all 0.2s; }
-.suggestion-item:hover { background:#f1f5ff; transform:translateX(4px); box-shadow:var(--shadow-sm); }
-
-/* -----------------------
-   MESSAGE BUBBLES (CHAT)
------------------------- */
-.message { display:flex; margin-bottom:12px; animation:fadeIn 0.3s; }
-.message.user { justify-content:flex-end; }
-.message.ai { justify-content:flex-start; }
-.message-bubble { max-width:70%; padding:10px 12px; border-radius:10px; font-size:0.95rem; line-height:1.4; word-wrap:break-word; }
-.message.user .message-bubble { background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#fff; border-radius:10px 4px 10px 10px; }
-.message.ai .message-bubble { background:#f1f5ff; color:#0b122a; border-radius:4px 10px 10px 10px; }
-.message-time { font-size:0.8rem; color:var(--muted); margin-top:4px; }
-
-/* -----------------------
-   INPUT STYLING
------------------------- */
-input[type="text"], input[type="password"], input[type="email"], textarea, select {
-    padding:10px 12px;
-    border:1px solid rgba(15,23,42,0.08);
-    border-radius:8px;
-    background:#fff;
-    font-family:inherit;
-    font-size:0.95rem;
-    transition:all 0.25s;
-}
-input:focus, textarea:focus, select:focus {
-    outline:none;
-    border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(102,126,234,0.1);
-}
-input::placeholder, textarea::placeholder { color:var(--muted); }
-
-/* -----------------------
-   PROGRESS BAR
------------------------- */
-.progress { height:4px; background:#e5e7eb; border-radius:2px; overflow:hidden; margin:8px 0; }
-.progress-bar { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); border-radius:2px; transition:width 0.3s; }
-
-/* -----------------------
-   RESPONSIVE
------------------------- */
-@media (max-width: 900px) {
-    .nav { display: none; }
-
-    .hero h1 {
-        font-size: 1.6rem;
-    }
-
-    .container {
-        padding: 18px;
-    }
-    .drop-area{ flex-direction:column; align-items:flex-start; }
-    .message-bubble { max-width:85%; }
-}
-
+/* ... (Code cũ giữ nguyên) ... */

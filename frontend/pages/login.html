@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Đăng nhập - DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .auth-box {
+        max-width: 400px;
+        margin: 80px auto;
+        padding: 40px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        text-align: center;
+    }
+    input {
+        width: 100%; padding: 12px; margin-bottom: 15px;
+        background: var(--bg-body); border: 1px solid var(--border-color);
+        color: #fff; border-radius: 8px;
+    }
+    button { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+        <a href="../index.html" class="brand" style="text-decoration: none;">DATANA</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="auth-box">
+        <h2 style="margin-bottom: 20px; color: var(--text-main);">Đăng nhập 👋</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Tên đăng nhập" required>
+            <input type="password" id="password" placeholder="Mật khẩu" required>
+            <button type="submit" class="btn-primary">Đăng nhập</button>
+        </form>
+        <p style="margin-top: 20px; font-size: 0.9rem;">
+            Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
+        </p>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        
+        const res = await fetch('/api/login', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: u, password: p})
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            localStorage.setItem('datana_user', u); // Lưu tên user
+            window.location.href = '../index.html'; // Chuyển về trang chủ
+        } else {
+            alert("Lỗi: " + data.error);
+        }
+    });
+  </script>
+</body>
+</html>

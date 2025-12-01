@@ -1,220 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>DATANA — Phân tích Excel tự động</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DATANA - Phân tích dữ liệu thông minh</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+        /* CSS riêng cho trang chủ */
+        .hero { padding: 80px 0; text-align: center; }
+        .hero h1 { font-size: 3.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: var(--text-main); }
+        .hero p { font-size: 1.2rem; max-width: 600px; margin: 0 auto 2.5rem; color: var(--text-muted); }
+        
+        /* Hiệu ứng kính mờ cho Demo Box */
+        .placeholder-visual {
+            width: 100%; max-width: 900px; height: 400px; margin: 40px auto;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); position: relative;
+        }
+
+        /* Style cho nút Auth trên Header */
+        .auth-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: 20px;
+        }
+        .user-greeting {
+            font-weight: 600;
+            color: var(--primary);
+        }
+    </style>
 </head>
 <body>
+    <!-- HEADER -->
     <header class="site-header">
-        <div class="container header-inner">
-            <div class="brand">
-                <div class="logo">D</div>
-                <div class="title">
-                    <div class="product">DATANA</div>
-                    <div class="tag">Phân tích dữ liệu Excel tự động</div>
+        <div class="container">
+            <!-- LOGO MỚI Ở ĐÂY -->
+            <a href="index.html" class="brand" style="text-decoration: none;">
+                <img src="images/logo.jpg" alt="DATANA Logo" class="logo-image">
+                <span>DATANA</span>
+</a>
+            
+            <nav>
+                <!-- Menu chính -->
+                <ul>
+                    <li><a href="index.html" class="nav-link active" style="color: var(--text-main);">Trang chủ</a></li>
+                    <li><a href="pages/upload.html" class="nav-link">Tải lên</a></li>
+                    <li><a href="pages/dashboard.html" class="nav-link">Báo cáo</a></li>
+                    <li><a href="pages/chat.html" class="nav-link">Trợ lý AI</a></li>
+                    <li><a href="pages/about.html" class="nav-link">Giới thiệu</a></li>
+                </ul>
+
+                <!-- Khu vực chứa nút Đăng nhập/Đăng ký -->
+                <div id="auth-buttons" class="auth-btn-group">
+                    <!-- Loading... -->
                 </div>
-            </div>
-
-            <button class="nav-toggle" id="navToggle" aria-label="Mở menu">
-                <span></span><span></span><span></span>
-            </button>
-
-            <nav class="nav" id="mainNav">
-                <a href="#features" class="nav-link">Tính năng</a>
-                <a href="#how" class="nav-link">Cách hoạt động</a>
-                <a href="#demo" class="nav-link">Demo</a>
-                <a href="#contact" class="nav-link">Liên hệ</a>
-                
-                <!-- Auth removed: login/register functionality deleted -->
             </nav>
         </div>
     </header>
 
+    <!-- MAIN CONTENT -->
     <main>
         <section class="hero">
-            <div class="container hero-inner">
-                <div class="hero-copy">
-                    <h1>Phân tích Excel tự động trong vài giây</h1>
-                    <p>Tải lên file Excel và nhận thống kê, biểu đồ và đề xuất chiến lược phát triển từ dữ liệu.</p>
-                    <div class="hero-cta">
-                        <label for="uploadInput" class="btn-cta">Tải Excel lên ngay</label>
-                        <button id="learnBtn" class="btn-link">Tìm hiểu thêm</button>
-                    </div>
-                    <ul class="trust">
-                        <li>Hỗ trợ .xlsx & .csv</li>
-                        <li>Phân tích nhanh & trực quan</li>
-                        <li>Bảo mật dữ liệu (local/demo)</li>
-                    </ul>
-                </div>
-
-                <div class="hero-visual">
-                    <div class="placeholder-visual">
-                        <svg width="320" height="220" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="0" y="0" width="320" height="220" rx="12" fill="#f6f9ff"/>
-                            <rect x="16" y="20" width="80" height="16" rx="4" fill="#667eea"/>
-                            <rect x="16" y="46" width="120" height="12" rx="3" fill="#cfe0ff"/>
-                            <rect x="160" y="30" width="140" height="140" rx="8" fill="#fff" stroke="#e6eefc"/>
-                            <circle cx="210" cy="80" r="28" fill="#764ba2"/>
-                            <rect x="180" y="128" width="20" height="46" rx="3" fill="#4facfe"/>
-                            <rect x="205" y="108" width="20" height="66" rx="3" fill="#00f2fe"/>
-                            <rect x="230" y="88" width="20" height="86" rx="3" fill="#f093fb"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="upload" id="upload">
             <div class="container">
-                <h2>Upload file Excel để bắt đầu phân tích</h2>
-                <p class="muted">Kéo thả file ở đây hoặc nhấp để chọn. Hỗ trợ .xlsx và .csv</p>
+                <h1>Phân tích dữ liệu tự động<br>trong vài giây</h1>
+                <p>Biến dữ liệu thô thành biểu đồ trực quan và chiến lược kinh doanh thông minh. Không cần cài đặt phức tạp.</p>
+                
+                <!-- Nút Upload chính -->
+                <a href="pages/upload.html" class="btn-primary" style="padding: 14px 32px; font-size: 1.1rem; text-decoration: none;">
+                    🚀 Upload dữ liệu Ngay
+                </a>
 
-                <div class="upload-card" id="uploadCard">
-                    <input type="file" id="uploadInput" accept=".xlsx,.csv" hidden>
-                    <div class="drop-area" id="dropArea">
-                        <div class="drop-icon">📁</div>
-                        <div class="drop-text">Kéo & Thả file tại đây hoặc nhấp để chọn</div>
-                        <div class="file-info" id="fileInfo">Chưa có file</div>
-                        <button class="btn-primary" id="analyzeBtn">Phân tích ngay</button>
+                <!-- Demo Box -->
+                <div class="demo-wrapper">
+                    <div class="placeholder-visual">
+                        <div style="text-align: center; opacity: 0.6;">
+                            <div style="font-size: 4rem; margin-bottom: 10px;">📊</div>
+                            <h3 style="color: #fff; margin:0;">Demo Dashboard Preview</h3>
+                        </div>
                     </div>
-                </div>
-
-                <div id="uploadMessage" class="upload-message" role="status"></div>
-            </div>
-        </section>
-
-        <section id="features" class="features container">
-            <h3>Tính năng chính</h3>
-            <div class="feature-grid">
-                <div class="feature">
-                    <div class="icon">🤖</div>
-                    <h4>Phân tích tự động</h4>
-                    <p>Hệ thống tự động đọc file, làm sạch và tính toán KPIs.</p>
-                </div>
-                <div class="feature">
-                    <div class="icon">📈</div>
-                    <h4>Thống kê & biểu đồ</h4>
-                    <p>Biểu đồ doanh thu, top sản phẩm và phân tích khu vực.</p>
-                </div>
-                <div class="feature">
-                    <div class="icon">💡</div>
-                    <h4>Gợi ý chiến lược</h4>
-                    <p>Đề xuất marketing, kho hàng và khuyến mại dựa trên dữ liệu.</p>
-                </div>
-                <div class="feature">
-                    <div class="icon">📤</div>
-                    <h4>Xuất báo cáo</h4>
-                    <p>Xuất kết quả sang PDF hoặc Excel (tính năng nâng cao).</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="demo" class="demo container">
-            <h3>Demo phân tích</h3>
-            <div class="demo-grid">
-                <div class="demo-chart">
-                    <canvas id="demoRevenueChart" width="600" height="260"></canvas>
-                </div>
-                <div class="demo-stats">
-                    <div class="stat-card"><strong id="demoRev">0</strong><span>Tổng doanh thu</span></div>
-                    <div class="stat-card"><strong id="demoQty">0</strong><span>Tổng số lượng</span></div>
-                    <div class="stat-card"><strong id="demoProfit">0</strong><span>Tổng lợi nhuận</span></div>
-                    <div class="rec-card"><h4>Ví dụ gợi ý AI</h4><p id="demoRec">Khu vực HCM tăng - tăng kho và ads tại đây.</p></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="how" class="how container">
-            <h3>Cách hoạt động</h3>
-            <div class="steps">
-                <div class="step"><div class="num">1</div><h4>Tải file Excel</h4><p>Tải file .xlsx hoặc .csv lên hệ thống.</p></div>
-                <div class="step"><div class="num">2</div><h4>Hệ thống phân tích</h4><p>Clean data, tính KPIs, tạo biểu đồ và báo cáo.</p></div>
-                <div class="step"><div class="num">3</div><h4>Nhận kết quả</h4><p>Xem thống kê, biểu đồ và gợi ý chiến lược.</p></div>
-            </div>
-        </section>
-
-        <section class="feedback container">
-            <h3>Đánh giá người dùng</h3>
-            <div class="feedback-grid">
-                <blockquote>"Dùng 5 phút mà thay thế 3 giờ Excel mỗi ngày."<cite>- Minh, Chủ shop</cite></blockquote>
-                <blockquote>"Gợi ý rất thực tế, giúp tăng doanh thu vùng HN."<cite>- Lan, Trưởng phòng KD</cite></blockquote>
-                <blockquote>"Tiết kiệm thời gian và trực quan."<cite>- Nam, Kế toán</cite></blockquote>
-            </div>
-
-            <div class="feedback-submit">
-                <h4>Gửi đánh giá của bạn</h4>
-                <div class="stars" id="starInput">
-                    <button data-value="1" class="star">☆</button>
-                    <button data-value="2" class="star">☆</button>
-                    <button data-value="3" class="star">☆</button>
-                    <button data-value="4" class="star">☆</button>
-                    <button data-value="5" class="star">☆</button>
-                </div>
-                <textarea id="reviewText" placeholder="Viết đánh giá..." rows="3"></textarea>
-                <div class="feedback-actions">
-                    <button id="submitReview" class="btn-primary">Gửi đánh giá</button>
-                </div>
-            </div>
-
-            <div id="reviewsList" class="reviews-list" aria-live="polite"></div>
-        </section>
-
-        <section class="target container">
-            <h3>Dành cho ai?</h3>
-            <ul class="target-list">
-                <li>Chủ shop</li><li>SME</li><li>Kế toán</li><li>Phòng kinh doanh</li><li>Nhà quản lý</li>
-            </ul>
-        </section>
-
-        <section class="cta container">
-            <h2>Bắt đầu phân tích Excel miễn phí</h2>
-            <p>Không cần cài đặt — Tải file lên và nhận phân tích ngay.</p>
-            <label for="uploadInput" class="btn-cta big">Bắt đầu phân tích Excel miễn phí</label>
-        </section>
-
-        <!-- AI Chat Section -->
-        <section id="aiChatSection" class="chat container">
-            <h3>Chat với AI</h3>
-            <p class="muted">Hỏi về dữ liệu đã upload, biểu đồ, sản phẩm, khu vực, và nhận đề xuất chiến lược.</p>
-            <div id="aiChat" class="ai-chat">
-                <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-                <div class="chat-controls">
-                    <input id="chatInput" placeholder="Nhập câu hỏi... Ví dụ: 'Tại sao doanh thu tháng 3 giảm?'" />
-                    <button id="chatSend" class="btn-primary">Gửi</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="site-footer">
-        <div class="container footer-inner">
-            <div class="footer-col">
-                <h4>DATANA</h4>
-                <p>Phân tích dữ liệu cho doanh nghiệp nhỏ và vừa.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Liên hệ</h4>
-                <p>Email: support@datana.local</p>
-            </div>
-            <div class="footer-col">
-                <h4>Hữu ích</h4>
-                <a href="#">Chính sách</a>
-                <a href="#">Điều khoản</a>
-            </div>
-        </div>
-        <div class="copyright">© 2025 DATANA. All rights reserved.</div>
-    </footer>
+    <!-- SCRIPT QUẢN LÝ ĐĂNG NHẬP -->
+    <script>
+        async function checkLogin() {
+            const authContainer = document.getElementById('auth-buttons');
+            
+            try {
+                const res = await fetch('/api/user_info');
+                const data = await res.json();
+                
+                if (data.logged_in) {
+                    authContainer.innerHTML = `
+                        <span class="user-greeting">Hi, ${data.username}</span>
+                        <a href="#" onclick="logout()" class="nav-link" style="color: #ef4444; font-size: 0.9rem;">Đăng xuất</a>
+                    `;
+                } else {
+                    authContainer.innerHTML = `
+                        <a href="pages/login.html" class="nav-link">Đăng nhập</a>
+                        <a href="pages/register.html" class="btn-primary" style="padding: 8px 20px; font-size: 0.9rem; text-decoration: none;">Đăng ký</a>
+                    `;
+                }
+            } catch(e) { 
+                console.error("Lỗi auth:", e);
+                authContainer.innerHTML = `<a href="pages/login.html" class="nav-link">Đăng nhập</a>`;
+            }
+        }
 
-    <div id="resultModal" class="result-modal" aria-hidden="true">
-        <div class="result-panel">
-            <button class="close" id="closeResult">✕</button>
-            <h3>Kết quả phân tích</h3>
-            <div id="resultContent"></div>
-        </div>
-    </div>
-
-        <script src="script.js"></script>
+        async function logout() {
+            if(confirm("Bạn có chắc muốn đăng xuất?")) {
+                await fetch('/api/logout');
+                localStorage.removeItem('datana_user');
+                window.location.reload();
+            }
+        }
+        checkLogin();
+    </script>
 </body>
 </html>

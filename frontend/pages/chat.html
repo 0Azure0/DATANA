@@ -1,34 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Chat AI — DATANA</title>
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/chat.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DATANA - Trợ lý AI</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/chat.css" />
 </head>
 <body>
-  <header class="site-header container">
-    <div class="brand">DATANA</div>
-    <!-- Auth removed -->
-    <nav class="nav"><a href="index.html">Home</a><a href="upload.html">Upload</a><a href="dashboard.html">Dashboard</a></nav>
-  </header>
+    <header class="site-header">
+        <div class="container" style="display: flex; align-items: center;">
+            <div class="brand">DATANA</div>
+            <nav>
+                <ul>
+                    <li><a href="../index.html" class="nav-link">Trang chủ</a></li>
+                    <li><a href="upload.html" class="nav-link">Tải lên</a></li>
+                    <li><a href="dashboard.html" class="nav-link">Báo cáo</a></li>
+                    <li><a href="chat.html" class="nav-link active" style="color: var(--text-main);">Trợ lý AI</a></li>
+                    <li><a href="about.html" class="nav-link">Giới thiệu</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-  <main class="container chat-page">
-    <aside class="chat-list">
-      <h4>💬 Lịch sử chat</h4>
-      <div id="chatHistory"></div>
-    </aside>
-    <section class="chat-panel">
-      <div id="chatWindow" class="chat-window"></div>
-      <div class="chat-controls">
-        <input id="chatInput" placeholder="Hỏi về dữ liệu của bạn... (ví dụ: 'Tại sao doanh thu tháng 3 giảm?')" />
-        <button id="sendBtn" class="btn-primary">Gửi</button>
-      </div>
-    </section>
-  </main>
+    <main class="container chat-layout" style="margin-top: 2rem; display: flex; gap: 0; height: 80vh; border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+        <aside class="chat-list">
+            <h4 style="margin-bottom: 1rem; color: var(--text-main);">Lịch sử chat</h4>
+            <div id="chatHistory">
+                <div class="chat-history-item">Phiên làm việc hiện tại</div>
+            </div>
+        </aside>
 
-  <!-- auth.js removed -->
-  <script src="../js/chat.js"></script>
+        <section class="chat-panel" style="flex: 1; display: flex; flex-direction: column; background-color: var(--bg-card);">
+            <div id="chatWindow" class="chat-messages">
+                <div class="message ai">
+                    <div>
+                        <div class="message-bubble">Xin chào! Tôi là trợ lý AI của bạn. Hãy hỏi tôi về dữ liệu doanh thu, sản phẩm hoặc xu hướng bán hàng nhé.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <input id="chatInput" placeholder="Nhập câu hỏi... (Ví dụ: 'Sản phẩm nào bán chạy nhất?')" autocomplete="off" />
+                <button id="sendBtn" class="btn-primary">Gửi</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/chat.js"></script>
 </body>
 </html>

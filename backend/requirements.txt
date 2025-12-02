@@ -6,4 +6,4 @@ pandas
 openpyxl
 google-generativeai
 werkzeug
-importlib-metadata
+requests

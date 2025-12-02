@@ -3,33 +3,44 @@
 <head>
   <meta charset="utf-8">
   <title>Đăng ký - DATANA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../css/main.css">
-  <style>
-    .auth-box {
-        max-width: 400px; margin: 80px auto; padding: 40px;
-        background: var(--bg-card); border: 1px solid var(--border-color);
-        border-radius: 16px; text-align: center;
-    }
-    input { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg-body); border: 1px solid var(--border-color); color: #fff; border-radius: 8px; }
-    button { width: 100%; margin-top: 10px; }
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-        <a href="../index.html" class="brand" style="text-decoration: none;">DATANA</a>
+      <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+        <img src="../images/logo.svg" alt="DATANA" style="height: 40px;">
+      </a>
     </div>
   </header>
 
-  <main class="container">
-    <div class="auth-box">
-        <h2 style="margin-bottom: 20px; color: var(--text-main);">Tạo tài khoản 🚀</h2>
-        <form id="regForm">
-            <input type="text" id="username" placeholder="Tên đăng nhập mới" required>
-            <input type="password" id="password" placeholder="Mật khẩu" required>
-            <button type="submit" class="btn-primary">Đăng ký</button>
+  <main class="container" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+    <div class="auth-card glass-effect">
+        <h2 class="auth-title">Tạo tài khoản mới 🚀</h2>
+        <p class="auth-subtitle">Bắt đầu hành trình dữ liệu của bạn</p>
+        
+        <form id="regForm" class="auth-form">
+            <div class="input-group">
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" placeholder="Tên đăng nhập mới" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" placeholder="Mật khẩu" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-check-circle input-icon"></i>
+                <input type="password" id="confirm_password" placeholder="Nhập lại mật khẩu" required>
+            </div>
+            
+            <button type="submit" class="btn-primary btn-full">Đăng ký</button>
         </form>
-        <p style="margin-top: 20px; font-size: 0.9rem;">
+        
+        <p class="auth-footer">
             Đã có tài khoản? <a href="login.html">Đăng nhập</a>
         </p>
     </div>
@@ -38,20 +49,34 @@
   <script>
     document.getElementById('regForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btn = e.target.querySelector('button');
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
+        const cp = document.getElementById('confirm_password').value;
+
+        if(p !== cp) { alert("Mật khẩu không khớp!"); return; }
+
+        btn.innerText = 'Đang đăng ký...';
+        btn.disabled = true;
         
-        const res = await fetch('/api/register', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username: u, password: p})
-        });
-        
-        if (res.ok) {
-            alert("Đăng ký thành công! Hãy đăng nhập.");
-            window.location.href = 'login.html';
-        } else {
-            const data = await res.json();
-            alert("Lỗi: " + data.error);
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            
+            if (res.ok) {
+                alert("Đăng ký thành công! Vui lòng đăng nhập.");
+                window.location.href = 'login.html';
+            } else {
+                const data = await res.json();
+                alert("Lỗi: " + data.error);
+            }
+        } catch(err) {
+            alert("Lỗi kết nối server");
+        } finally {
+            btn.innerText = 'Đăng ký';
+            btn.disabled = false;
         }
     });
   </script>

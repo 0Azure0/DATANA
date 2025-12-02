@@ -1,95 +1,108 @@
-// js/chat.js
-const CHAT_API = '/chat'; // Using relative path proxy
-const sendBtn = document.getElementById('sendBtn');
-const chatInput = document.getElementById('chatInput');
 const chatWindow = document.getElementById('chatWindow');
-const chatHistory = document.getElementById('chatHistory');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
 
-function formatTime(){
-  const now = new Date();
-  return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+// Tự động chỉnh độ cao ô nhập liệu
+chatInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+    if(this.value === '') this.style.height = '24px';
+});
+
+function scrollToBottom() {
+    chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
 }
 
-// TASK 1: Modified append function to handle Markdown
-function append(role, text){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'message ' + (role==='user' ? 'user' : 'ai');
-  
-  // Logic: Use marked.parse for AI (render HTML), keep plain text for User (security)
-  let content = text;
-  if (role === 'ai') {
-      try {
-          content = marked.parse(text);
-      } catch (e) {
-          console.error("Markdown parsing failed", e);
-          content = text;
-      }
-  }
+function append(role, text, id=null) {
+    // Tạo div bao quanh tin nhắn
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    if(id) div.id = id;
 
-  wrapper.innerHTML = `
-    <div>
-      <div class="message-bubble">${content}</div>
-      <div class="message-time" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-align: ${role==='user'?'right':'left'};">${formatTime()}</div>
-    </div>
-  `;
-  
-  chatWindow.appendChild(wrapper);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
+    let contentHtml = text;
 
-async function send(){
-  const txt = chatInput.value.trim();
-  if (!txt) return;
-
-  const sessionId = localStorage.getItem('datana_session_id');
-  if (!sessionId) {
-      alert("⚠️ Phiên làm việc không tồn tại. Vui lòng quay lại trang Tải lên để upload file.");
-      return;
-  }
-
-  // 1. Show User Message
-  append('user', txt);
-  chatInput.value = '';
-  
-  // 2. Show Loading Indicator
-  const loaderId = 'loader-' + Date.now();
-  const loaderWrapper = document.createElement('div');
-  loaderWrapper.id = loaderId;
-  loaderWrapper.innerHTML = `<div class="message ai"><div><div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div></div>`;
-  chatWindow.appendChild(loaderWrapper);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-  
-  try{
-    const headers = {'Content-Type':'application/json'};
-    const body = JSON.stringify({
-        message: txt,
-        session_id: sessionId 
-    });
-
-    const res = await fetch(CHAT_API, {method: 'POST', headers, body});
-    const data = await res.json();
-    
-    // Remove loader
-    const loaderElem = document.getElementById(loaderId);
-    if(loaderElem) loaderElem.remove();
-
-    if (res.ok){ 
-        append('ai', data.assistant || data.reply || 'Không có phản hồi từ AI'); 
-    } else { 
-        append('ai', '❌ ' + (data.error || 'Lỗi xử lý yêu cầu')); 
+    // Xử lý Markdown nếu là AI
+    if (role === 'ai') {
+        if (typeof marked !== 'undefined') {
+            try { 
+                // Parse Markdown sang HTML
+                contentHtml = marked.parse(text); 
+            } catch(e) {
+                console.error("Markdown error:", e);
+            }
+        }
+        
+        // FIX LỖI LẶP CHỮ:
+        // Thay vì dùng hiệu ứng gõ từng chữ (dễ gây lỗi), ta dùng hiệu ứng Fade-in (hiện dần)
+        // Vừa đẹp, vừa mượt, lại không bao giờ bị lặp.
+        div.innerHTML = `<div class="bubble fade-in">${contentHtml}</div>`;
+    } else {
+        // Tin nhắn User (không cần effect cầu kỳ)
+        div.innerHTML = `<div class="bubble">${contentHtml}</div>`;
     }
-  }catch(e){
-    const loaderElem = document.getElementById(loaderId);
-    if(loaderElem) loaderElem.remove();
-    append('ai', '❌ Lỗi kết nối Server.');
-    console.error(e);
-  }
+
+    chatWindow.appendChild(div);
+    scrollToBottom();
 }
 
-if(sendBtn) sendBtn.addEventListener('click', send);
-if(chatInput) chatInput.addEventListener('keydown', e=>{ 
-    if (e.key==='Enter' && !e.shiftKey){ 
-        e.preventDefault(); 
-        send(); 
-    } 
+// Hàm riêng cho Loading (Giữ nguyên)
+function appendLoading(id) {
+    const div = document.createElement('div');
+    div.className = 'message ai';
+    div.id = id;
+    div.innerHTML = `
+        <div class="bubble" style="background:transparent; border:none; box-shadow:none; padding:0;">
+            <div class="typing-indicator"><span></span><span></span><span></span></div>
+        </div>
+    `;
+    chatWindow.appendChild(div);
+    scrollToBottom();
+}
+
+async function send() {
+    const txt = chatInput.value.trim();
+    if(!txt) return;
+
+    const sid = localStorage.getItem('datana_session_id');
+    if (!sid) {
+        alert('Vui lòng vào trang Tải lên để upload dữ liệu trước!');
+        return;
+    }
+
+    // 1. User nhắn
+    append('user', txt);
+    chatInput.value = '';
+    chatInput.style.height = '24px';
+
+    // 2. Hiện Loading
+    const loadId = 'load-'+Date.now();
+    appendLoading(loadId);
+
+    try {
+        const res = await fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ message: txt, session_id: sid })
+        });
+        const data = await res.json();
+        
+        // Xóa loading
+        const loader = document.getElementById(loadId);
+        if(loader) loader.remove();
+        
+        // Hiện kết quả AI (Delay nhẹ để tạo cảm giác tự nhiên)
+        setTimeout(() => {
+            append('ai', data.assistant || 'Lỗi kết nối AI.');
+        }, 300);
+
+    } catch(e) {
+        const loader = document.getElementById(loadId);
+        if(loader) loader.remove();
+        append('ai', '❌ Lỗi máy chủ.');
+    }
+}
+
+sendBtn.addEventListener('click', send);
+chatInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });

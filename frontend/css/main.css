@@ -1,419 +1,416 @@
-/* css/main.css - FINAL FIXED VERSION */
+/* css/main.css - FINAL FIXED & VISUAL VERSION */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    /* Bảng màu Dark Mode */
+    /* Màu nền động */
     --bg-body: #0f172a;       
-    --bg-card: #1e293b;       
+    --bg-card: rgba(30, 41, 59, 0.7); /* Bán trong suốt */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    
     --text-main: #f8fafc;     
     --text-muted: #94a3b8;    
+    
+    /* Màu Gradient chủ đạo */
     --primary: #6366f1;       
     --primary-hover: #4f46e5;
-    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
 }
 
-/* --- RESET & GLOBAL STYLES --- */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* --- GLOBAL ANIMATION --- */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-html {
-    background-color: var(--bg-body);
-}
-
-body {
-    background-color: var(--bg-body);
-    color: var(--text-main);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    line-height: 1.6;
-    min-height: 100vh;
-    height: auto;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: var(--text-main);
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-p {
-    color: var(--text-muted);
-}
-
-a {
-    color: var(--primary);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-a:hover {
-    color: var(--primary-hover);
-}
-
-/* --- HEADER LAYOUT (CẤU TRÚC CHUẨN) --- */
-.site-header {
-    padding: 1.5rem 0;
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--bg-body);
-    width: 100%;
-}
-
-.site-header .container {
-    display: flex;
-    align-items: center;
-    /* 1. Gom tất cả về bên trái trước */
-    justify-content: flex-start;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-/* LOGO: Nằm yên bên trái */
-.brand {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-main);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-right: 20px;
-    flex-shrink: 0;
-}
-
-/* MENU & NÚT BẤM: Đẩy hết sang phải */
-.site-header nav {
-    /* 2. Dùng margin-left: auto để đẩy khối này sang phải */
-    margin-left: auto; 
-    display: flex;
-    align-items: center;
-    gap: 24px; /* Khoảng cách giữa Menu và Nút bấm */
-}
-
-.site-header nav ul {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-link {
-    color: var(--text-muted);
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.nav-link:hover, 
-.nav-link.active {
-    color: var(--text-main);
-}
-
-/* --- BUTTONS --- */
-.btn-primary {
-    background-color: var(--primary);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    display: inline-block;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-}
-
-.btn-primary:active {
-    transform: translateY(1px);
-}
-
-/* --- UTILITIES --- */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* --- RESPONSIVE (MOBILE) --- */
-@media (max-width: 768px) {
-    .site-header .container {
-        flex-direction: column;
-        gap: 1rem;
-        padding-bottom: 1rem;
-    }
-    
-    .site-header nav {
-        margin-left: 0; /* Trên mobile thì không cần đẩy sang phải nữa */
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    
-    .site-header nav ul {
-        gap: 1rem;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-}
-
-/* --- KHUNG DEMO TRANG CHỦ --- */
-.placeholder-visual {
-    width: 100%;
-    max-width: 900px;
-    height: 400px;
-    margin: 40px auto;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-}
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px); /* Bắt đầu thấp hơn vị trí gốc 30px */
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0); /* Trở về vị trí gốc */
-    }
-}
-
-/* 2. Keyframes cho hiệu ứng Lia (Shine) */
-@keyframes shine {
-    0% {
-        left: -100%; /* Bắt đầu từ bên trái ngoài nút */
-    }
-    20% {
-        left: 100%; /* Chạy sang phải hết nút */
-    }
-    100% {
-        left: 100%; /* Đợi một chút rồi lặp lại */
-    }
-}
-
-/* --- ÁP DỤNG HIỆU ỨNG --- */
-
-/* Tiêu đề chính (H1) */
-.hero h1 {
-    opacity: 0; /* Ẩn mặc định để chờ animation */
-    animation: fadeInUp 0.8s ease-out forwards;
-    animation-delay: 0.2s; /* Chờ 0.2s mới chạy */
-}
-
-/* Đoạn mô tả (P) */
-.hero p {
-    opacity: 0;
-    animation: fadeInUp 0.8s ease-out forwards;
-    animation-delay: 0.4s; /* Chạy sau tiêu đề */
-}
-
-/* Nút bấm (Upload) */
-.hero a.btn-primary {
-    opacity: 0;
-    animation: fadeInUp 0.8s ease-out forwards;
-    animation-delay: 0.6s; /* Chạy sau đoạn mô tả */
-    
-    position: relative; /* Để hiệu ứng lia hoạt động */
-    overflow: hidden; /* Cắt phần vệt sáng thừa ra ngoài */
-}
-
-/* Tạo vệt sáng lia qua nút Primary */
-.hero a.btn-primary::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.3) 50%, /* Màu sáng ở giữa */
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: skewX(-25deg); /* Nghiêng vệt sáng */
-    animation: shine 3s infinite; /* Lặp lại vô hạn mỗi 3 giây */
-    pointer-events: none; /* Không chặn click chuột */
-}
-
-/* Khung Demo Dashboard */
-.demo-wrapper {
-    opacity: 0;
-    animation: fadeInUp 1s ease-out forwards;
-    animation-delay: 0.8s; /* Hiện sau cùng */
-}
-/* ... (Giữ nguyên phần code cũ ở trên) ... */
-
-/* --- ADVANCED ANIMATIONS (HIỆU ỨNG NGẦU LÒI) --- */
-
-/* 1. Keyframes: Trồi lên từ dưới */
-@keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 2. Keyframes: Rơi xuống từ trên */
-@keyframes fadeInDown {
-    0% {
-        opacity: 0;
-        transform: translateY(-40px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 3. Keyframes: Phóng to nhẹ (Zoom In) */
-@keyframes zoomIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* 4. Keyframes: Hiệu ứng trôi nổi (Floating) */
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
 }
 
-/* 5. Keyframes: Lia sáng (Shimmer) - Phiên bản nâng cao */
-@keyframes shimmer {
-    0% { left: -100%; opacity: 0; }
-    50% { opacity: 0.5; }
-    100% { left: 100%; opacity: 0; }
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* --- ÁP DỤNG HIỆU ỨNG VÀO PHẦN TỬ --- */
-
-/* Tiêu đề chính (H1) - Rơi từ trên xuống */
-.hero h1 {
-    opacity: 0;
-    animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    animation-delay: 0.2s;
-}
-
-/* Đoạn mô tả (P) - Trồi từ dưới lên */
-.hero p {
-    opacity: 0;
-    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    animation-delay: 0.4s;
-}
-
-/* Nút bấm (Upload) - Xuất hiện sau cùng */
-.hero a.btn-primary {
-    opacity: 0;
-    animation: zoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Hiệu ứng nảy (bounce) */
-    animation-delay: 0.6s;
+body {
+    /* Nền Aurora chuyển động */
+    background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #0f172a);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
 }
 
-/* Hiệu ứng Hover cho nút bấm: Nổi lên & Phát sáng */
-.hero a.btn-primary:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4); /* Bóng màu tím */
+h1, h2, h3, h4, h5 { font-weight: 700; letter-spacing: -0.5px; margin-bottom: 1rem; color: #fff; }
+a { text-decoration: none; color: inherit; }
+
+/* --- GLASSMORPHISM COMPONENTS --- */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* --- FIXED HEADER LAYOUT (ĐÃ SỬA LỖI) --- */
+.site-header {
+    padding: 0; 
+    height: 70px; /* Cố định chiều cao */
+    position: sticky; top: 0; z-index: 100;
+    
+    /* Hiệu ứng kính mờ */
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    
+    display: flex; align-items: center; /* Căn giữa dọc */
 }
 
-/* Vệt sáng chạy qua nút (Lia) */
-.hero a.btn-primary::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
+.site-header .container {
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; /* Logo trái, Menu phải */
     width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent
-    );
-    transform: skewX(-20deg);
-    animation: shimmer 3s infinite; /* Lặp lại mỗi 3s */
 }
 
-/* Khung Demo Dashboard - Phóng to & Trôi nổi */
-.demo-wrapper {
-    opacity: 0;
-    animation: zoomIn 1s ease-out forwards, float 6s ease-in-out infinite; /* Kết hợp 2 hiệu ứng */
-    animation-delay: 0.8s, 1.8s; /* Float bắt đầu sau khi Zoom xong */
+/* LOGO FIX */
+.brand {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.5rem; font-weight: 800;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
 }
-
-/* --- HIỆU ỨNG CHO CÁC KHỐI TÍNH NĂNG (FEATURES) --- */
-/* (Áp dụng nếu bạn có phần features bên dưới) */
-.features div {
-    opacity: 0;
-    animation: fadeInUp 0.8s ease-out forwards;
-}
-
-/* So le thời gian xuất hiện cho các thẻ */
-.features div:nth-child(1) { animation-delay: 1.0s; }
-.features div:nth-child(2) { animation-delay: 1.2s; }
-.features div:nth-child(3) { animation-delay: 1.4s; }
-/* ... (Code cũ giữ nguyên) ... */
-
-/* --- SỬA LỖI LOGO QUÁ TO & BO TRÒN --- */
 
 .logo-image {
-    /* Đặt chiều cao cố định, chiều rộng sẽ tự co theo */
-    height: 50px; 
-    
-    /* Đảm bảo ảnh không bị méo */
-    width: auto; 
-    object-fit: contain; 
-    
-    /* Xóa nền đen của ảnh (nếu có) để hòa vào header */
-    mix-blend-mode: screen; 
-    
-    /* Thêm chút khoảng cách bên phải nếu cần */
-    margin-right: 15px;
-
-    /* --- MỚI THÊM: BO TRÒN LOGO --- */
-    border-radius: 50%; /* Bo tròn hoàn toàn */
-    /* Hoặc dùng px nếu muốn bo góc nhẹ: border-radius: 8px; */
+    height: 45px; /* Ép nhỏ logo */
+    width: auto;
+    object-fit: contain;
+    border-radius: 8px;
 }
 
-/* Đảm bảo container của logo không bị giãn */
-.brand {
-    flex-shrink: 0; 
+/* Nếu bạn muốn ẩn chữ text DATANA đi để dùng chữ trong ảnh thì bỏ comment dòng dưới */
+/* .brand span { display: none; } */
+
+/* MENU FIX */
+nav { display: flex; align-items: center; }
+
+nav ul { 
+    display: flex; 
+    gap: 2rem; 
+    list-style: none; 
+    margin: 0; padding: 0;
+    align-items: center;
+}
+
+.nav-link { 
+    color: var(--text-muted); 
+    font-weight: 500; 
+    transition: 0.3s; 
+    position: relative; 
+    white-space: nowrap; /* Chống rớt dòng */
+}
+
+.nav-link:hover, .nav-link.active { color: #fff; }
+
+/* Gạch chân menu khi hover */
+.nav-link::after {
+    content: ''; position: absolute; width: 0; height: 2px;
+    bottom: -4px; left: 0; background: var(--accent-gradient);
+    transition: width 0.3s;
+}
+.nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+/* AUTH BUTTONS GROUP */
+.auth-btn-group {
+    display: flex; align-items: center; gap: 15px;
+    margin-left: 30px;
+}
+
+/* --- BUTTONS --- */
+.btn-primary {
+    background: var(--accent-gradient);
+    color: white; padding: 12px 28px;
+    border-radius: var(--radius-md);
+    font-weight: 600; border: none; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+}
+.btn-primary:active { transform: translateY(0); }
+
+/* --- CARDS & INPUTS --- */
+.upload-container, .drop-zone, .auth-box, .chart-card, .kpi, .chat-panel {
+    background: var(--bg-card);
+    backdrop-filter: blur(16px); /* Hiệu ứng kính */
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+}
+
+/* Input styles */
+input[type="text"], input[type="password"], input[type="file"] {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+    transition: border-color 0.3s;
+}
+input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* --- LOADING OVERLAY --- */
+.loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 999;
+    display: none; /* Ẩn mặc định */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; transition: opacity 0.3s;
+}
+.loading-overlay.active { display: flex; opacity: 1; }
+
+.spinner {
+    width: 60px; height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.loading-text { font-size: 1.2rem; font-weight: 500; color: #fff; }
+.loading-sub { font-size: 0.9rem; color: var(--text-muted); margin-top: 5px; }
+/* --- 3D HERO DASHBOARD --- */
+.hero-dashboard-preview {
+    margin-top: 60px;
+    perspective: 1000px; /* Tạo chiều sâu 3D */
+    display: flex;
+    justify-content: center;
+    padding-bottom: 50px;
+}
+
+.glass-window {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    
+    /* Hiệu ứng nghiêng 3D */
+    transform: rotateX(20deg) scale(0.9);
+    box-shadow: 
+        0 20px 50px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.1);
+    transition: all 0.5s ease;
+    overflow: hidden;
+}
+
+/* Khi di chuột vào thì nó "ngóc đầu" dậy */
+.glass-window:hover {
+    transform: rotateX(0deg) scale(1);
+    box-shadow: 
+        0 30px 60px rgba(0,0,0,0.6),
+        0 0 30px rgba(99, 102, 241, 0.3); /* Glow tím */
+}
+
+.dashboard-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 20px;
+}
+
+/* Vệt sáng trang trí */
+.glow-bg {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%; height: 120%;
+    background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(0,0,0,0) 70%);
+    z-index: -1;
+    pointer-events: none;
+}
+/* --- UX IMPROVEMENTS (Thêm vào cuối file main.css) --- */
+
+/* 1. Hiệu ứng nút bấm (Tactile Feedback) */
+.btn-primary:active, button:active {
+    transform: scale(0.95) translateY(2px) !important; /* Nút lún xuống khi bấm */
+    filter: brightness(0.9);
+}
+
+/* 2. Custom Scrollbar (Thanh cuộn đẹp) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+::-webkit-scrollbar-thumb { 
+    background: rgba(255, 255, 255, 0.2); 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+/* 3. Toast Notification Container (Khung chứa thông báo) */
+#toast-container {
+    position: fixed; top: 20px; right: 20px; z-index: 10000;
+    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+
+/* 4. Toast Item (Thẻ thông báo) */
+.toast-message {
+    pointer-events: auto;
+    min-width: 300px; padding: 16px 20px; border-radius: 12px;
+    background: rgba(30, 41, 59, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: #fff; font-size: 0.95rem;
+    display: flex; align-items: center; gap: 12px;
+    transform: translateX(120%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    opacity: 0;
+}
+
+.toast-message.show { transform: translateX(0); opacity: 1; }
+
+/* Màu sắc theo loại thông báo */
+.toast-success { border-left: 4px solid #10b981; }
+.toast-success .toast-icon { color: #10b981; }
+
+.toast-error { border-left: 4px solid #ef4444; }
+.toast-error .toast-icon { color: #ef4444; }
+
+.toast-info { border-left: 4px solid #3b82f6; }
+.toast-info .toast-icon { color: #3b82f6; }
+
+.toast-icon { font-size: 1.2rem; }
+.toast-text { flex: 1; line-height: 1.4; }
+.toast-close { cursor: pointer; opacity: 0.5; font-size: 1.2rem; }
+.toast-close:hover { opacity: 1; }
+/* --- HEADER LAYOUT (MENU BÊN PHẢI) --- */
+.site-header .container {
     display: flex;
     align-items: center;
-    
-    /* --- KHÔI PHỤC STYLE CHO CHỮ DATANA --- */
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-main);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    justify-content: space-between; /* Logo trái - Phần còn lại phải */
+    width: 100%;
 }
 
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 40px; /* Khoảng cách giữa Logo và Menu */
+    flex-grow: 1; /* Chiếm hết khoảng trống để đẩy User sang góc */
+}
 
-/* ... (Code cũ giữ nguyên) ... */
+/* Logo giữ nguyên bên trái */
+.brand {
+    flex-shrink: 0;
+    margin-right: auto; /* QUAN TRỌNG: Đẩy mọi thứ bên phải nó ra xa */
+}
+
+/* Menu điều hướng */
+nav {
+    margin-left: auto; /* Đẩy chính nó sang phải */
+}
+
+nav ul {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* User Section (Avatar/Login) nằm cuối cùng bên phải */
+#userSection {
+    margin-left: 30px; /* Tách biệt với Menu một chút */
+    flex-shrink: 0;
+}
+/* --- AUTHENTICATION STYLES (Login/Register) --- */
+
+.auth-card {
+    background: rgba(30, 41, 59, 0.6); /* Nền kính mờ tối */
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.auth-title {
+    color: #fff; font-size: 1.8rem; margin-bottom: 10px; text-align: center;
+}
+
+.auth-subtitle {
+    color: #94a3b8; text-align: center; margin-bottom: 30px; font-size: 0.95rem;
+}
+
+.auth-form { display: flex; flex-direction: column; gap: 20px; }
+
+.input-group { position: relative; }
+
+.input-group input {
+    width: 100%;
+    padding: 14px 14px 14px 45px; /* Chừa chỗ cho icon */
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    outline: none;
+    transition: 0.3s;
+    font-size: 1rem;
+}
+
+.input-group input:focus {
+    border-color: #6366f1;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.input-icon {
+    position: absolute; left: 15px; top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 1.1rem;
+    transition: 0.3s;
+}
+
+.input-group input:focus + .input-icon,
+.input-group:focus-within .input-icon {
+    color: #6366f1;
+}
+
+.btn-full {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.auth-footer {
+    margin-top: 25px; text-align: center; color: #94a3b8; font-size: 0.9rem;
+}
+
+.auth-footer a {
+    color: #6366f1; font-weight: 600; text-decoration: none;
+}
+.auth-footer a:hover { text-decoration: underline; color: #818cf8; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

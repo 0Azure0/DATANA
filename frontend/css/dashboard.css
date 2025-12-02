@@ -129,3 +129,48 @@ table { width: 100%; border-collapse: collapse; color: var(--text-main); min-wid
 thead th { background-color: rgba(255, 255, 255, 0.05); padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--primary); }
 tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); }
 tbody tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+.filter-bar {
+    display: flex;
+    gap: 20px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    align-items: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05); /* Nền mờ */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.filter-select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: auto; /* Đẩy nút về bên phải cùng */
+}
+.btn-sm:hover { background: rgba(255, 255, 255, 0.2); }

@@ -1,82 +1,227 @@
-// dashboard.js — render charts from stored analysis in localStorage
-document.addEventListener('DOMContentLoaded', ()=>{
-  const raw = localStorage.getItem('datana_last_analysis');
-  if (!raw){ document.getElementById('tableWrap').innerHTML = '<p class="muted">Chưa có dữ liệu. Vui lòng tải file ở trang Upload.</p>'; return; }
-  const analysis = JSON.parse(raw);
-  // KPIs
-  const stats = analysis.statistics || {};
-  document.getElementById('kpi_rev').textContent = new Intl.NumberFormat('vi-VN').format(stats.total_revenue||0) + ' VNĐ';
-  document.getElementById('kpi_profit').textContent = new Intl.NumberFormat('vi-VN').format(stats.total_profit||0) + ' VNĐ';
-  document.getElementById('kpi_topprod').textContent = ((analysis.top_products && analysis.top_products[0])? analysis.top_products[0].name : '-') ;
+// frontend/js/dashboard.js - Interactive Filtering Version
 
-  // Prepare datasets
-  const monthly = analysis.revenue_by_month || {};
-  const months = Object.keys(monthly);
-  const mvals = Object.values(monthly);
-  const ctxLine = document.getElementById('chartLine').getContext('2d');
-  createLine(ctxLine, months, mvals, {label:'Doanh thu', color:'#4facfe'});
+let ALL_DATA = []; // Biến toàn cục chứa dữ liệu gốc
+let charts = {};   // Lưu các instance của Chart.js để update
 
-  const rby = (analysis.region_analysis && analysis.region_analysis.revenue_by_region) ? analysis.region_analysis.revenue_by_region : {};
-  const rlabels = Object.keys(rby); const rvals = Object.values(rby);
-  const ctxBar = document.getElementById('chartBar').getContext('2d');
-  createBar(ctxBar, rlabels, rvals, {label:'Khu vực'});
+document.addEventListener('DOMContentLoaded', () => {
+    const raw = localStorage.getItem('datana_last_analysis');
+    if (!raw) { 
+        document.getElementById('tableWrap').innerHTML = '<p class="muted">Chưa có dữ liệu. Vui lòng tải file.</p>'; 
+        return; 
+    }
+    
+    const analysis = JSON.parse(raw);
+    
+    // Lấy dữ liệu chuẩn hóa từ Backend (vị trí số 8 trong tuple trả về)
+    // Trong JSON trả về từ API nó là field: raw_data (đã được backend mới map thành universal_data)
+    ALL_DATA = analysis.raw_data || []; 
 
-  // Stacked bar: mock per product per region if product_metrics present
-  const prodMetrics = analysis.product_metrics || {};
-  const prods = Object.keys(prodMetrics).slice(0,4);
-  const regions = rlabels.length? rlabels : ['Region A'];
-  const stackDatasets = prods.map((p,i)=>({label:p, data: regions.map(()=> Math.round(Math.random()*100000)), backgroundColor: ['#667eea','#4facfe','#f093fb','#ffd166'][i%4]}));
-  const ctxStack = document.getElementById('chartStack').getContext('2d');
-  createStackedBar(ctxStack, regions, stackDatasets);
+    if (ALL_DATA.length === 0) {
+        // Nếu chưa có dữ liệu chuẩn, có thể là file cũ, hiển thị cảnh báo nhẹ
+        console.warn("Dữ liệu chưa được chuẩn hóa cho bộ lọc.");
+    }
 
-  // Donut: product share by revenue
-  const top = analysis.top_products || [];
-  const dlabels = top.map(t=>t.name); const dvals = top.map(t=>t.revenue||0);
-  const ctxDonut = document.getElementById('chartDonut').getContext('2d');
-  createDonut(ctxDonut, dlabels, dvals);
+    // 1. Khởi tạo Dropdown
+    initFilters();
 
-  // Area: running total
-  const running = []; let sum=0; mvals.forEach(v=>{ sum += v||0; running.push(sum); });
-  const ctxArea = document.getElementById('chartArea').getContext('2d');
-  createArea(ctxArea, months, running);
+    // 2. Vẽ Dashboard lần đầu (với toàn bộ dữ liệu)
+    updateDashboard(ALL_DATA);
 
-  // Scatter: price vs qty mock from product_metrics
-  const pts = [];
-  Object.values(prodMetrics).slice(0,30).forEach(m=>{ pts.push({x: m.unit_price||Math.random()*100, y: m.quantity||Math.random()*10}); });
-  const ctxScatter = document.getElementById('chartScatter').getContext('2d');
-  createScatter(ctxScatter, pts);
+    // 3. Bắt sự kiện thay đổi bộ lọc
+    const filterMonth = document.getElementById('filterMonth');
+    const filterRegion = document.getElementById('filterRegion');
+    const resetBtn = document.getElementById('resetFilterBtn');
 
-  // Radar: performance across products (mock values)
-  const rlabels2 = prods; const rdata = prods.map(()=> Math.round(Math.random()*100));
-  const ctxRadar = document.getElementById('chartRadar').getContext('2d');
-  createRadar(ctxRadar, rlabels2, [{label:'Score', data: rdata, backgroundColor:'rgba(102,126,234,0.2)', borderColor:'#667eea'}]);
-
-  // Ensure charts redraw on container resize (Chart.js responsive should handle this, but trigger a resize to be safe)
-  if (window && window.addEventListener){
-    let resizeTimeout = null;
-    window.addEventListener('resize', ()=>{
-      if (resizeTimeout) clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(()=>{
-        // iterate over canvases and call chart resize via their parent Chart instance
-        if (window.Chart && Chart.getChart){
-          ['chartLine','chartBar','chartStack','chartDonut','chartArea','chartScatter','chartRadar'].forEach(id=>{
-            try{ const c = document.getElementById(id); const chart = Chart.getChart(c); if (chart) chart.resize(); }catch(e){}
-          });
-        }
-      }, 200);
-    });
-  }
-
-  // Table: show first 20 rows of raw_data if provided
-  const tableWrap = document.getElementById('tableWrap');
-  const rawdata = analysis.raw_data || [];
-  if (rawdata && rawdata.length){
-    const cols = Object.keys(rawdata[0]);
-    let html = '<table class="stats-table"><thead><tr>' + cols.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
-    rawdata.slice(0,20).forEach(r=>{ html += '<tr>' + cols.map(c=>`<td>${r[c]===undefined?'':r[c]}</td>`).join('') + '</tr>'; });
-    html += '</tbody></table>';
-    tableWrap.innerHTML = html;
-  } else {
-    tableWrap.innerHTML = '<p class="muted">Không có dữ liệu bảng.</p>';
-  }
+    if(filterMonth) filterMonth.addEventListener('change', applyFilters);
+    if(filterRegion) filterRegion.addEventListener('change', applyFilters);
+    if(resetBtn) resetBtn.addEventListener('click', resetFilters);
 });
+
+function initFilters() {
+    const months = new Set();
+    const regions = new Set();
+
+    ALL_DATA.forEach(row => {
+        if (row.month && row.month !== 'N/A') months.add(row.month);
+        if (row.region) regions.add(row.region);
+    });
+
+    // Populate Month Select (Sort tăng dần)
+    const mSelect = document.getElementById('filterMonth');
+    if(mSelect) {
+        mSelect.innerHTML = '<option value="all">Tất cả thời gian</option>';
+        Array.from(months).sort().forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            mSelect.appendChild(opt);
+        });
+    }
+
+    // Populate Region Select
+    const rSelect = document.getElementById('filterRegion');
+    if(rSelect) {
+        rSelect.innerHTML = '<option value="all">Tất cả khu vực</option>';
+        Array.from(regions).sort().forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            rSelect.appendChild(opt);
+        });
+    }
+}
+
+function applyFilters() {
+    const selectedMonth = document.getElementById('filterMonth').value;
+    const selectedRegion = document.getElementById('filterRegion').value;
+
+    // Lọc dữ liệu
+    const filtered = ALL_DATA.filter(row => {
+        const matchMonth = (selectedMonth === 'all') || (row.month === selectedMonth);
+        const matchRegion = (selectedRegion === 'all') || (row.region === selectedRegion);
+        return matchMonth && matchRegion;
+    });
+
+    // Vẽ lại Dashboard với dữ liệu đã lọc
+    updateDashboard(filtered);
+}
+
+function resetFilters() {
+    document.getElementById('filterMonth').value = 'all';
+    document.getElementById('filterRegion').value = 'all';
+    updateDashboard(ALL_DATA);
+}
+
+// --- CORE FUNCTION: TÍNH TOÁN & VẼ ---
+function updateDashboard(data) {
+    // 1. Tính lại KPIs
+    const totalRev = data.reduce((sum, r) => sum + (r.revenue || 0), 0);
+    const totalProfit = data.reduce((sum, r) => sum + (r.profit || 0), 0);
+    
+    // Tìm top product trong tập dữ liệu này
+    const prodMap = {};
+    data.forEach(r => {
+        prodMap[r.product] = (prodMap[r.product] || 0) + (r.revenue || 0);
+    });
+    const topProdName = Object.keys(prodMap).sort((a,b) => prodMap[b] - prodMap[a])[0] || '-';
+
+    // Update UI KPI
+    animateValue('kpi_rev', totalRev, ' VNĐ');
+    animateValue('kpi_profit', totalProfit, ' VNĐ');
+    const kpiProd = document.getElementById('kpi_topprod');
+    if(kpiProd) kpiProd.textContent = topProdName;
+
+    // 2. Chuẩn bị dữ liệu cho biểu đồ
+    // A. Theo Thời Gian (Line Chart)
+    const timeMap = {};
+    data.forEach(r => {
+        if (!r.month || r.month === 'N/A') return;
+        timeMap[r.month] = (timeMap[r.month] || 0) + r.revenue;
+    });
+    const sortedMonths = Object.keys(timeMap).sort();
+    const timeValues = sortedMonths.map(m => timeMap[m]);
+
+    // B. Theo Khu Vực (Bar Chart)
+    const regionMap = {};
+    data.forEach(r => {
+        regionMap[r.region] = (regionMap[r.region] || 0) + r.revenue;
+    });
+    const regLabels = Object.keys(regionMap);
+    const regValues = Object.values(regionMap);
+
+    // C. Top Sản Phẩm (Donut)
+    const topProds = Object.entries(prodMap)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 5); // Top 5
+    const prodLabels = topProds.map(p => p[0]);
+    const prodValues = topProds.map(p => p[1]);
+
+    // 3. Vẽ / Cập nhật Biểu đồ
+    updateChart('chartLine', 'line', sortedMonths, timeValues, 'Doanh thu theo tháng');
+    updateChart('chartBar', 'bar', regLabels, regValues, 'Doanh thu theo vùng');
+    updateChart('chartDonut', 'doughnut', prodLabels, prodValues, 'Tỷ trọng sản phẩm');
+    
+    // Render bảng chi tiết
+    renderTable(data);
+}
+
+// Helper: Vẽ hoặc Update Chart.js
+function updateChart(canvasId, type, labels, dataArr, labelStr) {
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // Nếu chart đã tồn tại -> Hủy để vẽ mới
+    if (charts[canvasId]) {
+        charts[canvasId].destroy();
+    }
+
+    const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316'];
+
+    charts[canvasId] = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: labelStr,
+                data: dataArr,
+                backgroundColor: (type === 'doughnut') ? colors : 'rgba(99, 102, 241, 0.7)',
+                borderColor: '#6366f1',
+                borderWidth: 1,
+                tension: 0.4,
+                fill: type === 'line' // Line chart có fill vùng dưới
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: type === 'doughnut', position: 'right' }
+            },
+            scales: (type === 'doughnut') ? {} : {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+function animateValue(id, value, suffix) {
+    const el = document.getElementById(id);
+    if(el) el.textContent = new Intl.NumberFormat('vi-VN').format(value) + suffix;
+}
+
+function renderTable(data) {
+    const tableWrap = document.getElementById('tableWrap');
+    if(!tableWrap) return;
+    
+    if (!data.length) {
+        tableWrap.innerHTML = '<p class="muted" style="text-align:center; padding:20px;">Không có dữ liệu phù hợp.</p>';
+        return;
+    }
+    
+    // Lấy 20 dòng đầu
+    const displayData = data.slice(0, 20);
+    const headers = ['date', 'product', 'region', 'revenue', 'profit']; // Các cột chính
+    const headerNames = {'date': 'Ngày', 'product': 'Sản phẩm', 'region': 'Khu vực', 'revenue': 'Doanh thu', 'profit': 'Lợi nhuận'};
+
+    let html = '<table class="stats-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${headerNames[h]}</th>`);
+    html += '</tr></thead><tbody>';
+    
+    displayData.forEach(r => {
+        html += '<tr>';
+        headers.forEach(h => {
+            let val = r[h];
+            if (h === 'revenue' || h === 'profit') val = new Intl.NumberFormat('vi-VN').format(val);
+            html += `<td>${val}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    
+    if (data.length > 20) {
+        html += `<div style="text-align:center; padding:10px; color:#aaa;">... và ${data.length - 20} dòng khác ...</div>`;
+    }
+    tableWrap.innerHTML = html;
+}

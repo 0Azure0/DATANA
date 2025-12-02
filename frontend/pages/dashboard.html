@@ -6,138 +6,542 @@
   <title>Báo cáo — DATANA</title>
   
   <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../js/charts.js" defer></script>
-  <script src="../js/dashboard.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* --- CSS CỤC BỘ (Đảm bảo giao diện chuẩn) --- */
+    .dashboard-container { padding-top: 40px; padding-bottom: 60px; min-height: 80vh; }
+    
+    /* Header & User */
+    .site-header .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-group { display: flex; align-items: center; gap: 20px; }
+    
+    .user-info {
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 6px 12px; border-radius: 30px;
+        border: 1px solid rgba(255,255,255,0.1);
+        cursor: pointer; transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+    .user-info:hover { background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); border-color: rgba(99, 102, 241, 0.5); }
+    .user-avatar {
+        width: 34px; height: 34px; background: linear-gradient(135deg, #6366f1, #ec4899);
+        color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .user-name { font-size: 0.9rem; color: #e2e8f0; font-weight: 600; }
+
+    /* Dashboard Title */
+    .dashboard-title {
+        font-size: 2.5rem; font-weight: 800; margin-bottom: 25px;
+        background: linear-gradient(to right, #fff, #c4b5fd, #6366f1, #f472b6);
+        background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        animation: shimmerText 5s ease infinite; text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+    }
+    @keyframes shimmerText { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Filter Bar */
+    .filter-bar {
+        display: flex !important; flex-direction: row; align-items: center; gap: 15px;
+        padding: 20px 25px; margin-bottom: 30px;
+        background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px; backdrop-filter: blur(20px); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+        flex-wrap: wrap; animation: fadeInUp 0.6s ease-out forwards;
+        position: relative; z-index: 50;
+    }
+    .filter-group { display: flex; align-items: center; gap: 10px; position: relative; }
+    .filter-group label { color: #94a3b8; font-weight: 600; white-space: nowrap; font-size: 0.85rem; text-transform: uppercase; }
+    
+    .filter-input {
+        background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+        color: #fff; padding: 10px 16px; border-radius: 10px; outline: none;
+        font-family: inherit; cursor: pointer; transition: all 0.3s;
+    }
+    ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.8; cursor: pointer; }
+    
+    /* Custom Dropdown */
+    .custom-dropdown { position: relative; min-width: 200px; }
+    .dropdown-btn {
+        background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+        color: #fff; padding: 10px 16px; border-radius: 10px; cursor: pointer;
+        display: flex; justify-content: space-between; align-items: center;
+        transition: 0.3s; user-select: none;
+    }
+    .dropdown-btn:hover { border-color: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+    
+    .dropdown-content {
+        display: none; position: absolute; top: 120%; left: 0; width: 100%;
+        background: rgba(30, 41, 59, 1); border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        z-index: 9999; padding: 10px; max-height: 300px; overflow-y: auto;
+    }
+    .dropdown-content.show { display: block; animation: fadeInUp 0.2s; }
+    
+    .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .checkbox-item:hover { background: rgba(99, 102, 241, 0.2); }
+    .checkbox-item input[type="checkbox"] { accent-color: #6366f1; width: 16px; height: 16px; cursor: pointer; }
+    .checkbox-label { color: #e2e8f0; font-size: 0.9rem; user-select: none; flex: 1; }
+
+    #resetFilterBtn {
+        margin-left: auto; padding: 10px 20px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px;
+        cursor: pointer; font-weight: 600; transition: all 0.3s;
+    }
+    #resetFilterBtn:hover { background: linear-gradient(135deg, #6366f1, #a855f7); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
+
+    /* KPI & Charts */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 30px; position: relative; z-index: 1; }
+    .kpi {
+        background: rgba(30, 41, 59, 0.4); padding: 25px; border-radius: 20px; text-align: center;
+        border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(15px);
+        transition: all 0.4s; position: relative; overflow: hidden; animation: fadeInUp 0.8s ease-out forwards;
+    }
+    .kpi:hover { transform: translateY(-10px); background: rgba(30, 41, 59, 0.6); border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+    .kpi h4 { color: #fff; font-size: 2rem; margin: 0 0 5px 0; text-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
+    .kpi p { color: #94a3b8; margin: 0; text-transform: uppercase; font-size: 0.8rem; font-weight: 600; }
+
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 25px; margin-top: 25px; position: relative; z-index: 1; }
+    .chart-card {
+        background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px; padding: 25px; height: 380px; display: flex; flex-direction: column;
+        backdrop-filter: blur(15px); transition: all 0.4s ease; animation: fadeInUp 1s ease-out forwards;
+    }
+    .chart-card:hover { transform: scale(1.02); border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 20px 40px rgba(0,0,0,0.4); z-index: 2; }
+    .chart-canvas { flex: 1; position: relative; }
+    .chart-title { color: #e2e8f0; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .chart-icon { font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+
+    /* Tabs */
+    .tabs { display:flex; gap:10px; margin-top:10px; position: relative; z-index: 1; }
+    .tab-btn { background:transparent; border:none; color:#94a3b8; padding:10px 20px; cursor:pointer; font-weight:600; transition:0.3s; }
+    .tab-btn:hover { color:#fff; }
+    .tab-btn.active { background:rgba(99,102,241,0.2); color:#fff; border-radius:8px; }
+    .tab-content { display:none; animation:fadeInUp 0.5s; }
+    .tab-content.active { display:block; }
+
+    /* Footer */
+    .site-footer { background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255,255,255,0.1); padding: 50px 0 20px; margin-top: 40px; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+    .footer-col h4 { color: #fff; margin-bottom: 15px; font-size: 1.1rem; }
+    .footer-desc { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
+    .footer-links { list-style: none; padding: 0; margin: 0; }
+    .footer-links li { margin-bottom: 10px; }
+    .footer-links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+    .footer-links a:hover { color: #6366f1; transform: translateX(5px); display: inline-block; }
+    .social-icons { display: flex; gap: 10px; }
+    .social-link { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #fff; display: flex; align-items: center; justify-content: center; transition:0.3s; }
+    .social-link:hover { background: #6366f1; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center; color: #64748b; font-size: 0.85rem; }
+
+    @media (max-width: 768px) { .filter-bar { flex-direction: column; align-items: stretch; } #resetFilterBtn { margin-left: 0; } .footer-grid { grid-template-columns: 1fr; text-align: center; } .social-icons { justify-content: center; } }
+  </style>
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <a href="../index.html" class="brand" style="text-decoration: none;">DATANA</a>
-      <nav>
-        <ul>
-          <li><a href="../index.html" class="nav-link">Trang chủ</a></li>
-          <li><a href="upload.html" class="nav-link">Tải lên</a></li>
-          <li><a href="dashboard.html" class="nav-link active" style="color: var(--text-main);">Báo cáo</a></li>
-          <li><a href="chat.html" class="nav-link">Trợ lý AI</a></li>
-          <li><a href="about.html" class="nav-link">Giới thiệu</a></li>
-        </ul>
-      </nav>
+      <div class="nav-group">
+          <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+            <img src="../images/logo.svg" alt="DATANA" style="height: 40px;">
+          </a>
+          <nav>
+            <ul>
+              <li><a href="../index.html" class="nav-link">Trang chủ</a></li>
+              <li><a href="upload.html" class="nav-link">Tải lên</a></li>
+              <li><a href="dashboard.html" class="nav-link active" style="color:#fff; text-shadow: 0 0 10px rgba(255,255,255,0.5);">Báo cáo</a></li>
+              <li><a href="chat.html" class="nav-link">Trợ lý AI</a></li>
+              <li><a href="about.html" class="nav-link">Giới thiệu</a></li>
+            </ul>
+          </nav>
+      </div>
+
+      <div id="userSection">
+          <a href="login.html" class="btn-primary" style="padding: 8px 20px; font-size: 0.9rem; text-decoration: none; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">Đăng nhập</a>
+      </div>
     </div>
   </header>
 
   <main class="container dashboard-container">
     <div class="dashboard-header">
-        <h1>📊 Báo cáo hiệu quả kinh doanh</h1>
+        <h1 class="dashboard-title">✨ Báo cáo Hiệu quả Kinh doanh</h1>
         
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>TỪ NGÀY</label>
+                <input type="date" id="startDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label>ĐẾN NGÀY</label>
+                <input type="date" id="endDate" class="filter-input">
+            </div>
+            
+            <div class="filter-group" style="margin-left: 10px;">
+                <label>KHU VỰC</label>
+                <div class="custom-dropdown" id="regionDropdown">
+                    <div class="dropdown-btn" onclick="toggleDropdown()">
+                        <span id="selectedRegionText">Tất cả khu vực</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="dropdown-content" id="regionList">
+                        </div>
+                </div>
+            </div>
+
+            <button id="resetFilterBtn">↺ Đặt lại</button>
+        </div>
+
         <div class="tabs">
-            <button class="tab-btn active" onclick="openTab(event, 'tab-overview')">Tổng quan & Xu hướng</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-region')">Khu vực & So sánh</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-product')">Sản phẩm & Tỷ trọng</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-data')">Dữ liệu chi tiết</button>
+             <button class="tab-btn active" onclick="openTab(event, 'tab-overview')">Tổng quan</button>
+             <button class="tab-btn" onclick="openTab(event, 'tab-forecast')">🔮 Dự báo & AI</button>
         </div>
     </div>
     
-    <section class="kpis">
-      <div class="kpi highlight">
-        <h4 id="kpi_rev">-</h4>
-        <p>Tổng doanh thu</p>
-      </div>
-      <div class="kpi highlight">
-        <h4 id="kpi_profit">-</h4>
-        <p>Tổng lợi nhuận</p>
-      </div>
-      <div class="kpi highlight">
-        <h4 id="kpi_topprod">-</h4>
-        <p>Top sản phẩm</p>
-      </div>
-    </section>
-
     <div id="tab-overview" class="tab-content active">
-        <div class="charts-grid">
-            <div class="chart-card"><h5>📈 Xu hướng doanh thu (Line)</h5><div class="chart-canvas"><canvas id="chartLine"></canvas></div></div>
-            <div class="chart-card"><h5>📈 Tăng trưởng tích lũy (Area)</h5><div class="chart-canvas"><canvas id="chartArea"></canvas></div></div>
-        </div>
-    </div>
-
-    <div id="tab-region" class="tab-content">
-        <div class="charts-grid">
-            <div class="chart-card"><h5>📊 Doanh thu theo khu vực (Bar)</h5><div class="chart-canvas"><canvas id="chartBar"></canvas></div></div>
-            <div class="chart-card"><h5>🔥 Top sản phẩm theo vùng (Stacked)</h5><div class="chart-canvas"><canvas id="chartStack"></canvas></div></div>
-        </div>
-    </div>
-
-    <div id="tab-product" class="tab-content">
-        <div class="charts-grid three-cols">
-            <div class="chart-card"><h5>🍰 Tỷ trọng doanh thu (Donut)</h5><div class="chart-canvas"><canvas id="chartDonut"></canvas></div></div>
-            <div class="chart-card"><h5>🎯 Hiệu suất sản phẩm (Radar)</h5><div class="chart-canvas"><canvas id="chartRadar"></canvas></div></div>
-            <div class="chart-card"><h5>💫 Giá & Số lượng (Scatter)</h5><div class="chart-canvas"><canvas id="chartScatter"></canvas></div></div>
-        </div>
-    </div>
-
-    <div id="tab-data" class="tab-content">
-        <section class="data-table-wrapper">
-            <div id="tableWrap"></div>
+        <section class="kpis">
+          <div class="kpi">
+              <p>TỔNG DOANH THU</p>
+              <h4 id="kpi_rev">0 VNĐ</h4>
+          </div>
+          <div class="kpi" style="border-color: rgba(16, 185, 129, 0.2);">
+              <p style="color: #6ee7b7;">TỔNG LỢI NHUẬN</p>
+              <h4 id="kpi_profit" style="text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);">0 VNĐ</h4>
+          </div>
+          <div class="kpi" style="border-color: rgba(244, 63, 94, 0.2);">
+              <p style="color: #fda4af;">TOP SẢN PHẨM</p>
+              <h4 id="kpi_topprod" style="text-shadow: 0 0 10px rgba(244, 63, 94, 0.5);">-</h4>
+          </div>
         </section>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title"><span class="chart-icon">📈</span> Xu hướng Doanh thu</div>
+                <div class="chart-canvas"><canvas id="chartLine"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><span class="chart-icon">📊</span> Phân bổ theo Vùng</div>
+                <div class="chart-canvas"><canvas id="chartBar"></canvas></div>
+            </div>
+        </div>
+        
+        <div class="charts-grid" style="grid-template-columns: 1fr;">
+            <div class="chart-card" style="height: 450px;">
+                <div class="chart-title"><span class="chart-icon">🍰</span> Top Sản phẩm & Tỷ trọng</div>
+                <div class="chart-canvas"><canvas id="chartDonut"></canvas></div>
+            </div>
+        </div>
     </div>
 
+    <div id="tab-forecast" class="tab-content">
+        <div class="chart-card" style="height: auto; min-height: 400px; align-items: flex-start;">
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                <div>
+                    <h5 style="color:#fff; margin:0; font-size: 1.3rem;">🤖 AI Phân tích Chiến lược</h5>
+                    <p style="color:#94a3b8; margin:5px 0 0 0; font-size: 0.9rem;">Dự báo xu hướng tương lai và phân tích rủi ro.</p>
+                </div>
+                <button id="btnAiForecast" class="btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #ec4899); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);">
+                    ✨ Phân tích ngay
+                </button>
+            </div>
+            <div id="aiForecastResult" style="color: #e2e8f0; line-height: 1.8; width: 100%;">
+                <div style="text-align: center; padding: 40px; color: #64748b;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🔮</div>
+                    Bấm nút để AI bắt đầu làm việc.
+                </div>
+            </div>
+        </div>
+    </div>
   </main>
 
+  <footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div style="margin-bottom: 15px; display:flex; align-items:center; gap:10px;">
+                    <img src="../images/logo.svg" style="height: 32px;">
+                </div>
+                <p class="footer-desc">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.</p>
+                <div class="social-icons">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Sản phẩm</h4>
+                <ul class="footer-links">
+                    <li><a href="upload.html">Phân tích Excel</a></li>
+                    <li><a href="chat.html">Trợ lý AI</a></li>
+                    <li><a href="dashboard.html">Báo cáo mẫu</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Hướng dẫn sử dụng</a></li>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Về chúng tôi</h4>
+                <ul class="footer-links">
+                    <li><a href="about.html">Đội ngũ</a></li>
+                    <li><a href="#">Tuyển dụng</a></li>
+                    <li><a href="#">Điều khoản</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 DATANA Analytics. All rights reserved.
+        </div>
+    </div>
+  </footer>
+
   <script>
-    // Logic chuyển Tab đơn giản
-    function openTab(evt, tabName) {
-        var i, tabcontent, tablinks;
+    /* --- LOGIC MỚI CHO MULTI-SELECT & DASHBOARD --- */
+    let ALL_DATA = [];
+    let charts = {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+        checkUserLogin();
+        const raw = localStorage.getItem('datana_last_analysis');
+        if (!raw) return; 
         
-        // 1. Ẩn tất cả nội dung tab
-        tabcontent = document.getElementsByClassName("tab-content");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-            tabcontent[i].classList.remove("active");
-        }
-        
-        // 2. Bỏ class active ở tất cả nút
-        tablinks = document.getElementsByClassName("tab-btn");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].classList.remove("active");
-        }
-        
-        // 3. Hiện tab được chọn
-        document.getElementById(tabName).style.display = "block";
-        // setTimeout để fix lỗi chart.js không vẽ được khi display:none
-        setTimeout(() => {
-             document.getElementById(tabName).classList.add("active");
-             // Trigger resize event để chart vẽ lại cho đúng kích thước
-             window.dispatchEvent(new Event('resize'));
-        }, 50);
-       
-        evt.currentTarget.classList.add("active");
+        try {
+            const analysis = JSON.parse(raw);
+            ALL_DATA = analysis.raw_data || []; 
+            
+            if (ALL_DATA.length === 0) {
+                alert("Dữ liệu trống! Hãy upload lại file.");
+                return;
+            }
+
+            initFilters();
+            updateDashboard(ALL_DATA);
+
+            document.getElementById('startDate').addEventListener('change', applyFilters);
+            document.getElementById('endDate').addEventListener('change', applyFilters);
+            document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
+            
+            window.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('regionDropdown');
+                if (!dropdown.contains(e.target)) {
+                    document.getElementById('regionList').classList.remove('show');
+                }
+            });
+
+            const btnForecast = document.getElementById('btnAiForecast');
+            if(btnForecast) btnForecast.addEventListener('click', runForecast);
+
+        } catch (e) { console.error(e); }
+    });
+
+    function toggleDropdown() {
+        document.getElementById('regionList').classList.toggle('show');
     }
 
-    // Login logic (giữ nguyên)
-    async function checkLogin() {
-        try {
-            const res = await fetch('/api/user_info');
-            const data = await res.json();
-            const navUl = document.querySelector('nav ul');
-            if (data.logged_in) {
-                const li = document.createElement('li');
-                li.innerHTML = `<a href="#" onclick="logout()" class="nav-link" style="color: #ef4444;">Đăng xuất (${data.username})</a>`;
-                navUl.appendChild(li);
-            } else {
-                const li = document.createElement('li');
-                li.innerHTML = `<a href="login.html" class="btn-primary" style="padding: 8px 16px;">Đăng nhập</a>`;
-                navUl.appendChild(li);
+    function initFilters() {
+        const dates = ALL_DATA.map(r => r.date).filter(d => d).sort();
+        if (dates.length > 0) {
+            document.getElementById('startDate').value = dates[0];
+            document.getElementById('endDate').value = dates[dates.length - 1];
+        }
+
+        const regions = new Set();
+        ALL_DATA.forEach(r => { if(r.region) regions.add(r.region); });
+        
+        const list = document.getElementById('regionList');
+        list.innerHTML = `
+            <div class="checkbox-item" onclick="toggleAllRegions(this)">
+                <input type="checkbox" id="reg_all" checked>
+                <span class="checkbox-label">Tất cả</span>
+            </div>
+            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:5px 0;">
+        `;
+        
+        Array.from(regions).sort().forEach(r => {
+            list.innerHTML += `
+                <div class="checkbox-item">
+                    <input type="checkbox" class="reg-chk" value="${r}" checked onchange="updateRegionText()">
+                    <span class="checkbox-label">${r}</span>
+                </div>
+            `;
+        });
+        updateRegionText();
+    }
+
+    function toggleAllRegions(el) {
+        const isChecked = el.querySelector('input').checked;
+        const chks = document.querySelectorAll('.reg-chk');
+        chks.forEach(c => c.checked = isChecked);
+        updateRegionText();
+        applyFilters();
+    }
+
+    function updateRegionText() {
+        const chks = document.querySelectorAll('.reg-chk:checked');
+        const total = document.querySelectorAll('.reg-chk').length;
+        const text = document.getElementById('selectedRegionText');
+        
+        if(chks.length === total || chks.length === 0) {
+            text.innerText = "Tất cả khu vực";
+            document.getElementById('reg_all').checked = true;
+        } else {
+            text.innerText = `${chks.length} khu vực đã chọn`;
+            document.getElementById('reg_all').checked = false;
+            applyFilters();
+        }
+    }
+
+    function applyFilters() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        
+        const chks = document.querySelectorAll('.reg-chk:checked');
+        const selectedRegs = Array.from(chks).map(c => c.value);
+        const isAllReg = document.getElementById('reg_all').checked || selectedRegs.length === 0;
+
+        const filtered = ALL_DATA.filter(row => {
+            let dateOK = true;
+            if (row.date) {
+                if (start && row.date < start) dateOK = false;
+                if (end && row.date > end) dateOK = false;
             }
-        } catch(e) {}
+            
+            let regOK = isAllReg;
+            if (!isAllReg && row.region) {
+                regOK = selectedRegs.includes(row.region);
+            }
+            
+            return dateOK && regOK;
+        });
+        updateDashboard(filtered);
     }
-    async function logout() {
-        await fetch('/api/logout');
-        localStorage.removeItem('datana_user');
-        window.location.reload();
+
+    function resetFilters() {
+        initFilters(); 
+        applyFilters();
     }
-    checkLogin();
+
+    function updateDashboard(data) {
+        const totalRev = data.reduce((s, r) => s + (r.revenue||0), 0);
+        const totalProf = data.reduce((s, r) => s + (r.profit||0), 0);
+        const prodMap = {};
+        data.forEach(r => prodMap[r.product] = (prodMap[r.product]||0) + (r.revenue||0));
+        const topProd = Object.keys(prodMap).sort((a,b) => prodMap[b]-prodMap[a])[0] || '-';
+
+        document.getElementById('kpi_rev').textContent = fmtMoney(totalRev);
+        document.getElementById('kpi_profit').textContent = fmtMoney(totalProf);
+        document.getElementById('kpi_topprod').textContent = topProd;
+
+        const timeMap = {};
+        data.forEach(r => { if(r.month && r.month !== 'N/A') timeMap[r.month] = (timeMap[r.month]||0) + r.revenue; });
+        const months = Object.keys(timeMap).sort();
+        
+        const regMap = {};
+        data.forEach(r => regMap[r.region] = (regMap[r.region]||0) + r.revenue);
+        
+        const sortedProds = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]);
+        let donutLabels = [], donutValues = [];
+        if (sortedProds.length <= 5) {
+            donutLabels = sortedProds.map(p => p[0]);
+            donutValues = sortedProds.map(p => p[1]);
+        } else {
+            const top4 = sortedProds.slice(0, 4);
+            donutLabels = top4.map(p => p[0]);
+            donutValues = top4.map(p => p[1]);
+            const otherSum = sortedProds.slice(4).reduce((sum, item) => sum + item[1], 0);
+            if (otherSum > 0) { donutLabels.push('Khác'); donutValues.push(otherSum); }
+        }
+
+        drawChart('chartLine', 'line', months, months.map(m=>timeMap[m]), 'Doanh thu theo tháng');
+        drawChart('chartBar', 'bar', Object.keys(regMap), Object.values(regMap), 'Doanh thu theo vùng');
+        drawChart('chartDonut', 'doughnut', donutLabels, donutValues, 'Tỷ trọng');
+    }
+
+    function drawChart(id, type, labels, dataArr, label) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if(charts[id]) charts[id].destroy();
+        
+        let bgColors;
+        if(type === 'line') {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+            bgColors = gradient;
+        } else if (type === 'doughnut') {
+            bgColors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#10b981'];
+        } else {
+            bgColors = 'rgba(99, 102, 241, 0.7)'; 
+        }
+
+        charts[id] = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label, data: dataArr,
+                    backgroundColor: bgColors, borderColor: '#6366f1', borderWidth: 2,
+                    pointBackgroundColor: '#fff', fill: type==='line', tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: type==='doughnut', position: 'right', labels:{color:'#fff'} } },
+                scales: type==='doughnut' ? {} : {
+                    y: { beginAtZero: true, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#94a3b8'} },
+                    x: { grid:{display:false}, ticks:{color:'#94a3b8'} }
+                }
+            }
+        });
+    }
+
+    async function runForecast() {
+        const btn = document.getElementById('btnAiForecast');
+        const resDiv = document.getElementById('aiForecastResult');
+        btn.disabled = true; btn.innerHTML = '⏳ Đang phân tích...';
+        
+        try {
+            const sid = localStorage.getItem('datana_session_id');
+            const res = await fetch('/api/forecast', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ session_id: sid })
+            });
+            const data = await res.json();
+            resDiv.innerHTML = `<div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:10px;">${data.html_content}</div>`;
+        } catch(e) {
+            resDiv.innerHTML = '<p style="color:#f43f5e;">Lỗi kết nối AI.</p>';
+        } finally {
+            btn.disabled = false; btn.innerHTML = '✨ Phân tích ngay';
+        }
+    }
+
+    function fmtMoney(n) { return new Intl.NumberFormat('vi-VN').format(n) + ' VNĐ'; }
+
+    function openTab(evt, tabName) {
+        const tabs = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabs.length; i++) tabs[i].style.display = "none";
+        const btns = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < btns.length; i++) btns[i].className = btns[i].className.replace(" active", "");
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    async function checkUserLogin() {
+        const userSec = document.getElementById('userSection');
+        const username = localStorage.getItem('datana_user'); 
+        if (username) {
+            const initial = username.charAt(0).toUpperCase();
+            userSec.innerHTML = `<div class="user-info" onclick="logout()"><div class="user-avatar">${initial}</div><span class="user-name">${username}</span></div>`;
+        }
+    }
+    function logout() {
+        if(confirm('Bạn có muốn đăng xuất?')) { localStorage.removeItem('datana_user'); window.location.reload(); }
+    }
   </script>
 </body>
 </html>

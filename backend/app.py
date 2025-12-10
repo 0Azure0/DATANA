@@ -11,55 +11,37 @@ import pandas as pd
 import json
 import requests
 import re
+import time
+from bs4 import BeautifulSoup
 
-# ==============================================================================
-# --- CẤU HÌNH API KEY & MODEL ---
-# ==============================================================================
-MY_GEMINI_KEY = "AIzaSyCtG7w6Yk4ubvbom83Nwm7e5txmCXLFpb8"
-GEMINI_MODEL_ID = "gemini-2.0-flash" 
+# --- CẤU HÌNH ---
+MY_GROQ_KEY = os.environ.get("GROQ_API_KEY", "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") 
+GROQ_MODEL_ID = "llama-3.3-70b-versatile" 
 
 app = Flask(__name__, static_folder="../frontend", static_url_path="/")
 
-# --- KẾT NỐI GEMINI AI ---
-GEMINI_AVAILABLE = False
+# --- KẾT NỐI GROQ ---
+GROQ_AVAILABLE = False
 client = None
-
 try:
-    from google import genai
-    final_api_key = MY_GEMINI_KEY or os.environ.get("GEMINI_API_KEY")
-    
-    if final_api_key:
-        client = genai.Client(api_key=final_api_key)
-        GEMINI_AVAILABLE = True
-        print(f">>> Google GenAI (New SDK) Active! Model: {GEMINI_MODEL_ID}")
-    else:
-        print(">>> Chưa cấu hình Gemini Key.")
-except ImportError:
-    print(">>> Lỗi: Chưa cài thư viện 'google-genai'.")
-except Exception as e:
-    print(f"Lỗi khởi tạo Gemini: {e}")
+    from groq import Groq, RateLimitError
+    if MY_GROQ_KEY and "gsk_" in MY_GROQ_KEY:
+        client = Groq(api_key=MY_GROQ_KEY)
+        GROQ_AVAILABLE = True
+except: pass
 
-# --- IMPORT MODULE LOGIC ---
-try:
-    import analyzer
-    import recommendations
-except ImportError:
-    print("Cảnh báo: Thiếu file analyzer.py hoặc recommendations.py")
+# --- IMPORT MODULE ---
+try: import analyzer
+except: pass
 
-# --- CẤU HÌNH APP ---
-app.config['SECRET_KEY'] = 'datana-super-secret-key' 
+app.config['SECRET_KEY'] = 'datana-super-secret' 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024 
-
 CORS(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
 
-# --- DATABASE MODELS ---
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -69,220 +51,212 @@ class Analysis(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     filename = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     result_json = db.Column(db.Text)
 
 @login_manager.user_loader
-def load_user(user_id):
-    return db.session.get(User, int(user_id))
-
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-
+def load_user(uid): return db.session.get(User, int(uid))
+if not os.path.exists(app.config['UPLOAD_FOLDER']): os.makedirs(app.config['UPLOAD_FOLDER'])
 TEMP_SESSIONS = {}
-ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# --- [FIX] HÀM TÌM KIẾM GOOGLE (THÊM VÀO ĐÂY) ---
+def search_google_trends(keyword):
+    if not keyword or keyword == "Không rõ": return "Không có thông tin."
+    try:
+        url = "https://html.duckduckgo.com/html/"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        res = requests.post(url, data={'q': f"thị trường {keyword} việt nam 2025"}, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        results = [r.get_text(strip=True) for r in soup.find_all('a', class_='result__a', limit=3)]
+        return "\n".join(results) if results else "Không tìm thấy tin tức."
+    except Exception as e: return f"Lỗi tìm kiếm: {str(e)}"
 
-# ==============================================================================
-# --- ROUTES HỆ THỐNG ---
-# ==============================================================================
+# --- GỌI AI ---
+def call_ai_with_retry(sys_msg, usr_msg):
+    if not GROQ_AVAILABLE: return "Lỗi kết nối AI."
+    for _ in range(3):
+        try:
+            return client.chat.completions.create(
+                model=GROQ_MODEL_ID,
+                messages=[{"role":"system","content":sys_msg},{"role":"user","content":usr_msg}],
+                temperature=0.6, max_tokens=2000
+            ).choices[0].message.content
+        except: time.sleep(1)
+    return "AI đang bận."
+
+# --- ROUTES ---
 @app.route("/")
 def index(): return send_from_directory(app.static_folder, "index.html")
-@app.route("/pages/<path:path>")
-def serve_pages(path): return send_from_directory(os.path.join(app.static_folder, "pages"), path)
-@app.route("/images/<path:path>")
-def serve_images(path): return send_from_directory(os.path.join(app.static_folder, "images"), path)
-@app.route("/css/<path:path>")
-def serve_css(path): return send_from_directory(os.path.join(app.static_folder, "css"), path)
-@app.route("/js/<path:path>")
-def serve_js(path): return send_from_directory(os.path.join(app.static_folder, "js"), path)
-
-@app.route("/api/sample")
-def download_sample():
-    sample_path = os.path.join(app.config['UPLOAD_FOLDER'], 'sample_data.csv')
-    if not os.path.exists(sample_path):
-        try:
-            with open(sample_path, 'w', encoding='utf-8') as f:
-                f.write("Ngày,Sản phẩm,Khu vực,Doanh thu,Lợi nhuận,Số lượng\n")
-                f.write("2025-01-01,Áo Thun,Hà Nội,500000,200000,5\n")
-                f.write("2025-01-02,Quần Jean,HCM,1200000,600000,3\n")
-        except: pass
-    if os.path.exists(sample_path): return send_file(sample_path, as_attachment=True, download_name="DATANA_Sample.csv")
-    return "Not found", 404
-
-# ==============================================================================
-# --- ROUTES AUTH ---
-# ==============================================================================
-@app.route("/api/register", methods=["POST"])
-def register():
-    try:
-        data = request.json
-        if User.query.filter_by(username=data.get('username')).first():
-            return jsonify({"error": "Tên đăng nhập tồn tại"}), 400
-        hashed = generate_password_hash(data.get('password'), method='pbkdf2:sha256')
-        new_user = User(username=data.get('username'), password=hashed)
-        db.session.add(new_user); db.session.commit()
-        return jsonify({"message": "OK"}), 200
-    except: return jsonify({"error": "Error"}), 500
+@app.route("/pages/<path:p>")
+def pages(p): return send_from_directory(os.path.join(app.static_folder, "pages"), p)
+@app.route("/images/<path:p>")
+def imgs(p): return send_from_directory(os.path.join(app.static_folder, "images"), p)
+@app.route("/css/<path:p>")
+def css(p): return send_from_directory(os.path.join(app.static_folder, "css"), p)
+@app.route("/js/<path:p>")
+def js(p): return send_from_directory(os.path.join(app.static_folder, "js"), p)
 
 @app.route("/api/login", methods=["POST"])
 def login():
-    try:
-        data = request.json
-        user = User.query.filter_by(username=data.get('username')).first()
-        if user and check_password_hash(user.password, data.get('password')):
-            login_user(user)
-            return jsonify({"message": "OK", "username": user.username}), 200
-        return jsonify({"error": "Fail"}), 401
-    except: return jsonify({"error": "Error"}), 500
+    data = request.json
+    u = User.query.filter_by(username=data.get('username')).first()
+    if u and check_password_hash(u.password, data.get('password')):
+        login_user(u); return jsonify({"message":"OK","username":u.username})
+    return jsonify({"error":"Fail"}),401
 
-@app.route("/api/logout")
-def logout(): logout_user(); return jsonify({"message": "OK"}), 200
+@app.route("/api/register", methods=["POST"])
+def register():
+    d=request.json
+    if User.query.filter_by(username=d.get('username')).first(): return jsonify({"error":"Exist"}),400
+    db.session.add(User(username=d.get('username'), password=generate_password_hash(d.get('password'))))
+    db.session.commit(); return jsonify({"message":"OK"})
 
-@app.route("/api/user_info")
-def user_info():
-    if current_user.is_authenticated: return jsonify({"logged_in": True, "username": current_user.username})
-    return jsonify({"logged_in": False})
-
-# ==============================================================================
-# --- CORE: PHÂN TÍCH ---
-# ==============================================================================
 @app.route("/analyze", methods=["POST"])
 def analyze_endpoint():
-    df = None; filename = "data"
     try:
-        sheet_url = request.form.get('sheet_url'); file = request.files.get('file')
+        f = request.files.get('file')
+        if not f: return jsonify({"error":"No file"}),400
+        path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(f.filename))
+        f.save(path)
         
-        if sheet_url:
-            match = re.search(r'/d/([a-zA-Z0-9-_]+)', sheet_url)
-            if match:
-                csv_url = f"https://docs.google.com/spreadsheets/d/{match.group(1)}/export?format=csv"
-                df = pd.read_csv(csv_url); filename = "GoogleSheet"
-            else: return jsonify({"error": "Link Google Sheet không hợp lệ"}), 400
-            
-        elif file and file.filename:
-            filename = secure_filename(file.filename)
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(path)
-            if filename.lower().endswith('.csv'): df = pd.read_csv(path)
-            else: df = pd.read_excel(path)
-            os.remove(path) 
-        
-        if df is None or df.empty: return jsonify({"error": "Dữ liệu trống"}), 400
+        if path.endswith('.csv'):
+            try: df = pd.read_csv(path, encoding='utf-8')
+            except: df = pd.read_csv(path, encoding='cp1258')
+        else: df = pd.read_excel(path)
+        os.remove(path)
 
-        (stats, time_ana, prod_ana, reg_ana, cust_ana, top, rev_m, prod_met, raw, cols, smart_sum) = analyzer.analyze_data(df)
-        
-        recs = recommendations.generate_recommendations(stats, reg_ana.get('revenue_by_region',{}), top, rev_m, prod_met)
-        
-        res_data = {
-            "statistics": stats, "time_analysis": time_ana, "product_analysis": prod_ana,
-            "region_analysis": reg_ana, "top_products": top, "recommendations": recs,
-            "raw_data": raw, "columns": cols, "filename": filename,
-            "smart_summary": smart_sum,
-            "analyzed_at": datetime.now().strftime("%Y-%m-%d %H:%M")
-        }
+        data = analyzer.analyze_data(df)
+        res = {"statistics": data[0], "raw_data": data[8], "smart_summary": data[10]}
         
         sid = str(uuid.uuid4())
         if current_user.is_authenticated:
-            db.session.add(Analysis(user_id=current_user.id, filename=filename, result_json=json.dumps(res_data)))
+            db.session.add(Analysis(user_id=current_user.id, filename=f.filename, result_json=json.dumps(res)))
             db.session.commit()
-            last_rec = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.id.desc()).first()
-            sid = f"db_{last_rec.id}"
-        else:
-            TEMP_SESSIONS[sid] = res_data
+            last = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.id.desc()).first()
+            sid = f"db_{last.id}"
+        else: TEMP_SESSIONS[sid] = res
             
-        res_data['session_id'] = sid
-        return jsonify(res_data), 200
-    except Exception as e: 
-        print(f"Analyze Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-# ==============================================================================
-# --- API AI: DỰ BÁO & CHAT (ĐÃ FIX LỖI HTML THỪA) ---
-# ==============================================================================
+        res['session_id'] = sid
+        return jsonify(res)
+    except Exception as e: return jsonify({"error":str(e)}),500
 
 @app.route("/api/forecast", methods=["POST"])
 def forecast_endpoint():
     try:
-        data = request.json; sid = data.get("session_id")
+        # RESILIENT JSON HANDLING - Force decode and handle non-strict types
+        data = request.get_json(force=True, silent=True)
+        if not data or not isinstance(data, dict):
+            return jsonify({"error": "Invalid JSON: Expected JSON object"}), 400
+        
+        sid = data.get("session_id")
+        if not sid:
+            return jsonify({"error": "Missing session_id parameter"}), 400
+        
+        # Retrieve analysis context
         ctx = {}
-        if sid:
+        try:
             if sid.startswith("db_") and current_user.is_authenticated:
                 rec = db.session.get(Analysis, int(sid.split("_")[1]))
                 if rec: ctx = json.loads(rec.result_json)
-            else: ctx = TEMP_SESSIONS.get(sid, {})
+            else:
+                ctx = TEMP_SESSIONS.get(sid, {})
+        except Exception as ctx_err:
+            return jsonify({"error": f"Session context error: {str(ctx_err)}"}), 400
         
         raw = ctx.get('raw_data', [])
-        if not raw: return jsonify({"error": "Không có dữ liệu"}), 400
+        if not raw or len(raw) == 0:
+            return jsonify({"error": "No analysis data found for this session"}), 400
         
-        df = pd.DataFrame(raw)
-        preview = df.head(5).to_string(index=False)
+        # Create DataFrame and perform advanced analysis
+        try:
+            df = pd.DataFrame(raw)
+            
+            top_p = "Sản phẩm"
+            revenue_col = None
+            product_col = None
+            profit_col = None
+            qty_col = None
+            
+            # Dynamic column discovery
+            for col in df.columns:
+                col_lower = str(col).lower()
+                if 'revenue' in col_lower or 'doanh thu' in col_lower or 'sales' in col_lower:
+                    revenue_col = col
+                if 'product' in col_lower or 'name' in col_lower or 'sản phẩm' in col_lower or 'tên' in col_lower:
+                    product_col = col
+                if 'profit' in col_lower or 'lợi nhuận' in col_lower or 'margin' in col_lower:
+                    profit_col = col
+                if 'quantity' in col_lower or 'số lượng' in col_lower or 'qty' in col_lower:
+                    qty_col = col
+            
+            # Calculate metrics for CDO-level analysis
+            metrics = {}
+            if revenue_col and product_col:
+                df[revenue_col] = pd.to_numeric(df[revenue_col], errors='coerce').fillna(0)
+                top_group = df.groupby(product_col)[revenue_col].sum().sort_values(ascending=False)
+                if not top_group.empty:
+                    top_p = str(top_group.index[0])
+                    metrics['top_product'] = top_p
+                    metrics['top_revenue'] = f"{top_group.iloc[0]:,.0f}"
+            
+            # Pareto Analysis (Concentration Risk)
+            if revenue_col and product_col:
+                total_revenue = df[revenue_col].sum()
+                top_3_revenue = df.groupby(product_col)[revenue_col].sum().nlargest(3).sum()
+                concentration = (top_3_revenue / total_revenue * 100) if total_revenue > 0 else 0
+                metrics['concentration_risk'] = f"{concentration:.1f}%"
+            
+            # Margin Analysis
+            if profit_col and revenue_col:
+                df[profit_col] = pd.to_numeric(df[profit_col], errors='coerce').fillna(0)
+                avg_margin = (df[profit_col].sum() / df[revenue_col].sum() * 100) if df[revenue_col].sum() > 0 else 0
+                metrics['avg_margin'] = f"{avg_margin:.1f}%"
         
-        if GEMINI_AVAILABLE and client:
-            # Prompt chặt chẽ hơn: YÊU CẦU CHỈ TRẢ VỀ HTML
-            prompt = f"""
-            Bạn là CPO (Giám đốc chiến lược). Dựa vào 5 dòng mẫu:
-            {preview}
-            
-            Hãy: 
-            1. Dự đoán xu hướng. 
-            2. Phân tích SWOT.
-            
-            QUAN TRỌNG:
-            - Chỉ trả về mã HTML (các thẻ <h3>, <p>, <ul>, <li>, <b>).
-            - KHÔNG được dùng Markdown (```html).
-            - KHÔNG được có lời dẫn đầu hay kết thúc.
-            - Chỉ trả về nội dung chính.
-            """
-            response = client.models.generate_content(model=GEMINI_MODEL_ID, contents=prompt)
-            
-            # Vệ sinh lại dữ liệu đầu ra (Xóa markdown nếu AI vẫn cố tình thêm vào)
-            clean_html = response.text.replace("```html", "").replace("```", "").strip()
-            
-            return jsonify({"html_content": clean_html})
-            
-        return jsonify({"html_content": "AI chưa sẵn sàng."})
-    except Exception as e: return jsonify({"error": str(e)}), 500
+        except Exception as df_err:
+            return jsonify({"error": f"DataFrame processing error: {str(df_err)}"}), 500
+        
+        # Search market trends
+        news = search_google_trends(top_p)
+        
+        # ENHANCED SYSTEM PROMPT - CDO/CFO MODE (More explicit, structured)
+        sys_msg = """Bạn là Chief Data Officer (CDO) và Chief Financial Officer (CFO) tư duy chiến lược cao cấp.
+        Hãy phân tích dữ liệu bán hàng như một lãnh đạo: cung cấp một BÁO CÁO NGẮN GỌN nhưng CHÍNH XÁC, CÓ SỐ LIỆU HỖ TRỢ và KẾ HOẠCH THỰC THI.
+        Yêu cầu đầu ra (bắt buộc):
+        - Phần 1: Risk Assessment (Pareto) — liệt kê Top 5 sản phẩm theo doanh thu và cho biết % đóng góp của từng sản phẩm trên tổng doanh thu; tính % doanh thu của Top 3 và Top 5 (ví dụ: Top3 = 62.3%).
+        - Phần 2: Pricing & Margin Strategy — chỉ ra các nhóm sản phẩm có margin thấp/không tương xứng so với giá, đề xuất 3 chiến lược giá cụ thể (ví dụ tăng giá có kiểm thử A/B, gói bundles, giảm chiết khấu cho kênh X).
+        - Phần 3: Top 3 Actions — 3 hành động có thể đo lường trong 90 ngày; cho biết MỤC TIÊU (KPIs) và cách đo lường (metrics), ưu tiên (High/Medium/Low), và ước tính tác động đến doanh thu hoặc margin.
 
-@app.route("/chat", methods=["POST"])
-def chat_endpoint():
-    try:
-        data = request.json; msg = data.get("message", ""); sid = data.get("session_id")
-        ctx = {}
-        if sid:
-            if sid.startswith("db_") and current_user.is_authenticated:
-                rec = db.session.get(Analysis, int(sid.split("_")[1]))
-                if rec: ctx = json.loads(rec.result_json)
-            else: ctx = TEMP_SESSIONS.get(sid, {})
-            
-        raw_data = ctx.get('raw_data', [])
-        stats = ctx.get('statistics', {})
-        
-        if not raw_data: return jsonify({"assistant": "⚠️ Chưa có dữ liệu."})
+        Format đầu ra: TRẢ VỀ HTML SẠCH dùng thẻ <h3>, <h4>, <p>, <ul>, <li>, <strong>. KHÔNG dùng Markdown hoặc code blocks. Tránh văn phong vòng vo; đưa ra con số và hành động rõ ràng.
+        """
 
-        df_preview = pd.DataFrame(raw_data).head(20)
-        data_str = df_preview.to_string(index=False)
-        total_rev = stats.get('total_revenue', 0)
+        metrics_str = " | ".join([f"{k}: {v}" for k, v in metrics.items()])
+        usr_msg = f"""Bạn có dữ liệu phân tích nội bộ sau:
+        - Top Product: {top_p}
+        - Metrics: {metrics_str}
+        - Market Context / Recent News: {news}
+
+        Yêu cầu cụ thể:
+        1) Thực hiện Pareto concentration analysis (Top3, Top5 %) và liệt kê Top5 products với doanh thu tuyệt đối và %.
+        2) Đánh giá pricing & margin — chỉ ra 2-3 cơ hội tối ưu hóa (ví dụ, tăng giá, giảm chiết khấu, thay đổi bundling).
+        3) Đưa ra Top 3 hành động rõ ràng trong 90 ngày kèm KPI và cách đo lường.
+
+        Trả lời bằng HTML theo định dạng đã nêu ở trên.
+        """
         
-        if GEMINI_AVAILABLE and client:
-            prompt = f"""
-            Bạn là trợ lý dữ liệu. 
-            Dữ liệu mẫu (20 dòng):
-            {data_str}
-            Tổng doanh thu: {total_rev:,.0f}
-            
-            Câu hỏi: "{msg}"
-            Trả lời ngắn gọn, trực tiếp, dùng tiếng Việt. Không hiện code python.
-            """
-            response = client.models.generate_content(model=GEMINI_MODEL_ID, contents=prompt)
-            return jsonify({"assistant": response.text})
-            
-        return jsonify({"assistant": "Offline mode."})
-    except Exception as e: return jsonify({"assistant": str(e)})
+        html = call_ai_with_retry(sys_msg, usr_msg)
+        if not html:
+            html = f"<div><h3>Phân tích CDO cho {top_p}</h3><p>Metrics: {metrics_str}</p><p>AI đang bận. Vui lòng thử lại sau.</p></div>"
+        
+        # Clean up any remaining markdown
+        html = html.replace("```html", "").replace("```", "").strip()
+        
+        return jsonify({"html_content": html})
+
+    except Exception as e:
+        import traceback
+        print(f"Forecast endpoint error: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 if __name__ == "__main__":
     with app.app_context(): db.create_all()
-    print(">>> Server DATANA đang chạy...")
     app.run(host="0.0.0.0", port=5000, debug=True)

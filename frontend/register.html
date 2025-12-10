@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Đăng ký - DATANA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    :root {
+      --primary: #8b5cf6; --accent: #0ea5e9; --bg: #020617; --panel: rgba(15,23,42,0.72);
+      --muted: #94a3b8; --border: rgba(255,255,255,0.08);
+    }
+    body { margin: 0; background: var(--bg); color: #e5e7eb; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .shell { display: grid; grid-template-columns: 1.05fr 0.95fr; min-height: 100vh; }
+    .hero { position: relative; overflow: hidden; background: radial-gradient(circle at 15% 25%, rgba(139,92,246,0.22), transparent 38%), radial-gradient(circle at 80% 25%, rgba(14,165,233,0.18), transparent 35%), #0b1224; }
+    .hero::before { content:""; position:absolute; inset:0; background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(14,165,233,0.08)), url('../images/dashboard-screenshot.jpg') center/cover no-repeat; filter: blur(6px) saturate(1.2); opacity:0.55; animation: slow-pan 28s ease-in-out infinite alternate; }
+    @keyframes slow-pan { from { transform: scale(1.05) translate3d(-8px,0,0);} to { transform: scale(1.08) translate3d(8px,0,0);} }
+    .hero-glass { position:absolute; inset:10%; border:1px solid rgba(255,255,255,0.08); border-radius:18px; background: rgba(15,23,42,0.55); backdrop-filter: blur(18px); display:flex; flex-direction:column; justify-content:center; padding:32px; gap:12px; box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+    .hero-badge { display:inline-flex; align-items:center; gap:8px; color:#c7d2fe; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;}
+    .hero h1 { margin:0; font-size:2.35rem; color:#fff; }
+    .hero p { margin:0; color:#cbd5e1; max-width:540px; }
+    .right { background: linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(10, 12, 24, 0.9)); display:flex; align-items:center; justify-content:center; padding:40px 24px; position:relative; }
+    .form-card { width:100%; max-width: 460px; background: var(--panel); border:1px solid var(--border); border-radius:18px; padding:28px; backdrop-filter: blur(14px); box-shadow:0 16px 40px rgba(0,0,0,0.4); animation: fadeIn 0.6s ease forwards;}
+    @keyframes fadeIn { from { opacity:0; transform: translateY(12px);} to { opacity:1; transform: translateY(0);} }
+    .logo { display:flex; align-items:center; gap:10px; margin-bottom:12px; color:#fff; font-weight:800; text-decoration:none; }
+    .logo img { height:32px; }
+    .title { margin:0 0 6px; font-size:1.6rem; font-weight:800; }
+    .subtitle { margin:0 0 16px; color: var(--muted); }
+    .error-box { display:none; margin-bottom:12px; background: rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); color:#fecdd3; padding:10px 12px; border-radius:12px; font-weight:600; }
+    .error-box.show { display:block; }
+    .field { position: relative; margin-bottom: 14px; }
+    .field input { width:100%; padding:14px 12px 10px; border-radius:12px; background: rgba(255,255,255,0.03); border:1px solid var(--border); color:#fff; outline:none; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease; }
+    .field input:focus { border-color: var(--primary); box-shadow:0 0 0 3px rgba(139,92,246,0.25); transform: translateY(-1px); }
+    .float-label { position:absolute; left:12px; top:12px; color: var(--muted); pointer-events:none; transition:0.2s ease; background:transparent; padding:0 4px; }
+    .field input:focus + .float-label,
+    .field input:not(:placeholder-shown) + .float-label { top:-8px; font-size:0.78rem; color:#cbd5e1; background: var(--panel); }
+    .btn-primary { width:100%; border:none; padding:13px 16px; border-radius:12px; font-weight:800; cursor:pointer; color:#fff; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow:0 12px 32px rgba(14,165,233,0.35); transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.2s; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow:0 16px 40px rgba(139,92,246,0.35); }
+    .btn-primary:disabled { opacity:0.65; cursor:not-allowed; transform:none; box-shadow:none; }
+    .social { display:flex; gap:12px; margin-top:12px; }
+    .social button { flex:1; border:1px solid var(--border); background: rgba(255,255,255,0.03); color:#cbd5e1; border-radius:10px; padding:10px 0; cursor:pointer; transition:border-color 0.2s ease; }
+    .social button:hover { border-color: rgba(255,255,255,0.2); }
+    .foot { margin-top:14px; text-align:center; color: var(--muted); }
+    .foot a { color:#fff; font-weight:700; text-decoration: underline; }
+    @media (max-width: 960px) { .shell { grid-template-columns: 1fr; } .hero { display:none; } .right { padding:32px 18px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-glass">
+        <span class="hero-badge"><i class="fas fa-bolt"></i> Insight Portal</span>
+        <h1>AI-Powered Analytics</h1>
+        <p>Onboard with confidence—secure, fast, and built for data-driven teams.</p>
+      </div>
+    </section>
+
+    <section class="right">
+      <div class="form-card">
+        <a class="logo" href="../index.html"><img src="../images/logo.svg" alt="DATANA"> DATANA</a>
+        <h2 class="title">Create account</h2>
+        <p class="subtitle">Spin up your cyberpunk analytics space.</p>
+
+        <div id="authError" class="error-box"></div>
+
+        <form class="auth-form" data-auth-form data-mode="register">
+          <div class="field">
+            <input id="username" type="text" autocomplete="username" required placeholder=" ">
+            <label class="float-label" for="username">Username</label>
+          </div>
+          <div class="field">
+            <input id="password" type="password" autocomplete="new-password" required placeholder=" ">
+            <label class="float-label" for="password">Password</label>
+          </div>
+          <div class="field">
+            <input id="confirm_password" type="password" autocomplete="new-password" required placeholder=" ">
+            <label class="float-label" for="confirm_password">Confirm password</label>
+          </div>
+
+          <button type="submit" class="btn-primary" data-label="Create Account">Create Account</button>
+        </form>
+
+        <div class="social">
+          <button aria-label="Google login"><i class="fab fa-google"></i></button>
+          <button aria-label="GitHub login"><i class="fab fa-github"></i></button>
+        </div>
+
+        <div class="foot">Already have an account? <a href="login.html">Sign in</a></div>
+      </div>
+    </section>
+  </div>
+  <script src="../js/auth.js"></script>
+</body>
+</html>

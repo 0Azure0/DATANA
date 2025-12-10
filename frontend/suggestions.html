@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Gợi ý Chiến lược — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="nav-group">
+          <a href="../index.html" class="brand" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
+            <img src="../images/logo.jpg" onerror="this.src='../images/logo.svg'" style="height: 38px; border-radius:6px;">
+            <span style="font-weight:800; font-size:1.4rem; color:#fff;">DATANA</span>
+          </a>
+          <nav>
+            <ul>
+              <li><a href="upload.html" class="nav-link">Tải lên</a></li>
+              <li><a href="dashboard.html" class="nav-link">Báo cáo</a></li>
+              <li><a href="suggestions.html" class="nav-link active" style="color:#fff;">Gợi ý</a></li>
+              <li><a href="chat.html" class="nav-link">Trợ lý AI</a></li>
+            </ul>
+          </nav>
+      </div>
+      <div id="userSection"></div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 40px 0; min-height:80vh;">
+    <h1 style="text-align:center; font-size:2.5rem; margin-bottom:10px;">🎯 Gợi ý Chiến lược</h1>
+    <p style="text-align:center; color:#94a3b8; margin-bottom:40px;">Đề xuất hành động dựa trên dữ liệu thực tế của bạn</p>
+
+    <div id="suggestionsArea" style="display:grid; gap:20px; max-width:900px; margin:0 auto;">
+       </div>
+    
+    <div id="noDataMsg" style="text-align:center; display:none; background:rgba(255,255,255,0.05); padding:30px; border-radius:15px;">
+        <i class="fas fa-folder-open" style="font-size:3rem; color:#64748b; margin-bottom:15px;"></i>
+        <p>Chưa có dữ liệu. Vui lòng <a href="upload.html" style="color:#6366f1;">tải file lên</a> trước.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div style="margin-bottom: 20px; display:flex; align-items:center; gap:10px;">
+                    <img src="../images/logo.jpg" onerror="this.src='../images/logo.svg'" style="height: 38px; border-radius:5px;">
+                    <span style="font-weight:700; color:#fff; font-size:1.3rem;">DATANA</span>
+                </div>
+                <p class="footer-desc">Giải pháp phân tích dữ liệu kinh doanh thông minh 4.0.</p>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/charlie.huyzh" target="_blank" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Sản phẩm</h4>
+                <ul class="footer-links">
+                    <li><a href="upload.html">Phân tích Excel</a></li>
+                    <li><a href="chat.html">Trợ lý AI</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <ul class="footer-links">
+                    <li><a href="about.html">Về chúng tôi</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Hướng dẫn</a></li>
+                    <li><a href="#">Chính sách</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2025 DATANA Analytics. All rights reserved.</div>
+    </div>
+  </footer>
+  <script src="../js/suggestions.js"></script>
+  <script>
+    const user = localStorage.getItem('datana_user');
+    if(user) document.getElementById('userSection').innerHTML = `<div class="user-info" style="color:#fff; cursor:pointer;" onclick="logout()"><i class="fas fa-user-circle"></i> ${user}</div>`;
+    else document.getElementById('userSection').innerHTML = `<a href="login.html" class="btn-primary" style="padding: 8px 20px;">Đăng nhập</a>`;
+    function logout(){ if(confirm('Đăng xuất?')){ localStorage.removeItem('datana_user'); location.reload(); }}
+  </script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tầm nhìn & Giá trị cốt lõi — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* CSS riêng cho trang About */
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #0f172a; /* Đồng bộ nền tối */
+    }
+
+    .about-hero {
+        text-align: center;
+        padding: 60px 0 40px;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        font-weight: 700;
+    }
+    
+    /* Gạch chân trang trí dưới tiêu đề (sử dụng màu tím/primary) */
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background: #6366f1;
+        margin: 10px auto 0;
+        border-radius: 2px;
+    }
+
+    /* Lưới lợi ích (Core Values) - Phong cách tối giản, tập trung vào Icon */
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 60px;
+    }
+
+    .benefit-card {
+        background: rgba(255, 255, 255, 0.05); /* Nền tối mờ */
+        padding: 28px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.2s, border-color 0.3s, box-shadow 0.3s;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-5px);
+        border-color: #6366f1;
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+    }
+
+    .card-icon {
+        color: #a7f3d0; /* Màu xanh nhạt */
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        display: inline-block;
+        /* Hiệu ứng Glow nhẹ */
+        text-shadow: 0 0 15px rgba(167, 243, 208, 0.3);
+    }
+    
+    .benefit-card h4 {
+        color: #fff;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    /* Lưới hướng dẫn (Product Journey) */
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        margin-bottom: 60px;
+    }
+
+    .step-card {
+        background: rgba(255, 255, 255, 0.03); /* Nền tối nhẹ hơn */
+        padding: 30px 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: center;
+        position: relative;
+        transition: transform 0.2s;
+    }
+    
+    .step-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .step-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        display: block;
+        color: #6366f1; 
+    }
+
+    .step-num {
+        background: #6366f1; /* Màu Primary */
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid #0f172a; 
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Khung liên hệ (Call to Action) */
+    .contact-box {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(99, 102, 241, 0.2) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.15);
+    }
+    .contact-box h2 { color: #fff; }
+    .contact-box p { color: #cbd5e1; }
+
+    /* --- ĐỒNG BỘ HEADER/FOOTER --- */
+    /* Header Styles */
+    .site-header {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: sticky; top: 0; z-index: 1000;
+        width: 100%;
+    }
+    .site-header .container {
+        display: flex; align-items: center; justify-content: space-between;
+        max-width: 100%; margin: 0 auto; padding: 15px 40px;
+    }
+    .brand { font-size: 1.5rem; font-weight: bold; color: #fff; text-decoration: none; }
+    .nav-link {
+        color: #94a3b8; text-decoration: none; font-weight: 500; transition: 0.3s;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .nav-link:hover, .nav-link.active { color: #fff !important; }
+    .nav-link.active { color: #fff; } 
+    nav ul { display: flex; list-style: none; margin: 0; padding: 0; gap: 20px; }
+    
+    /* Footer Styles */
+    .site-footer {
+        background-color: #0f172a;
+        color: #cbd5e1;
+        padding: 40px 0 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin-top: auto;
+    }
+    .footer-content {
+        display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
+        max-width: 1400px; margin: 0 auto 30px; padding: 0 20px;
+    }
+    .footer-col h4 { color: #fff; margin-bottom: 15px; }
+    .footer-col ul { list-style: none; padding: 0; }
+    .footer-col ul li a { color: #94a3b8; text-decoration: none; transition: color 0.3s;}
+    .footer-col ul li a:hover { color: #fff; }
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        max-width: 1400px; margin: 0 auto; padding: 0 20px;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    .payment-icons { font-size: 1.5rem; display: flex; gap: 10px; }
+    .social-links a { color: #94a3b8; font-size: 1.2rem; margin-right: 15px; }
+
+
+    @media (max-width: 768px) { 
+        .site-header nav ul { display: none; }
+        .footer-content { grid-template-columns: 1fr; text-align: center; } 
+        .footer-bottom { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">DATANA</a>
+      <nav>
+        <ul>
+          <li><a href="../index.html" class="nav-link"><i class="fas fa-home"></i> Trang chủ</a></li>
+          <li><a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
+          <li><a href="dashboard.html" class="nav-link"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
+          <li><a href="chat.html" class="nav-link"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
+          <li><a href="about.html" class="nav-link active"><i class="fas fa-info-circle"></i> Giới thiệu</a></li>
+          <li id="auth-nav-item"></li> 
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="about-hero">
+        <h1 style="font-size: 3rem; margin-bottom: 10px; color: #fff;">Tầm nhìn và Sứ mệnh của DATANA</h1>
+        <p style="font-size: 1.2rem; color: #cbd5e1;">"Đơn giản hóa Phân tích Dữ liệu để Mọi Doanh nghiệp có thể Đưa ra Quyết định Thông minh."</p>
+    </div>
+
+    <h2 class="section-title">Giá trị Cốt lõi</h2>
+    <div class="benefits-grid">
+        <div class="benefit-card">
+            <i class="fas fa-tachometer-alt card-icon"></i>
+            <h4 style="text-align: left;">Hiệu suất & Tốc độ</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8; text-align: left;">Sử dụng công nghệ tiên tiến (Groq/AI) để cung cấp báo cáo và insight gần như tức thì, biến sự chậm trễ thành lợi thế cạnh tranh.</p>
+        </div>
+        <div class="benefit-card">
+            <i class="fas fa-user-tie card-icon"></i>
+            <h4 style="text-align: left;">Tập trung vào SME</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8; text-align: left;">Thiết kế quy trình đơn giản, trực quan, loại bỏ độ phức tạp thường thấy trong các công cụ BI truyền thống, phù hợp hoàn hảo với nhu cầu của các doanh nghiệp vừa và nhỏ.</p>
+        </div>
+        <div class="benefit-card">
+            <i class="fas fa-brain card-icon"></i>
+            <h4 style="text-align: left;">Thông minh & Chiến lược</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8; text-align: left;">Kết hợp phân tích dữ liệu lịch sử với thông tin thị trường (Web Search) để đưa ra các khuyến nghị hành động chiến lược, không chỉ dừng lại ở số liệu.</p>
+        </div>
+        <div class="benefit-card">
+            <i class="fas fa-shield-alt card-icon"></i>
+            <h4 style="text-align: left;">Minh bạch & Bảo mật</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8; text-align: left;">Cam kết bảo mật tuyệt đối. Dữ liệu của khách hàng được xử lý tự động và không lưu trữ vĩnh viễn sau quá trình phân tích.</p>
+        </div>
+    </div>
+
+    <h2 class="section-title">Trải nghiệm sản phẩm</h2>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-num">1</div>
+            <span class="step-icon"><i class="fas fa-file-upload"></i></span>
+            <h4 style="color: #fff;">Kết nối dữ liệu</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8;">Upload file Excel/CSV hoặc dán link Google Sheet công khai.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">2</div>
+            <span class="step-icon"><i class="fas fa-cogs"></i></span>
+            <h4 style="color: #fff;">Xử lý thông minh</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8;">Hệ thống AI tự động làm sạch, nhận diện cột và tính toán KPI.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">3</div>
+            <span class="step-icon"><i class="fas fa-chart-line"></i></span>
+            <h4 style="color: #fff;">Hiển thị Insight</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8;">Trực quan hóa dữ liệu bằng Dashboard và đưa ra các khuyến nghị.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">4</div>
+            <span class="step-icon"><i class="fas fa-comments"></i></span>
+            <h4 style="color: #fff;">Đối thoại AI</h4>
+            <p style="font-size: 0.9rem; color: #94a3b8;">Sử dụng Trợ lý AI để đặt câu hỏi chi tiết về hiệu suất kinh doanh.</p>
+        </div>
+    </div>
+
+    <div class="contact-box">
+        <h2 style="color: var(--text-main); margin-bottom: 15px;">Sẵn sàng tối ưu hóa quyết định kinh doanh?</h2>
+        <p style="margin-bottom: 25px;">Hãy bắt đầu hành trình chuyển đổi dữ liệu thành hành động với DATANA ngay hôm nay.</p>
+        <a href="upload.html" class="btn-primary" style="text-decoration: none; padding: 12px 30px;"><i class="fas fa-rocket"></i> Bắt đầu Phân tích</a>
+    </div>
+
+    <div style="height: 60px;"></div> </main>
+  
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-col">
+          <a href="../index.html" class="brand" style="text-decoration: none; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <span style="color: #fff; font-weight: bold;">DATANA</span>
+          </a>
+          <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px;">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.</p>
+          <div class="social-links">
+            <a href="#" style="color: #94a3b8; font-size: 1.2rem;"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" style="color: #94a3b8; font-size: 1.2rem;"><i class="fab fa-youtube"></i></a>
+            <a href="#" style="color: #94a3b8; font-size: 1.2rem;"><i class="fab fa-linkedin-in"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Sản phẩm</h4>
+          <ul>
+            <li><a href="upload.html">Phân tích Excel</a></li>
+            <li><a href="chat.html">Trợ lý AI</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Hỗ trợ</h4>
+          <ul>
+            <li><a href="#">Hướng dẫn sử dụng</a></li>
+            <li><a href="#">Liên hệ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Công ty</h4>
+          <ul>
+            <li><a href="about.html">Về chúng tôi</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 DATANA Analytics. All rights reserved.</p>
+        <div class="payment-icons"><i class="fab fa-cc-visa"></i> <i class="fab fa-cc-mastercard"></i></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    async function checkLogin() {
+        try {
+            const res = await fetch('/api/user_info');
+            const data = await res.json();
+            const authNavItem = document.getElementById('auth-nav-item');
+            
+            if (data.authenticated && data.username) {
+                authNavItem.innerHTML = `<a href="#" onclick="logout()" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất (${data.username})</a>`;
+            } else {
+                authNavItem.innerHTML = `<a href="login.html" class="nav-link" style="color: #a7f3d0;"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>`;
+            }
+        } catch(e) {
+             const authNavItem = document.getElementById('auth-nav-item');
+             authNavItem.innerHTML = `<a href="login.html" class="nav-link" style="color: #a7f3d0;"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>`;
+        }
+    }
+    async function logout() {
+        if(confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            await fetch('/api/logout', { method: 'POST' });
+            localStorage.removeItem('datana_user');
+            window.location.reload();
+        }
+    }
+    checkLogin();
+  </script>
+</body>
+</html>

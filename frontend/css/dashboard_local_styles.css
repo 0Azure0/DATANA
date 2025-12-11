@@ -1,0 +1,295 @@
+/* css/dashboard_local_styles.css - Styles cục bộ từ dashboard.html */
+
+.dashboard-container { padding-top: 40px; padding-bottom: 60px; min-height: 80vh; }
+
+/* Header & User */
+.site-header .container { display: flex; align-items: center; justify-content: space-between; }
+.nav-group { display: flex; align-items: center; gap: 20px; }
+
+.user-info {
+    display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(5px);
+}
+.user-info:hover { background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
+.user-avatar {
+    width: 34px; height: 34px; background: linear-gradient(135deg, #6366f1, #ec4899);
+    color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 0.9rem;
+}
+.user-name { font-size: 0.9rem; color: #e2e8f0; font-weight: 600; }
+
+/* Dashboard Title */
+.dashboard-title {
+    font-size: 2.5rem; font-weight: 800; margin-bottom: 25px;
+    background: linear-gradient(to right, #fff, #c4b5fd, #6366f1, #f472b6);
+    background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmerText 5s ease infinite;
+}
+@keyframes shimmerText { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Filter Bar */
+.filter-bar {
+    display: flex !important; flex-direction: row; align-items: center; gap: 15px;
+    padding: 20px 25px; margin-bottom: 30px; background: rgba(17, 24, 39, 0.6);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; backdrop-filter: blur(20px);
+    flex-wrap: wrap; animation: fadeInUp 0.6s ease-out forwards;
+}
+.filter-group { display: flex; align-items: center; gap: 10px; }
+.filter-group label { color: #94a3b8; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+.filter-input {
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff;
+    padding: 10px 16px; border-radius: 10px; outline: none; cursor: pointer;
+}
+
+/* Custom Dropdown */
+.custom-dropdown { position: relative; min-width: 200px; }
+.dropdown-btn {
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff;
+    padding: 10px 16px; border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+}
+.dropdown-content {
+    display: none; position: absolute; top: 120%; left: 0; width: 100%;
+    background: rgba(30, 41, 59, 1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px; z-index: 9999; padding: 10px; max-height: 300px; overflow-y: auto;
+}
+.dropdown-content.show { display: block; animation: fadeInUp 0.2s; }
+.checkbox-item { display: flex; align-items: center; gap: 10px; padding: 10px; cursor: pointer; }
+.checkbox-item:hover { background: rgba(99, 102, 241, 0.2); }
+
+#resetFilterBtn {
+    padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+#resetFilterBtn:hover { background: linear-gradient(135deg, #6366f1, #a855f7); }
+
+.filter-actions { display: flex; gap: 10px; margin-left: auto; }
+#exportPdfBtn, #printPreviewBtn {
+    padding: 10px 20px; border: 1px solid rgba(16, 185, 129, 0.3); color: #fff; border-radius: 8px;
+    cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;
+}
+#exportPdfBtn { background: linear-gradient(135deg, #10b981, #059669); }
+#printPreviewBtn { background: linear-gradient(135deg, #3b82f6, #6366f1); border-color: rgba(59, 130, 246, 0.3); }
+
+/* KPI & Charts */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 30px; }
+.kpi {
+    background: rgba(30, 41, 59, 0.4); padding: 25px; border-radius: 20px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(15px); animation: fadeInUp 0.8s ease-out forwards;
+}
+.kpi h4 { color: #fff; font-size: 2rem; margin: 5px 0; }
+.kpi p { color: #94a3b8; font-size: 0.8rem; font-weight: 600; }
+
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 25px; margin-top: 25px; }
+.chart-card {
+    background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+    padding: 25px; height: 380px; display: flex; flex-direction: column; backdrop-filter: blur(15px);
+}
+.chart-canvas { flex: 1; position: relative; }
+.chart-title { color: #e2e8f0; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+
+/* Tabs */
+.tabs { display:flex; gap:10px; margin-top:10px; }
+.tab-btn { background:transparent; border:none; color:#94a3b8; padding:10px 20px; cursor:pointer; font-weight:600; }
+.tab-btn.active { background:rgba(99,102,241,0.2); color:#fff; border-radius:8px; }
+.tab-content { display:none; animation:fadeInUp 0.5s; }
+.tab-content.active { display:block; }
+
+/* Table Colors */
+.table-card { padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: rgba(255,255,255,0.05); }
+th, td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.table-card.blue { border-color: #3b82f6; background: rgba(59, 130, 246, 0.12); }
+.table-card.green { border-color: #10b981; background: rgba(16, 185, 129, 0.12); }
+.table-card.purple { border-color: #a855f7; background: rgba(168, 85, 247, 0.12); }
+.table-card.orange { border-color: #f97316; background: rgba(249, 115, 22, 0.12); }
+.table-card.pink { border-color: #f43f5e; background: rgba(244, 63, 94, 0.12); }
+.num-cell { text-align: right; font-weight: 600; }
+.percent-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; }
+
+@media (max-width: 768px) { .filter-bar { flex-direction: column; } .filter-actions { margin-left: 0; } }
+
+/* --- PRINT & PDF ENHANCEMENTS (QUAN TRỌNG: DARK MODE) --- */
+
+/* 1. Ẩn những thứ không cần thiết khi in */
+.dashboard-container.pdf-mode .dashboard-header,
+.dashboard-container.pdf-mode .tabs,
+.dashboard-container.pdf-mode #section-donut-chart {
+    display: none !important;
+}
+
+/* 2. Hiện KPI để báo cáo đẹp hơn (Đã xóa display:none) */
+.dashboard-container.pdf-mode .kpis {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important; /* Dàn hàng ngang */
+    gap: 15px !important;
+    margin-bottom: 20px !important;
+}
+
+.dashboard-container.pdf-mode #tab-overview,
+.dashboard-container.pdf-mode #tab-forecast {
+    display: block !important;
+}
+
+/* 3. SỬA LỖI LAYOUT CHART KHI IN DARK MODE */
+.dashboard-container.pdf-mode .charts-grid {
+    display: flex !important; 
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    justify-content: center !important;
+}
+
+.dashboard-container.pdf-mode .chart-card {
+    width: 48% !important; /* Mỗi chart 48% chiều ngang */
+    margin-bottom: 20px !important;
+    height: 380px !important;
+    break-inside: avoid !important;
+    background-color: #1e293b !important; /* Nền card đậm */
+    border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* Biểu đồ full width */
+.dashboard-container.pdf-mode .charts-grid[style*="1fr"] .chart-card {
+    width: 100% !important;
+}
+
+/* AI REPORT NỀN TỐI */
+.dashboard-container.pdf-mode #aiForecastResult > div {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #fff !important;
+}
+/* --- CẤU HÌNH IN PDF: BẢN FINAL FIX TRÀN CHỮ & CẮT SỐ --- */
+@media print {
+    /* 1. CẤU HÌNH TRANG: Lề nhỏ để an toàn cho máy in */
+    @page {
+        size: landscape;
+        margin: 0mm !important; /* Chừa 5mm để không bị máy in cắt mất mép */
+    }
+
+    /* 2. ẨN GIAO DIỆN THỪA */
+    .sidebar, .site-header, .site-footer, 
+    .dashboard-header-wrapper, .filter-bar, .tabs, 
+    .loading-overlay, #btnAiForecast, .user-mini-profile, 
+    #printPreviewBtn, .toast-container, .brand-desc, 
+    .social-links, .footer-col, .footer-bottom, div:empty {
+        display: none !important;
+    }
+
+    /* 3. THIẾT LẬP KHUNG CHÍNH (QUAN TRỌNG) */
+    body, html, .app-wrapper, .main-content, .dashboard-container {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        width: 100% !important;
+        max-width: 100% !important; /* Không cho phép vượt quá khổ giấy */
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    /* 4. HIỆN TẤT CẢ TAB */
+    .tab-content { display: block !important; width: 100% !important; }
+
+    /* 5. KHU VỰC KPI (SỐ LIỆU TỔNG) */
+    .kpis {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 20px !important;
+        margin-bottom: 40px !important;
+        break-inside: avoid !important; /* Không bị cắt đôi KPI */
+    }
+    
+    .kpi {
+        background: #111 !important;
+        border: 1px solid #444 !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        flex: 1 !important; /* Chia đều chiều ngang */
+        text-align: center;
+        box-shadow: none !important;
+    }
+    
+    /* Fix lỗi số quá to bị tràn */
+    .kpi h4 { 
+        font-size: 24pt !important; 
+        color: #fff !important; 
+        word-wrap: break-word !important; /* Tự xuống dòng nếu số quá dài */
+        overflow-wrap: break-word !important;
+    }
+
+    /* 6. KHU VỰC BIỂU ĐỒ (MỖI HÌNH 1 TRANG) */
+    .chart-card {
+        width: 100% !important;
+        height: 90vh !important; /* Cao gần bằng trang giấy */
+        
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        
+        background: #000 !important;
+        border: none !important;
+        
+        /* Ngắt trang sau mỗi biểu đồ */
+        page-break-after: always !important; 
+        break-inside: avoid !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Riêng phần AI thì KHÔNG được ép chiều cao (để chữ tự dài ra) */
+    #tab-forecast .chart-card {
+        height: auto !important; 
+        min-height: 50vh !important;
+        display: block !important;
+        padding: 20px !important;
+        page-break-after: auto !important; /* Để tự nhiên */
+    }
+
+    .chart-canvas {
+        flex: 1;
+        width: 100% !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    canvas {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        object-fit: contain;
+    }
+
+    /* 7. KHU VỰC BÁO CÁO AI (FIX TRÀN CHỮ) */
+    #aiForecastResult {
+        font-size: 14pt !important; /* Cỡ chữ in ấn chuẩn */
+        line-height: 1.6 !important;
+        color: #eee !important;
+        text-align: justify !important;
+        
+        /* QUAN TRỌNG: Chống tràn chữ */
+        white-space: pre-wrap !important; /* Giữ xuống dòng nhưng cho phép wrap */
+        word-wrap: break-word !important; /* Cắt từ nếu quá dài */
+        overflow-wrap: break-word !important;
+        width: 100% !important;
+    }
+
+    /* 8. BẢNG DỮ LIỆU */
+    .table-card {
+        width: 100% !important;
+        height: auto !important;
+        background: #000 !important;
+        margin-top: 20px !important;
+        page-break-after: always !important;
+    }
+    
+    table { width: 100% !important; table-layout: fixed !important; /* Cố định cột để không vỡ */ }
+    th, td { 
+        padding: 10px !important; 
+        border: 1px solid #333 !important; 
+        word-wrap: break-word !important; /* Chống tràn trong ô bảng */
+        overflow: hidden;
+    }
+}

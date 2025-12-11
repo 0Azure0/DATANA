@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Đăng ký - DATANA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* CSS Chung cho trang Auth */
+    body { background-color: #0f172a; font-family: 'Inter', sans-serif; color: #fff; }
+    .site-header { 
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .site-header .container { padding: 15px 40px; }
+    .brand span { font-size: 1.6rem; font-weight: 900; color: #fff; }
+
+    /* Thẻ Auth Card */
+    .auth-card {
+        width: 100%; max-width: 400px;
+        background: rgba(30, 41, 59, 0.6); /* Nền tối mờ */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .auth-title { font-size: 2rem; margin-bottom: 10px; color: #fff; }
+    .auth-subtitle { font-size: 1rem; margin-bottom: 30px; color: #94a3b8; }
+    .auth-form { display: flex; flex-direction: column; gap: 20px; }
+    
+    /* Input Group */
+    .input-group { position: relative; }
+    .input-icon { 
+        position: absolute; left: 15px; top: 50%; transform: translateY(-50%); 
+        color: #6366f1; /* Màu tím */
+        font-size: 1.1rem;
+    }
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 15px 15px 15px 45px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.2);
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Button */
+    .btn-full {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+    
+    /* Footer */
+    .auth-footer { margin-top: 25px; text-align: center; color: #94a3b8; font-size: 0.95rem; }
+    .auth-footer a { color: #6366f1; text-decoration: none; font-weight: 600; }
+    .auth-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+         <span style="font-weight: bold;">DATANA</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+    <div class="auth-card">
+        <h2 class="auth-title">Tạo tài khoản mới 🚀</h2>
+        <p class="auth-subtitle">Bắt đầu hành trình dữ liệu của bạn</p>
+        
+        <form id="regForm" class="auth-form">
+            <div class="input-group">
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" placeholder="Tên đăng nhập mới" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" placeholder="Mật khẩu" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-check-circle input-icon"></i>
+                <input type="password" id="confirm_password" placeholder="Nhập lại mật khẩu" required>
+            </div>
+            
+            <button type="submit" class="btn-primary btn-full">Đăng ký</button>
+        </form>
+        
+        <p class="auth-footer">
+            Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+        </p>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        const cp = document.getElementById('confirm_password').value;
+
+        if(p !== cp) { alert("Mật khẩu không khớp!"); return; }
+
+        btn.innerText = 'Đang đăng ký...';
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            
+            if (res.ok) {
+                alert("Đăng ký thành công! Vui lòng đăng nhập.");
+                window.location.href = 'login.html';
+            } else {
+                const data = await res.json();
+                alert("Lỗi: Tên đăng nhập đã tồn tại hoặc lỗi hệ thống (" + (data.error || 'Unknown') + ")");
+            }
+        } catch(err) {
+            alert("Lỗi kết nối server");
+        } finally {
+            btn.innerText = 'Đăng ký';
+            btn.disabled = false;
+        }
+    });
+  </script>
+</body>
+</html>

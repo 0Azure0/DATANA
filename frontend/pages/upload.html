@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tải lên dữ liệu — DATANA</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* --- STYLE CƠ BẢN --- */
+    .upload-container {
+        max-width: 800px; margin: 40px auto; text-align: center;
+        padding-bottom: 40px; 
+        position: relative;
+        background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%);
+        border-radius: 20px; /* Bo góc cho hiệu ứng đẹp hơn */
+    }
+
+    /* --- DROP ZONE UPDATE --- */
+    .drop-zone {
+        background-color: var(--bg-card);
+        border: 2px dashed rgba(255,255,255,0.2);
+        border-radius: 16px; padding: 60px 40px;
+        cursor: pointer; transition: all 0.3s ease;
+        position: relative; margin-bottom: 30px;
+        overflow: hidden;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+        border-color: var(--primary);
+        background-color: rgba(99, 102, 241, 0.1);
+        transform: scale(1.01);
+    }
+    
+    /* Icon Glow cho JS điều khiển */
+    .icon-glow {
+        font-size: 4rem; margin-bottom: 20px; display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+    /* --- FILE DISPLAY UPDATE --- */
+    .file-info-display {
+        margin-top: 20px; padding: 15px 25px;
+        background: rgba(99, 102, 241, 0.1); 
+        border: 1px solid var(--primary);
+        border-radius: 12px;
+        display: none; /* JS sẽ bật cái này lên */
+        align-items: center; justify-content: space-between;
+    }
+    .file-detail { display: flex; align-items: center; gap: 15px; text-align: left; }
+    .file-meta { display: flex; flex-direction: column; }
+    #fileSize { font-size: 0.8rem; color: #94a3b8; }
+
+    #fileInput { display: none; }
+
+    /* --- LOADING BAR --- */
+    .progress-container {
+        width: 100%; max-width: 400px; 
+        background: rgba(255,255,255,0.1); 
+        height: 6px; border-radius: 10px; margin: 20px auto;
+        overflow: hidden; position: relative;
+    }
+    .progress-fill {
+        height: 100%; background: var(--primary); width: 0%;
+        transition: width 0.2s ease;
+        box-shadow: 0 0 10px var(--primary);
+    }
+
+    /* --- SUCCESS OVERLAY --- */
+    .success-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.95);
+        z-index: 2000;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        opacity: 0; visibility: hidden; transition: all 0.5s;
+    }
+    .success-overlay.active { opacity: 1; visibility: visible; }
+    .success-icon {
+        font-size: 5rem; color: #22c55e; margin-bottom: 20px;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+    /* --- GIAO DIỆN CHUNG (ĐỒNG BỘ TỪ DASHBOARD/CHAT) --- */
+    /* Header Styles (Giống Dashboard) */
+    .site-header {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: sticky; top: 0; z-index: 1000;
+        width: 100%;
+    }
+    .site-header .container {
+        display: flex; align-items: center; justify-content: space-between;
+        max-width: 100%; margin: 0 auto; padding: 15px 40px;
+    }
+    .brand span { font-size: 1.5rem; font-weight: bold; color: #fff; }
+    .nav-link {
+        color: #94a3b8; text-decoration: none; font-weight: 500; transition: 0.3s;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .nav-link:hover, .nav-link.active { color: #fff; }
+
+    /* Footer Styles (Giống Dashboard/Chat) */
+    .site-footer {
+        background-color: #0f172a;
+        color: #cbd5e1;
+        padding: 40px 0 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin-top: auto;
+    }
+    .footer-content {
+        display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
+        max-width: 1400px; margin: 0 auto; padding: 0 20px;
+        margin-bottom: 30px;
+    }
+    .footer-col h4 { color: #fff; margin-bottom: 15px; }
+    .footer-col ul { list-style: none; padding: 0; }
+    .footer-col ul li a { color: #94a3b8; text-decoration: none; transition: color 0.3s;}
+    .footer-col ul li a:hover { color: #fff; }
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        max-width: 1400px; margin: 0 auto; padding: 0 20px;
+    }
+    .payment-icons { font-size: 1.5rem; display: flex; gap: 10px; }
+
+    @media (max-width: 768px) { 
+        .footer-content { grid-template-columns: 1fr; text-align: center; } 
+        .site-header nav ul { display: none; }
+    }
+  </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+  
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+        <span style="font-weight: bold;">DATANA</span>
+      </a>
+      <nav>
+        <ul>
+          <li><a href="../index.html" class="nav-link"><i class="fas fa-home"></i> Trang chủ</a></li>
+          <li><a href="upload.html" class="nav-link active" style="color: #fff;"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
+          <li><a href="dashboard.html" class="nav-link"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
+          <li><a href="chat.html" class="nav-link"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
+          <li><a href="login.html" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="upload-container" id="uploadCard">
+        <h1>Tải dữ liệu lên</h1>
+        <p style="margin-bottom: 30px; color: var(--text-muted);">Hỗ trợ file Excel/CSV hoặc Link Google Sheets.</p>
+
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+
+        <div class="drop-zone" id="dropArea">
+            <div class="icon-glow"><i class="fas fa-cloud-upload-alt"></i></div>
+            <h3 style="color: #fff; margin-bottom: 10px;">Kéo thả file Excel/CSV</h3>
+            <p style="color: var(--text-muted);">hoặc <span style="color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: underline;">nhấn để chọn file</span></p>
+        </div>
+
+        <div id="fileDisplay" class="file-info-display">
+            <div class="file-detail">
+                <i id="fileTypeIcon" class="fas fa-file-excel" style="font-size: 2rem; color: var(--primary);"></i>
+                <div class="file-meta">
+                    <strong id="fileName" style="color: #fff;">filename.xlsx</strong>
+                    <span id="fileSize">0 KB</span>
+                </div>
+            </div>
+            <span id="removeFile" style="cursor: pointer; color: #ef4444; font-size: 1.2rem;" title="Xóa file"><i class="fas fa-times-circle"></i></span>
+        </div>
+
+        <div style="margin: 30px 0; display: flex; align-items: center; gap: 15px; opacity: 0.7;">
+            <div style="height: 1px; background: rgba(255,255,255,0.2); flex: 1;"></div>
+            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">HOẶC DÙNG LINK</span>
+            <div style="height: 1px; background: rgba(255,255,255,0.2); flex: 1;"></div>
+        </div>
+
+        <div class="input-group" style="position: relative; margin-bottom: 30px;">
+            <span style="position: absolute; left: 15px; top: 13px; font-size: 1.2rem;">🔗</span>
+            <input type="text" id="sheetUrl" placeholder="Dán link Google Sheet (Quyền xem công khai)..." 
+                   style="width: 100%; padding: 14px 14px 14px 50px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: #fff; outline: none;">
+        </div>
+
+        <button id="analyzeBtn" class="btn-primary" style="padding: 16px 40px; font-size: 1.1rem; width: 100%; margin-bottom: 20px;">
+            🚀 Bắt đầu Phân tích
+        </button>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 40px; color: #64748b; font-size: 0.85rem;">
+            <span style="font-size: 1rem;">🔒</span>
+            <span>Dữ liệu được xử lý tự động và không lưu trữ vĩnh viễn.</span>
+        </div>
+
+        <div style="text-align: left; background: rgba(255,255,255,0.03); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="color: #fff; margin-bottom: 15px;">💡 Yêu cầu file chuẩn:</h4>
+            <ul style="color: var(--text-muted); padding-left: 20px; line-height: 1.8;">
+                <li>File cần có dòng tiêu đề (Header).</li>
+                <li>Các cột quan trọng: <strong>Ngày tháng, Sản phẩm, Doanh thu, Khu vực</strong>.</li>
+                <li>Hệ thống AI sẽ tự động xử lý các ô bị gộp (Merged Cells).</li>
+            </ul>
+        </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-col">
+          <a href="#" class="brand" style="text-decoration: none; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <span style="color: #fff; font-weight: bold;">DATANA</span>
+          </a>
+          <p class="brand-desc">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.</p>
+          <div class="social-links">
+            <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Sản phẩm</h4>
+          <ul style="list-style: none; padding: 0;">
+            <li><a href="#" style="color: #94a3b8; text-decoration: none;">Phân tích Excel</a></li>
+            <li><a href="#" style="color: #94a3b8; text-decoration: none;">Trợ lý AI</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Hỗ trợ</h4>
+          <ul style="list-style: none; padding: 0;">
+              <li><a href="#" style="color: #94a3b8; text-decoration: none;">Hướng dẫn sử dụng</a></li>
+              <li><a href="#" style="color: #94a3b8; text-decoration: none;">Liên hệ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Công ty</h4>
+          <ul style="list-style: none; padding: 0;">
+            <li><a href="#" style="color: #94a3b8; text-decoration: none;">Về chúng tôi</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 DATANA Analytics. All rights reserved.</p>
+        <div class="payment-icons"><i class="fab fa-cc-visa"></i> <i class="fab fa-cc-mastercard"></i></div>
+      </div>
+    </div>
+  </footer>
+
+  <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div> 
+      <div class="loading-text" style="margin-top: 20px;">Đang xử lý dữ liệu...</div>
+      
+      <div class="progress-container">
+          <div id="progressBarFill" class="progress-fill"></div>
+      </div>
+      <div id="progressPercent" style="color: var(--primary); font-weight: bold; margin-top: 5px;">0%</div>
+      
+      <div class="loading-sub" id="loadingStep" style="margin-top: 10px; opacity: 0.7;">Khởi tạo...</div>
+  </div>
+
+  <div id="successOverlay" class="success-overlay">
+      <i class="fas fa-check-circle success-icon"></i>
+      <h2 style="color: #fff; margin-bottom: 10px;">Phân tích hoàn tất!</h2>
+      <p style="color: #cbd5e1;">Đang chuyển hướng đến báo cáo...</p>
+  </div>
+
+  <script src="../js/upload.js"></script>
+</body>
+</html>

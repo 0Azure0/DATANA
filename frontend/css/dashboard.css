@@ -1,0 +1,360 @@
+/* css/dashboard.css - Tabbed Version */
+
+.dashboard-container {
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+/* --- TAB NAVIGATION STYLES --- */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background-color: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.tab-btn.active {
+    background-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* --- TAB CONTENT --- */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- GRID LAYOUTS CHO CHART --- */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+.charts-grid.three-cols {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* --- KPI CARDS --- */
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.kpi {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.kpi h4 { color: var(--primary); font-size: 1.8rem; margin-bottom: 5px; }
+.kpi p { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+
+/* --- CHART CARDS --- */
+.chart-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card h5 {
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.chart-canvas {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* --- TABLE STYLES --- */
+.data-table-wrapper {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 0;
+    overflow-x: auto;
+}
+
+table { width: 100%; border-collapse: collapse; color: var(--text-main); min-width: 600px; }
+thead th { background-color: rgba(255, 255, 255, 0.05); padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--primary); }
+tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); }
+tbody tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+
+.filter-bar {
+    display: flex;
+    gap: 20px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    align-items: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+}
+
+.filter-group { display: flex; align-items: center; gap: 10px; }
+.filter-group label { font-weight: 600; color: var(--text-muted); }
+
+.filter-select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: auto;
+}
+.btn-sm:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* ===================================================== */
+/* 1. DASHBOARD PDF MODE (ĐÃ SỬA: DARK MODE)             */
+/* ===================================================== */
+
+.dashboard-container.pdf-mode {
+    /* Ép nền màu xanh đen đậm */
+    background-color: #0f172a !important; 
+    color: #f8fafc !important;
+}
+
+/* Các thẻ Card giữ nền tối hoặc màu xám đậm */
+.dashboard-container.pdf-mode .kpi,
+.dashboard-container.pdf-mode .chart-card,
+.dashboard-container.pdf-mode .data-table-wrapper,
+.dashboard-container.pdf-mode .filter-bar,
+.dashboard-container.pdf-mode .tabs,
+.dashboard-container.pdf-mode .table-card {
+    background-color: #1e293b !important; /* Slate-800 */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: none !important;
+    color: #fff !important;
+}
+
+/* Chữ trong PDF chuyển thành màu trắng sáng */
+.dashboard-container.pdf-mode * {
+    color: #f8fafc !important;
+}
+
+/* Bảng dữ liệu */
+.dashboard-container.pdf-mode table,
+.dashboard-container.pdf-mode thead th,
+.dashboard-container.pdf-mode tbody td {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dashboard-container.pdf-mode tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Badge phần trăm */
+.dashboard-container.pdf-mode .percent-badge,
+.dashboard-container.pdf-mode .badge,
+.dashboard-container.pdf-mode .tag {
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: #c4b5fd !important;
+    border: 1px solid rgba(99, 102, 241, 0.5) !important;
+}
+
+/* Canvas biểu đồ nền trong suốt để hiện màu nền tối bên dưới */
+.dashboard-container.pdf-mode canvas {
+    background-color: transparent !important;
+}
+
+/* ===================================================== */
+/* 2. PRINT MODE (Ctrl+P) - Cũng Dark Mode               */
+/* ===================================================== */
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .dashboard-container,
+    body {
+        background-color: #0f172a !important;
+        color: #fff !important;
+    }
+
+    .dashboard-container .kpi,
+    .dashboard-container .chart-card {
+        background-color: #1e293b !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+}
+/* ... (Phần code bên trên giữ nguyên) ... */
+
+/* ===================================================== */
+/* 1. DASHBOARD PDF MODE (FIX TRÀN VIỀN CHO KHỔ NGANG)   */
+/* ===================================================== */
+
+.dashboard-container.pdf-mode {
+    /* QUAN TRỌNG: Hủy bỏ giới hạn chiều rộng của web cũ */
+    width: 100% !important;
+    max-width: none !important; 
+    min-width: 100% !important;
+    
+    /* Reset lề để khớp với khung JS tạo ra */
+    margin: 0 !important;
+    padding: 0 !important; 
+
+    /* Ép nền màu xanh đen đậm */
+    background-color: #0f172a !important; 
+    color: #f8fafc !important;
+}
+
+/* Cấu hình Grid cho khổ ngang (Landscape): Chia 2 cột */
+.dashboard-container.pdf-mode .charts-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* 2 Cột đều nhau */
+    gap: 20px !important;
+    width: 100% !important;
+}
+
+/* Nếu là lưới 3 cột (như phần Top sản phẩm), ép về 3 cột hoặc 2 cột tùy ý */
+.dashboard-container.pdf-mode .charts-grid.three-cols {
+    grid-template-columns: 1fr 1fr 1fr !important; 
+}
+
+/* Các thẻ Card: Nền tối, bỏ bóng đổ */
+.dashboard-container.pdf-mode .kpi,
+.dashboard-container.pdf-mode .chart-card,
+.dashboard-container.pdf-mode .data-table-wrapper,
+.dashboard-container.pdf-mode .filter-bar,
+.dashboard-container.pdf-mode .tabs,
+.dashboard-container.pdf-mode .table-card {
+    background-color: #1e293b !important; /* Slate-800 */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    break-inside: avoid; /* Tránh bị cắt đôi khi sang trang */
+}
+
+/* Chart Card: Ép chiều cao cố định để không bị vỡ layout khi in */
+.dashboard-container.pdf-mode .chart-card {
+    height: 380px !important; 
+    width: 100% !important;
+}
+
+/* Canvas biểu đồ: Buộc phải full kích thước */
+.dashboard-container.pdf-mode canvas {
+    background-color: transparent !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Chữ trong PDF chuyển thành màu trắng sáng */
+.dashboard-container.pdf-mode * {
+    color: #f8fafc !important;
+}
+
+/* Bảng dữ liệu */
+.dashboard-container.pdf-mode table,
+.dashboard-container.pdf-mode thead th,
+.dashboard-container.pdf-mode tbody td {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dashboard-container.pdf-mode tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Badge phần trăm */
+.dashboard-container.pdf-mode .percent-badge,
+.dashboard-container.pdf-mode .badge,
+.dashboard-container.pdf-mode .tag {
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: #c4b5fd !important;
+    border: 1px solid rgba(99, 102, 241, 0.5) !important;
+}
+
+/* Ẩn các thành phần thừa khi xuất PDF */
+.dashboard-container.pdf-mode .filter-bar, 
+.dashboard-container.pdf-mode .dashboard-header,
+.dashboard-container.pdf-mode .tabs {
+    display: none !important;
+}
+
+/* ===================================================== */
+/* 2. PRINT MODE (Ctrl+P) - Cũng Dark Mode               */
+/* ===================================================== */
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body, .dashboard-container {
+        background-color: #0f172a !important;
+        color: #fff !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .chart-card, .kpi {
+        break-inside: avoid;
+        background-color: #1e293b !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+}

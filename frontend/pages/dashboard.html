@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Báo cáo — DATANA</title>
+  
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/dashboard_local_styles.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* --- 1. CSS GIAO DIỆN (Đã chỉnh sửa Full Màn Hình) --- */
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #0f172a;
+        margin: 0;
+    }
+
+    /* Header Styles */
+    .site-header {
+        background: rgba(15, 23, 42, 0.95); /* Tăng độ đậm nền để dễ đọc */
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: sticky; top: 0; z-index: 1000;
+        width: 100%;
+    }
+    .site-header .container {
+        display: flex; align-items: center; justify-content: space-between;
+        max-width: 100%; /* Full width header */
+        margin: 0 auto; padding: 15px 40px; /* Padding rộng hơn */
+    }
+    .brand span { font-size: 1.5rem; font-weight: bold; color: #fff; }
+    .brand img { height: 32px; margin-right: 10px; vertical-align: middle; }
+    
+    .site-header nav ul {
+        display: flex; gap: 30px; list-style: none; margin: 0; padding: 0;
+    }
+    .nav-link {
+        color: #94a3b8; text-decoration: none; font-weight: 500; transition: 0.3s;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .nav-link:hover, .nav-link.active { color: #fff; }
+
+    /* Footer Styles */
+    .site-footer {
+        background-color: #0f172a;
+        color: #cbd5e1;
+        padding: 60px 0 30px;
+        font-size: 0.9rem;
+        margin-top: auto;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer-content {
+        display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px;
+        max-width: 1400px; /* Giới hạn footer cho đẹp */
+        margin: 0 auto; padding: 0 20px;
+    }
+    .footer-col h4 { color: #fff; margin-bottom: 20px; }
+    .footer-col ul { list-style: none; padding: 0; }
+    .footer-col ul li { margin-bottom: 10px; }
+    .footer-col ul li a { color: #94a3b8; text-decoration: none; }
+    .footer-col ul li a:hover { color: #fff; }
+    .social-links { display: flex; gap: 15px; margin-top: 15px; }
+    .social-btn {
+        width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none;
+    }
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1); padding-top: 25px;
+        display: flex; justify-content: space-between; align-items: center;
+        max-width: 1400px; margin: 0 auto; padding: 0 20px;
+    }
+    .payment-icons { font-size: 1.5rem; display: flex; gap: 10px; }
+
+    /* --- 2. LAYOUT DASHBOARD (SỬA LỖI TRỐNG MỘT NỬA TẠI ĐÂY) --- */
+    .app-wrapper {
+        display: block !important;
+        width: 100%;
+        flex: 1;
+    }
+    
+    .main-content {
+        margin: 0 !important;
+        /* SỬA: Cho phép rộng tối đa 100% thay vì 1200px */
+        width: 100% !important;
+        max-width: 100% !important; 
+        padding: 30px 40px !important; /* Thêm padding 2 bên cho thoáng */
+        box-sizing: border-box;
+    }
+    
+    .dashboard-container {
+        /* SỬA: Giới hạn 1600px để không bị quá bè trên màn hình siêu rộng, nhưng đủ lớn */
+        max-width: 1600px; 
+        width: 100%;
+        margin: 0 auto; /* Căn giữa màn hình */
+    }
+
+    /* Ép Grid hiển thị full width */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Chia đôi màn hình */
+        gap: 20px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    /* KPI Cards dàn đều 3 cột */
+    .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    /* Ẩn Sidebar cũ */
+    .sidebar { display: none !important; }
+
+    /* Header Dashboard */
+    .dashboard-header-wrapper {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        max-width: 1600px; margin-left: auto; margin-right: auto; /* Căn giữa theo content */
+    }
+    .user-mini-profile {
+        background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 30px;
+        display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Responsive cho màn nhỏ */
+    @media (max-width: 1024px) {
+        .charts-grid, .kpis { grid-template-columns: 1fr; } /* Về 1 cột trên iPad/Mobile */
+        .site-header nav ul { display: none; }
+        .main-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="brand" style="text-decoration: none;">
+        <span>DATANA</span>
+      </a>
+      <nav>
+        <ul>
+          <li><a href="../index.html" class="nav-link"><i class="fas fa-home"></i> Trang chủ</a></li>
+          <li><a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
+          <li><a href="dashboard.html" class="nav-link active" style="color: #fff;"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
+          <li><a href="chat.html" class="nav-link"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
+          <li><a href="login.html" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+        </ul>
+      </nav>
+    </div>
+</header>
+
+<div class="app-wrapper">
+    <main class="main-content">
+        
+        <div class="dashboard-header-wrapper">
+            <div class="header-titles">
+                <h1 class="dashboard-title-new">✨ Hiệu quả Kinh doanh</h1>
+                <p class="subtitle">Dữ liệu cập nhật thời gian thực</p>
+            </div>
+            <div class="user-mini-profile">
+                <span>Admin User</span>
+                <div class="avatar-circle">AD</div>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="filter-bar glass-effect">
+                <div class="filter-group">
+                    <label>TỪ NGÀY</label>
+                    <input type="date" id="startDate" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label>ĐẾN NGÀY</label>
+                    <input type="date" id="endDate" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label>KHU VỰC</label>
+                    <div class="custom-dropdown" id="regionDropdown">
+                        <div class="dropdown-btn" id="regionDropdownBtn">
+                            <span id="selectedRegionText">Tất cả khu vực</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-content" id="regionList"></div>
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button id="resetFilterBtn">↺ Đặt lại</button>
+                    <button id="printPreviewBtn" class="btn-glow"><i class="fas fa-print"></i> Xuất PDF</button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                 <button class="tab-btn active" data-tab="tab-overview">Tổng quan</button>
+                 <button class="tab-btn" data-tab="tab-tables">📋 Bảng Phân Tích</button>
+                 <button class="tab-btn" data-tab="tab-forecast">🔮 Dự báo & AI</button>
+            </div>
+            
+            <div id="tab-overview" class="tab-content active">
+                <section class="kpis">
+                  <div class="kpi glow-card purple">
+                      <p>TỔNG DOANH THU</p>
+                      <h4 id="kpi_rev">0 VNĐ</h4>
+                  </div>
+                  <div class="kpi glow-card green">
+                      <p style="color: #6ee7b7;">TỔNG LỢI NHUẬN</p>
+                      <h4 id="kpi_profit">0 VNĐ</h4>
+                  </div>
+                  <div class="kpi glow-card pink">
+                      <p style="color: #fda4af;">TOP SẢN PHẨM</p>
+                      <h4 id="kpi_topprod">-</h4>
+                  </div>
+                </section>
+
+                <div class="charts-grid">
+                    <div class="chart-card glass-card">
+                        <div class="chart-title">📈 Xu hướng Doanh thu</div>
+                        <div class="chart-canvas"><canvas id="chartLine"></canvas></div>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-title">📊 Phân bổ theo Vùng</div>
+                        <div class="chart-canvas"><canvas id="chartBar"></canvas></div>
+                    </div>
+                </div>
+                
+                <div class="charts-grid" style="grid-template-columns: 1fr;">
+                    <div class="chart-card glass-card" style="height: 450px;">
+                        <div class="chart-title">🍰 Top Sản phẩm & Tỷ trọng</div>
+                        <div class="chart-canvas"><canvas id="chartDonut"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card glass-card"><div class="chart-title">📊 Bán hàng theo Danh mục</div><div class="chart-canvas"><canvas id="chartCategoryBar"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-title">💰 Lợi nhuận theo Sản phẩm</div><div class="chart-canvas"><canvas id="chartProfitBar"></canvas></div></div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card glass-card"><div class="chart-title">📍 Giá vs Số lượng bán</div><div class="chart-canvas"><canvas id="chartScatterPrice"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-title">🎯 Lợi nhuận vs Số lượng</div><div class="chart-canvas"><canvas id="chartScatterProfit"></canvas></div></div>
+                </div>
+                <div class="charts-grid" style="grid-template-columns: 1fr;">
+                    <div class="chart-card glass-card"><div class="chart-title">🏢 Thị phần Thương hiệu</div><div class="chart-canvas"><canvas id="chartBrandPie"></canvas></div></div>
+                </div>
+            </div>
+
+            <div id="tab-tables" class="tab-content">
+                <div class="tables-grid">
+                    <div class="table-card blue glass-card"><div class="table-title">📦 Kho Hàng</div><div class="table-wrapper"><table id="productTable"><thead><tr><th>Sản phẩm</th><th>Tổng SL</th><th>Doanh thu</th><th>Tỷ lệ %</th></tr></thead><tbody></tbody></table></div></div>
+                    <div class="table-card green glass-card"><div class="table-title">📊 Tóm Tắt</div><div class="table-wrapper"><table id="salesTable"><thead><tr><th>Danh mục</th><th>Sản phẩm</th><th>Số lượng</th><th>Tổng giá</th></tr></thead><tbody></tbody></table></div></div>
+                    <div class="table-card purple glass-card"><div class="table-title">💰 Lợi Nhuận</div><div class="table-wrapper"><table id="profitTable"><thead><tr><th>Sản phẩm</th><th>Số lượng</th><th>Lợi nhuận</th><th>Lợi nhuận %</th></tr></thead><tbody></tbody></table></div></div>
+                </div>
+            </div>
+
+            <div id="tab-forecast" class="tab-content">
+                <div class="chart-card glass-card" style="height: auto; min-height: 400px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div><h5 style="color:#fff; margin:0;">🤖 AI Phân tích</h5></div>
+                        <button id="btnAiForecast" class="btn-primary glow-btn">✨ Phân tích ngay</button>
+                    </div>
+                    <div id="aiForecastResult" style="color: #e2e8f0;">
+                        <div style="text-align: center; padding: 40px; color: #64748b;">Bấm nút để AI bắt đầu làm việc.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-col">
+          <a href="#" class="brand" style="text-decoration: none; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <span style="color: #fff; font-weight: bold;">DATANA</span>
+          </a>
+          <p class="brand-desc">
+            Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.
+          </p>
+          <div class="social-links">
+            <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Sản phẩm</h4>
+          <ul>
+            <li><a href="#">Phân tích Excel</a></li>
+            <li><a href="#">Trợ lý AI</a></li>
+            <li><a href="#">Báo cáo mẫu</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Công ty</h4>
+          <ul>
+            <li><a href="#">Về chúng tôi</a></li>
+            <li><a href="#">Liên hệ</a></li>
+            <li><a href="#">Đối tác</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hỗ trợ</h4>
+          <ul>
+            <li><a href="#">Trung tâm trợ giúp</a></li>
+            <li><a href="#">Chính sách bảo mật</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 DATANA Analytics. All rights reserved.</p>
+        <div class="payment-icons">
+          <i class="fab fa-cc-visa"></i>
+          <i class="fab fa-cc-mastercard"></i>
+          <i class="fab fa-cc-paypal"></i>
+        </div>
+      </div>
+    </div>
+</footer>
+
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">🚀 Đang tạo bản in PDF...</div>
+    <div class="loading-sub">Vui lòng đợi trong giây lát</div>
+</div>
+
+<script src="../js/dashboard.js"></script>
+</body>
+</html>

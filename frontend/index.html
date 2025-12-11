@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DATANA - Phân tích dữ liệu thông minh</title>
+    
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS Riêng cho trang chủ */
+        .hero { padding: 80px 0 120px 0; text-align: center; overflow: hidden; min-height: 80vh; }
+        .hero h1 { font-size: 3.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: #fff; text-shadow: 0 0 30px rgba(99,102,241,0.3); }
+        .hero p { font-size: 1.2rem; max-width: 600px; margin: 0 auto 2.5rem; color: #cbd5e1; }
+        
+        /* 3D HERO DASHBOARD */
+        .hero-dashboard-preview {
+            margin-top: 60px;
+            perspective: 1200px; 
+            display: flex; justify-content: center;
+            padding-bottom: 50px;
+        }
+
+        .glass-window {
+            position: relative;
+            width: 90%; max-width: 1000px;
+            border-radius: 20px;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transform: rotateX(25deg) scale(0.9);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            overflow: hidden; cursor: pointer;
+        }
+
+        .glass-window:hover {
+            transform: rotateX(0deg) scale(1);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .dashboard-img {
+            width: 100%; height: auto; display: block; border-radius: 20px;
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%); 
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+
+        .glow-bg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 120%; height: 120%;
+            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(0,0,0,0) 60%);
+            z-index: -1; pointer-events: none;
+        }
+
+        .auth-btn-group { display: flex; align-items: center; gap: 15px; margin-left: 20px; }
+        .user-greeting { font-weight: 600; color: #fff; }
+
+        /* HEADER (ĐỒNG BỘ VỚI CÁC TRANG KHÁC) */
+        .site-header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky; top: 0; z-index: 1000;
+            width: 100%;
+        }
+        .site-header .container {
+            padding: 15px 40px;
+            max-width: 100%; 
+        }
+        .nav-group { display: flex; align-items: center; gap: 30px; }
+        .nav-link {
+            color: #94a3b8; text-decoration: none; font-weight: 500; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px; /* Thêm gap cho icon */
+        }
+        .nav-link:hover, .nav-link.active { color: #fff !important; }
+
+        /* FOOTER (ĐỒNG BỘ VỚI CÁC TRANG KHÁC) */
+        .site-footer {
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 40px 0 20px; /* Giảm padding trên để đồng bộ */
+            margin-top: auto;
+        }
+        .footer-grid { 
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; /* Điều chỉnh lại grid */
+            gap: 40px; margin-bottom: 30px; /* Điều chỉnh margin */
+            max-width: 1400px; margin: 0 auto 30px; padding: 0 20px;
+        }
+        .footer-col h4 { color: #fff; margin-bottom: 15px; font-size: 1rem; }
+        .footer-desc { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px; }
+        .footer-links { list-style: none; padding: 0; margin: 0; }
+        .footer-links li { margin-bottom: 10px; }
+        .footer-links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+        .footer-links a:hover { color: #6366f1; }
+        .social-icons { display: flex; gap: 10px; margin-top: 15px; } /* Điều chỉnh gap */
+        .social-link {
+            width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1);
+            color: #fff; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .social-link:hover { background: #6366f1; transform: translateY(-2px); }
+        .footer-bottom { 
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; 
+            text-align: center; color: #64748b; font-size: 0.85rem; 
+            max-width: 1400px; margin: 0 auto; padding: 20px 20px 0;
+        }
+        
+        @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { 
+            .footer-grid { grid-template-columns: 1fr; } 
+            .site-header .nav-group nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container" style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="nav-group">
+                <a href="index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                    <img src="images/logo.jpg" onerror="this.src='images/logo.svg'" alt="DATANA Logo" style="height: 32px; width: auto; filter: drop-shadow(0 0 5px rgba(99,102,241,0.5)); margin: 0;">
+                    <span style="font-size: 1.6rem; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1;">DATANA</span>
+                </a>
+                
+                <nav>
+                    <ul>
+                        <li><a href="index.html" class="nav-link active"><i class="fas fa-home"></i> Trang chủ</a></li>
+                        <li><a href="pages/upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
+                        <li><a href="pages/dashboard.html" class="nav-link"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
+                        <li><a href="pages/chat.html" class="nav-link"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
+                        <li><a href="pages/about.html" class="nav-link"><i class="fas fa-info-circle"></i> Giới thiệu</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div id="auth-buttons" class="auth-btn-group"></div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Phân tích dữ liệu tự động<br>trong vài giây</h1>
+                
+                <p>Biến dữ liệu thô thành biểu đồ trực quan và chiến lược kinh doanh thông minh. Không cần cài đặt phức tạp.</p>
+                
+                <a href="pages/upload.html" class="btn-primary" style="padding: 14px 32px; font-size: 1.1rem; text-decoration: none; box-shadow: 0 0 20px rgba(99,102,241,0.4); border-radius: 12px;">
+                    🚀 Upload dữ liệu Ngay
+                </a>
+
+                <div class="hero-dashboard-preview">
+                    <a href="pages/dashboard.html" class="glass-window">
+                        <img src="images/dashboard-screenshot.jpg" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=\'height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:rgba(255,255,255,0.5);\'><div style=\'font-size:4rem; margin-bottom:10px\'>📊</div><div style=\'font-size:1.5rem;\'>Dashboard Preview</div></div>'" 
+                             alt="DATANA Dashboard" class="dashboard-img">
+                        <div class="glow-bg"></div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="brand" style="margin-bottom: 15px; display: flex; align-items: center; gap: 6px;">
+                        <img src="images/logo.svg" onerror="this.style.display='none'" style="height: 30px;">
+                        <span style="font-size: 1.4rem; font-weight: 800; color: #fff;">DATANA</span>
+                    </div>
+                    <p class="footer-desc">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.</p>
+                    <div class="social-icons">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Sản phẩm</h4>
+                    <ul class="footer-links">
+                        <li><a href="pages/upload.html">Phân tích Excel</a></li>
+                        <li><a href="pages/chat.html">Trợ lý AI</a></li>
+                        <li><a href="pages/dashboard.html">Báo cáo mẫu</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Công ty</h4>
+                    <ul class="footer-links">
+                        <li><a href="pages/about.html">Về chúng tôi</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Hỗ trợ</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Điều khoản sử dụng</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="copyright">© 2025 DATANA Analytics. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        async function checkLogin() {
+            const authContainer = document.getElementById('auth-buttons');
+            try {
+                // Giả định API trả về user_info đồng nhất
+                const res = await fetch('/api/user_info');
+                const data = await res.json();
+                
+                // Sử dụng data.authenticated thay vì data.logged_in (đồng bộ với app.py)
+                if (data.authenticated && data.username) {
+                    const initial = data.username.charAt(0).toUpperCase();
+                    authContainer.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.1); padding:5px 12px; border-radius:20px; cursor:pointer;" onclick="logout()">
+                            <div style="width:28px; height:28px; background:#6366f1; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${initial}</div>
+                            <span class="user-greeting" style="font-size:0.9rem;">${data.username}</span>
+                        </div>`;
+                } else {
+                    authContainer.innerHTML = `
+                        <a href="pages/login.html" class="nav-link" style="color:#94a3b8;"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>
+                        <a href="pages/register.html" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem; text-decoration: none; border-radius:8px;">Đăng ký</a>`;
+                }
+            } catch(e) {
+                authContainer.innerHTML = `<a href="pages/login.html" class="nav-link" style="color:#94a3b8;"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>`;
+            }
+        }
+        async function logout() {
+            if(confirm("Bạn có chắc muốn đăng xuất?")) {
+                // Gọi API logout
+                await fetch('/api/logout', { method: 'POST' }); 
+                // Xóa item local storage (nếu có dùng)
+                localStorage.removeItem('datana_user'); 
+                window.location.reload();
+            }
+        }
+        checkLogin();
+    </script>
+</body>
+</html>

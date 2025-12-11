@@ -13,12 +13,50 @@ import requests
 import re
 import time
 from bs4 import BeautifulSoup
+import traceback
+import numpy as np # IMPORT MỚI: Cần thiết cho JSON Encoder
 
 # --- CẤU HÌNH ---
-MY_GROQ_KEY = os.environ.get("GROQ_API_KEY", "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") 
+# FIXED: Khóa GROQ đã được cập nhật
+MY_GROQ_KEY = os.environ.get("GROQ_API_KEY", "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") 
 GROQ_MODEL_ID = "llama-3.3-70b-versatile" 
 
+# --- JSON ENCODER FIX QUAN TRỌNG ---
+class CustomJsonEncoder(json.JSONEncoder):
+    """Buộc các kiểu dữ liệu NumPy phải chuyển đổi sang Python gốc."""
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        return super(CustomJsonEncoder, self).default(obj)
+
+# --- KHỞI TẠO FLASK ---
 app = Flask(__name__, static_folder="../frontend", static_url_path="/")
+# Cấu hình Flask JSON encoder cho Flask 2.2+
+try:
+    # Flask 2.2+
+    from flask.json.provider import DefaultJSONProvider
+    class CustomJSONProvider(DefaultJSONProvider):
+        def default(self, obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, datetime):
+                return obj.isoformat()
+            return super().default(obj)
+    app.json = CustomJSONProvider(app)
+except ImportError:
+    # Fallback cho Flask < 2.2
+    app.json_encoder = CustomJsonEncoder 
+
 
 # --- KẾT NỐI GROQ ---
 GROQ_AVAILABLE = False
@@ -37,7 +75,20 @@ except: pass
 app.config['SECRET_KEY'] = 'datana-super-secret' 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
-CORS(app)
+
+# Cấu hình CORS chi tiết
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:3000"],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    },
+    r"/analyze": {
+        "origins": ["http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:3000"],
+        "methods": ["POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -58,7 +109,7 @@ def load_user(uid): return db.session.get(User, int(uid))
 if not os.path.exists(app.config['UPLOAD_FOLDER']): os.makedirs(app.config['UPLOAD_FOLDER'])
 TEMP_SESSIONS = {}
 
-# --- [FIX] HÀM TÌM KIẾM GOOGLE (THÊM VÀO ĐÂY) ---
+# --- HÀM TÌM KIẾM GOOGLE (THÊM VÀO ĐÂY) ---
 def search_google_trends(keyword):
     if not keyword or keyword == "Không rõ": return "Không có thông tin."
     try:
@@ -83,7 +134,7 @@ def call_ai_with_retry(sys_msg, usr_msg):
         except: time.sleep(1)
     return "AI đang bận."
 
-# --- ROUTES ---
+# --- ROUTES (Giữ nguyên các route phụ) ---
 @app.route("/")
 def index(): return send_from_directory(app.static_folder, "index.html")
 @app.route("/pages/<path:p>")
@@ -100,16 +151,21 @@ def login():
     data = request.json
     u = User.query.filter_by(username=data.get('username')).first()
     if u and check_password_hash(u.password, data.get('password')):
-        login_user(u); return jsonify({"message":"OK","username":u.username})
-    return jsonify({"error":"Fail"}),401
+        login_user(u)
+        return jsonify({"message":"OK","username":u.username, "success": True})
+    return jsonify({"error":"Fail", "success": False}),401
 
 @app.route("/api/register", methods=["POST"])
 def register():
     d=request.json
-    if User.query.filter_by(username=d.get('username')).first(): return jsonify({"error":"Exist"}),400
+    if User.query.filter_by(username=d.get('username')).first(): 
+        return jsonify({"error":"Exist", "success": False}),400
     db.session.add(User(username=d.get('username'), password=generate_password_hash(d.get('password'))))
-    db.session.commit(); return jsonify({"message":"OK"})
+    db.session.commit()
+    return jsonify({"message":"OK", "success": True})
 
+
+# FIXED: Analyze Endpoint - Sử dụng Custom Encoder cho DB và Response
 @app.route("/analyze", methods=["POST"])
 def analyze_endpoint():
     try:
@@ -124,34 +180,163 @@ def analyze_endpoint():
         else: df = pd.read_excel(path)
         os.remove(path)
 
-        data = analyzer.analyze_data(df)
-        res = {"statistics": data[0], "raw_data": data[8], "smart_summary": data[10]}
+        data_tuple = analyzer.analyze_data(df)
+        
+        # CHỈNH SỬA: Đảm bảo output JSON đầy đủ và dễ dùng cho frontend
+        # Trích xuất Brand & Category từ smart_summary
+        smart_summary = data_tuple[10]
+        brand_analysis = smart_summary.get('brand', {})
+        category_analysis = smart_summary.get('category', {})
+        product_details = smart_summary.get('product_details', [])
+        
+        # Trích xuất các bảng phân tích
+        product_inventory_table = smart_summary.get('product_inventory_table', [])
+        sales_summary_table = smart_summary.get('sales_summary_table', [])
+        profit_analysis_table = smart_summary.get('profit_analysis_table', [])
+        category_overview_table = smart_summary.get('category_overview_table', [])
+        brand_performance_table = smart_summary.get('brand_performance_table', [])
+        
+        res = {
+            "statistics": data_tuple[0], 
+            "time_analysis": data_tuple[1],
+            "product_analysis": {
+                "products": data_tuple[5],
+                "details": product_details
+            },
+            "region_analysis": data_tuple[3],
+            "brand_analysis": brand_analysis,
+            "category_analysis": category_analysis,
+            "raw_data": data_tuple[8], 
+            "smart_summary": smart_summary,
+            "columns": data_tuple[9],
+            # Thêm các bảng phân tích
+            "tables": {
+                "product_inventory": product_inventory_table,
+                "sales_summary": sales_summary_table,
+                "profit_analysis": profit_analysis_table,
+                "category_overview": category_overview_table,
+                "brand_performance": brand_performance_table
+            }
+        }
         
         sid = str(uuid.uuid4())
+        # SỬ DỤNG CUSTOM ENCODER KHI LƯU VÀO DB
+        json_res = json.dumps(res, cls=CustomJsonEncoder) 
+        
         if current_user.is_authenticated:
-            db.session.add(Analysis(user_id=current_user.id, filename=f.filename, result_json=json.dumps(res)))
+            db.session.add(Analysis(user_id=current_user.id, filename=f.filename, result_json=json_res))
             db.session.commit()
             last = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.id.desc()).first()
             sid = f"db_{last.id}"
-        else: TEMP_SESSIONS[sid] = res
+        else: 
+            # Dữ liệu trong TEMP_SESSIONS vẫn phải là dict chứa native types (do CustomJsonEncoder xử lý)
+            TEMP_SESSIONS[sid] = json.loads(json_res) 
             
         res['session_id'] = sid
+        # SỬ DỤNG jsonify (đã gán Custom Encoder) để trả về Response sạch
         return jsonify(res)
-    except Exception as e: return jsonify({"error":str(e)}),500
+    except Exception as e: 
+        traceback.print_exc()
+        return jsonify({"error":str(e)}),500
+
+# --- CHAT ENDPOINT (ĐÃ CẬP NHẬT: Thêm logic tìm kiếm thị trường) ---
+@app.route("/api/chat", methods=["POST"])
+def chat_endpoint():
+    """
+    Chat endpoint: Nhận tin nhắn người dùng + session_id, trả về response từ AI
+    """
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+        
+        message = data.get("message", "").strip()
+        session_id = data.get("session_id", "")
+        
+        if not message:
+            return jsonify({"error": "Message is empty"}), 400
+        
+        # Lấy context từ session hoặc database
+        context = {}
+        try:
+            if session_id.startswith("db_") and current_user.is_authenticated:
+                rec = db.session.get(Analysis, int(session_id.split("_")[1]))
+                if rec:
+                    context = json.loads(rec.result_json)
+            else:
+                context = TEMP_SESSIONS.get(session_id, {})
+        except:
+            pass
+        
+        # --- BỔ SUNG LOGIC THỊ TRƯỜNG ---
+        smart_sum = context.get('smart_summary', {})
+        statistics = context.get('statistics', {})
+        top_products = smart_sum.get('product_details', [])[:3]
+        
+        search_keyword = "thị trường kinh doanh"
+        if top_products:
+            search_keyword = top_products[0]['product']
+        market_trends = search_google_trends(search_keyword)
+
+        # Xây dựng prompt dựa trên context
+        brand_analysis = smart_sum.get('brand', {})
+        category_analysis = smart_sum.get('category', {})
+        tables = context.get('tables', {})
+        
+        system_prompt = f"""Bạn là trợ lý phân tích dữ liệu kinh doanh thông minh.
+        Nhiệm vụ: Phân tích dữ liệu nội bộ và kết hợp với bối cảnh thị trường để trả lời.
+        
+        QUY TẮC:
+        1. Trả lời các câu hỏi của người dùng dựa trên dữ liệu phân tích được cung cấp.
+        2. Nếu câu hỏi liên quan đến xu hướng, chiến lược, hoặc tương lai, hãy SỬ DỤNG THÔNG TIN THỊ TRƯỜNG để đưa ra câu trả lời sắc bén, không chỉ dựa trên dữ liệu lịch sử.
+        3. Hãy trả lời ngắn gọn, có sắc thái, và cung cấp thông tin hữu ích.
+        
+        TIN TỨC VÀ XU HƯỚNG THỊ TRƯỜNG LIÊN QUAN ĐẾN SẢN PHẨM "{search_keyword}":
+        <MARKET_NEWS>
+        {market_trends}
+        </MARKET_NEWS>
+        
+        DỮ LIỆU NỘI BỘ TÓNG HỢP:
+        - Tổng doanh thu: {statistics.get('total_revenue', 'N/A'):,.0f}
+        - Tổng lợi nhuận: {statistics.get('total_profit', 'N/A'):,.0f}
+        - Biên lợi nhuận: {smart_sum.get('average_margin', 'N/A')}%
+
+        TOP PERFORMERS:
+        - Top Brand: {list(brand_analysis.keys())[:3] if brand_analysis else 'N/A'}
+        - Top Category: {list(category_analysis.keys())[:3] if category_analysis else 'N/A'}
+        """
+        
+        # Ghi đè system_prompt bằng prompt đã có thêm bối cảnh thị trường
+        # system_prompt += context_info # Đã tích hợp vào khối trên
+        
+        # Gọi AI
+        response = call_ai_with_retry(system_prompt, message)
+        
+        return jsonify({
+            "assistant": response,
+            "response": response,
+            "session_id": session_id
+        })
+    
+    except Exception as e:
+        print(f"Chat error: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+# (Forecast Endpoint giữ nguyên)
+# --- CẬP NHẬT TRONG FILE app.py ---
 
 @app.route("/api/forecast", methods=["POST"])
 def forecast_endpoint():
     try:
-        # RESILIENT JSON HANDLING - Force decode and handle non-strict types
         data = request.get_json(force=True, silent=True)
-        if not data or not isinstance(data, dict):
-            return jsonify({"error": "Invalid JSON: Expected JSON object"}), 400
+        if not data: return jsonify({"error": "Invalid JSON"}), 400
         
         sid = data.get("session_id")
-        if not sid:
-            return jsonify({"error": "Missing session_id parameter"}), 400
+        if not sid: return jsonify({"error": "Missing session_id"}), 400
         
-        # Retrieve analysis context
+        # Lấy Context
         ctx = {}
         try:
             if sid.startswith("db_") and current_user.is_authenticated:
@@ -159,103 +344,162 @@ def forecast_endpoint():
                 if rec: ctx = json.loads(rec.result_json)
             else:
                 ctx = TEMP_SESSIONS.get(sid, {})
+        except: pass
+        
+        smart_sum = ctx.get('smart_summary', {})
+        statistics = ctx.get('statistics', {})
+        
+        # Lấy dữ liệu cốt lõi
+        total_rev = statistics.get('total_revenue', 0)
+        total_profit = statistics.get('total_profit', 0)
+        margin = smart_sum.get('average_margin', 0)
+        top_products = smart_sum.get('product_details', [])[:8] # Lấy 8 SP đầu
+        
+        # --- NÂNG CẤP 1: TỰ ĐỘNG NHẬN DIỆN NGÀNH HÀNG ---
+        # AI sẽ nhìn vào tên 3 sản phẩm đầu tiên để đoán xem công ty này bán gì
+        sample_prods = ", ".join([p['product'] for p in top_products[:3]])
+
+        # --- NÂNG CẤP 2: TÌM KIẾM BỐI CẢNH THỊ TRƯỜNG THỰC TẾ (MỚI) ---
+        # Gọi AI để nhận diện ngành hàng (sử dụng model nhanh hơn nếu cần)
+        # Tạm thời, ta cho AI đoán luôn trong System Prompt, sau đó dùng top product để tìm kiếm
+        if top_products:
+            # Lấy tên sản phẩm bán chạy nhất để tìm kiếm xu hướng
+            search_keyword = top_products[0]['product']
+        else:
+            search_keyword = "thị trường kinh doanh"
+            
+        market_trends = search_google_trends(search_keyword) 
+        
+        # --- NÂNG CẤP 3: SYSTEM PROMPT "TƯ DUY THỊ TRƯỜNG" VÀ GẮN CONTEXT NGOÀI ---
+        sys_msg = f"""
+        Bạn là Chuyên gia Chiến lược Thị trường Cấp cao (Senior Market Strategist) tại Việt Nam.
+        Nhiệm vụ: Phân tích dữ liệu kinh doanh dưới góc độ xu hướng thị trường, tâm lý người tiêu dùng và bối cảnh vĩ mô.
+
+        QUY TẮC TƯ DUY (CHAIN OF THOUGHT):
+        1. NHẬN DIỆN: Dựa vào tên sản phẩm "{sample_prods}...", hãy xác định đây là ngành hàng gì (Ví dụ: Công nghệ, Thời trang, F&B...)?
+        2. BỐI CẢNH: Ngành hàng này tại Việt Nam hiện nay có xu hướng gì (Trend)?
+        3. LIÊN KẾT: Tại sao sản phẩm Top 1 lại bán chạy? (Do thương hiệu, giá, hay trend?). Tại sao biên lợi nhuận lại ở mức {margin:.1f}%? (Cao hay thấp so với trung bình ngành?).
+
+        TIN TỨC THỊ TRƯỜNG (Dùng để đưa ra khuyến nghị):
+        <MARKET_NEWS>
+        {market_trends}
+        </MARKET_NEWS>
+
+        YÊU CẦU ĐẦU RA (HTML FORMAT):
+        Trả về kết quả dưới dạng HTML (không markdown), chia làm 3 phần sâu sắc:
+        
+        <div class="ai-analysis-container">
+            <h3 style="color: #a855f7;">🔍 Nhận định Bối cảnh & Xu hướng</h3>
+            <p>[Đoạn văn phân tích ngành hàng này tại VN. SỬ DỤNG DỮ LIỆU TỪ MARKET_NEWS. Ví dụ: Nếu là iPhone, hãy nói về xu hướng chuộng hàng Apple của người Việt, sự cạnh tranh với Samsung, hoặc thời điểm ra mắt mẫu mới...]</p>
+            
+            <h3 style="color: #4ade80;">💎 Giải mã Hiệu suất Kinh doanh</h3>
+            <p>[Phân tích tại sao doanh thu đạt {total_rev:,.0f}. Nhận xét về biên lợi nhuận {margin:.1f}%. Chỉ ra các "Ngôi sao" trong danh mục sản phẩm và lý do chúng thành công.]</p>
+            
+            <h3 style="color: #f43f5e;">🚀 Dự báo & Khuyến nghị Chiến lược</h3>
+            <ul>
+                <li><strong>Ngắn hạn:</strong> [Hành động cụ thể dựa trên tồn kho và trend hiện tại, ví dụ: đẩy mạnh marketing sản phẩm X do tin tức thị trường tốt]</li>
+                <li><strong>Dài hạn:</strong> [Đề xuất mở rộng hoặc cắt giảm dựa trên xu hướng thị trường 2024-2025]</li>
+                <li><strong>Rủi ro:</strong> [Cảnh báo rủi ro cụ thể của ngành hàng này, ví dụ: rủi ro cạnh tranh từ đối thủ mới, hoặc rủi ro vĩ mô]</li>
+            </ul>
+        </div>
+        """
+
+        # Chuẩn bị dữ liệu gửi cho AI
+        usr_msg = json.dumps({
+            "Tổng doanh thu": total_rev,
+            "Tổng lợi nhuận": total_profit,
+            "Biên lợi nhuận (%)": margin,
+            "Top sản phẩm chủ lực": top_products
+        }, ensure_ascii=False, cls=CustomJsonEncoder)
+
+        # Gọi AI (Tăng nhiệt độ lên 0.7 để AI sáng tạo hơn)
+        html_response = client.chat.completions.create(
+            model=GROQ_MODEL_ID,
+            messages=[
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": f"Dữ liệu chi tiết:\n{usr_msg}"}
+            ],
+            temperature=0.7, # Sáng tạo hơn, bớt máy móc
+            max_tokens=2500
+        ).choices[0].message.content
+
+        # Làm sạch output
+        html_response = html_response.replace("```html", "").replace("```", "").strip()
+        
+        return jsonify({"html_content": html_response})
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/user_info", methods=["GET"])
+def user_info():
+    if current_user.is_authenticated:
+        return jsonify({"authenticated": True, "username": current_user.username})
+    return jsonify({"authenticated": False})
+
+# --- TABLES API ENDPOINT ---
+@app.route("/api/tables", methods=["POST"])
+def tables_endpoint():
+    """
+    API để lấy các bảng phân tích chi tiết từ session
+    """
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+        
+        session_id = data.get("session_id", "")
+        table_type = data.get("table_type", "all")  # all, product_inventory, sales_summary, profit_analysis, category_overview, brand_performance
+        
+        if not session_id:
+            return jsonify({"error": "Missing session_id parameter"}), 400
+        
+        # Lấy context từ session hoặc database
+        context = {}
+        try:
+            if session_id.startswith("db_") and current_user.is_authenticated:
+                rec = db.session.get(Analysis, int(session_id.split("_")[1]))
+                if rec:
+                    context = json.loads(rec.result_json)
+            else:
+                context = TEMP_SESSIONS.get(session_id, {})
         except Exception as ctx_err:
             return jsonify({"error": f"Session context error: {str(ctx_err)}"}), 400
         
-        raw = ctx.get('raw_data', [])
-        if not raw or len(raw) == 0:
-            return jsonify({"error": "No analysis data found for this session"}), 400
+        tables = context.get('tables', {})
         
-        # Create DataFrame and perform advanced analysis
-        try:
-            df = pd.DataFrame(raw)
+        if not tables:
+            return jsonify({"error": "No tables data found for this session"}), 400
+        
+        # Trả về bảng yêu cầu
+        if table_type == "all":
+            return jsonify({
+                "product_inventory": tables.get('product_inventory', []),
+                "sales_summary": tables.get('sales_summary', []),
+                "profit_analysis": tables.get('profit_analysis', []),
+                "category_overview": tables.get('category_overview', []),
+                "brand_performance": tables.get('brand_performance', [])
+            })
+        else:
+            # Lấy bảng cụ thể
+            table_data = tables.get(table_type, [])
+            if not table_data:
+                return jsonify({"error": f"Table '{table_type}' not found"}), 404
             
-            top_p = "Sản phẩm"
-            revenue_col = None
-            product_col = None
-            profit_col = None
-            qty_col = None
-            
-            # Dynamic column discovery
-            for col in df.columns:
-                col_lower = str(col).lower()
-                if 'revenue' in col_lower or 'doanh thu' in col_lower or 'sales' in col_lower:
-                    revenue_col = col
-                if 'product' in col_lower or 'name' in col_lower or 'sản phẩm' in col_lower or 'tên' in col_lower:
-                    product_col = col
-                if 'profit' in col_lower or 'lợi nhuận' in col_lower or 'margin' in col_lower:
-                    profit_col = col
-                if 'quantity' in col_lower or 'số lượng' in col_lower or 'qty' in col_lower:
-                    qty_col = col
-            
-            # Calculate metrics for CDO-level analysis
-            metrics = {}
-            if revenue_col and product_col:
-                df[revenue_col] = pd.to_numeric(df[revenue_col], errors='coerce').fillna(0)
-                top_group = df.groupby(product_col)[revenue_col].sum().sort_values(ascending=False)
-                if not top_group.empty:
-                    top_p = str(top_group.index[0])
-                    metrics['top_product'] = top_p
-                    metrics['top_revenue'] = f"{top_group.iloc[0]:,.0f}"
-            
-            # Pareto Analysis (Concentration Risk)
-            if revenue_col and product_col:
-                total_revenue = df[revenue_col].sum()
-                top_3_revenue = df.groupby(product_col)[revenue_col].sum().nlargest(3).sum()
-                concentration = (top_3_revenue / total_revenue * 100) if total_revenue > 0 else 0
-                metrics['concentration_risk'] = f"{concentration:.1f}%"
-            
-            # Margin Analysis
-            if profit_col and revenue_col:
-                df[profit_col] = pd.to_numeric(df[profit_col], errors='coerce').fillna(0)
-                avg_margin = (df[profit_col].sum() / df[revenue_col].sum() * 100) if df[revenue_col].sum() > 0 else 0
-                metrics['avg_margin'] = f"{avg_margin:.1f}%"
-        
-        except Exception as df_err:
-            return jsonify({"error": f"DataFrame processing error: {str(df_err)}"}), 500
-        
-        # Search market trends
-        news = search_google_trends(top_p)
-        
-        # ENHANCED SYSTEM PROMPT - CDO/CFO MODE (More explicit, structured)
-        sys_msg = """Bạn là Chief Data Officer (CDO) và Chief Financial Officer (CFO) tư duy chiến lược cao cấp.
-        Hãy phân tích dữ liệu bán hàng như một lãnh đạo: cung cấp một BÁO CÁO NGẮN GỌN nhưng CHÍNH XÁC, CÓ SỐ LIỆU HỖ TRỢ và KẾ HOẠCH THỰC THI.
-        Yêu cầu đầu ra (bắt buộc):
-        - Phần 1: Risk Assessment (Pareto) — liệt kê Top 5 sản phẩm theo doanh thu và cho biết % đóng góp của từng sản phẩm trên tổng doanh thu; tính % doanh thu của Top 3 và Top 5 (ví dụ: Top3 = 62.3%).
-        - Phần 2: Pricing & Margin Strategy — chỉ ra các nhóm sản phẩm có margin thấp/không tương xứng so với giá, đề xuất 3 chiến lược giá cụ thể (ví dụ tăng giá có kiểm thử A/B, gói bundles, giảm chiết khấu cho kênh X).
-        - Phần 3: Top 3 Actions — 3 hành động có thể đo lường trong 90 ngày; cho biết MỤC TIÊU (KPIs) và cách đo lường (metrics), ưu tiên (High/Medium/Low), và ước tính tác động đến doanh thu hoặc margin.
-
-        Format đầu ra: TRẢ VỀ HTML SẠCH dùng thẻ <h3>, <h4>, <p>, <ul>, <li>, <strong>. KHÔNG dùng Markdown hoặc code blocks. Tránh văn phong vòng vo; đưa ra con số và hành động rõ ràng.
-        """
-
-        metrics_str = " | ".join([f"{k}: {v}" for k, v in metrics.items()])
-        usr_msg = f"""Bạn có dữ liệu phân tích nội bộ sau:
-        - Top Product: {top_p}
-        - Metrics: {metrics_str}
-        - Market Context / Recent News: {news}
-
-        Yêu cầu cụ thể:
-        1) Thực hiện Pareto concentration analysis (Top3, Top5 %) và liệt kê Top5 products với doanh thu tuyệt đối và %.
-        2) Đánh giá pricing & margin — chỉ ra 2-3 cơ hội tối ưu hóa (ví dụ, tăng giá, giảm chiết khấu, thay đổi bundling).
-        3) Đưa ra Top 3 hành động rõ ràng trong 90 ngày kèm KPI và cách đo lường.
-
-        Trả lời bằng HTML theo định dạng đã nêu ở trên.
-        """
-        
-        html = call_ai_with_retry(sys_msg, usr_msg)
-        if not html:
-            html = f"<div><h3>Phân tích CDO cho {top_p}</h3><p>Metrics: {metrics_str}</p><p>AI đang bận. Vui lòng thử lại sau.</p></div>"
-        
-        # Clean up any remaining markdown
-        html = html.replace("```html", "").replace("```", "").strip()
-        
-        return jsonify({"html_content": html})
-
+            return jsonify({
+                table_type: table_data
+            })
+    
     except Exception as e:
-        import traceback
-        print(f"Forecast endpoint error: {str(e)}")
+        print(f"Tables endpoint error: {str(e)}")
         traceback.print_exc()
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/logout", methods=["POST"])
+def logout_endpoint():
+    logout_user()
+    return jsonify({"message": "Logged out"})
 
 if __name__ == "__main__":
     with app.app_context(): db.create_all()

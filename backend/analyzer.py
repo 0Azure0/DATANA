@@ -1,179 +1,234 @@
-"""
-Analyzer for DATANA: maps required sales columns, cleans numbers, and
-computes revenue when missing.
-Expected headers (case-insensitive):
-  Name, Quantity Sold, Price, Profit, Brand, Category
-Optional: Revenue, Date
-"""
-import re
 import pandas as pd
 import numpy as np
+import re
 
-REQUIRED_MAP = {
-    "product": ["name", "product", "product name", "tên", "sản phẩm", "item", "sku"],
-    "quantity": ["quantity sold", "quantity", "qty", "units", "số lượng", "sl", "orders", "quantity_sold"],
-    "price": ["price", "unit price", "unit_price", "giá", "đơn giá", "cost"],
-    "profit": ["profit", "margin", "lợi nhuận", "lợi_nhuận", "lãi"],
-    "brand": ["brand", "hãng", "thương hiệu", "thương_hiệu", "brand name"],
-    "category": ["category", "ngành hàng", "danh mục", "danh_mục", "segment", "type"],
-    "revenue": ["revenue", "sales", "amount", "doanh thu", "doanh_thu", "total"],
-    "date": ["date", "ngày", "day", "month", "time", "order date", "order_date", "ngày_bán"]
-}
-
-
-def _norm(txt: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "", str(txt).strip().lower())
-
-
-def clean_number(val) -> float:
-    if val is None or (isinstance(val, float) and np.isnan(val)):
-        return 0.0
-    s = str(val).strip()
-    s = re.sub(r"[^\d,.\-]", "", s)
-    if "," in s and "." in s:
-        if s.rfind(",") > s.rfind("."):
-            s = s.replace(".", "").replace(",", ".")
-        else:
-            s = s.replace(",", "")
-    elif "," in s:
-        if s.count(",") > 1 or len(s.split(",")[-1]) == 3:
-            s = s.replace(",", "")
-        else:
-            s = s.replace(",", ".")
+def clean_currency_text(val):
+    if isinstance(val, (int, float)): return float(val)
+    s = str(val).lower().strip()
+    if not s or s == 'nan': return 0.0
+    multiplier = 1
+    if 'k' in s or 'nghìn' in s: multiplier = 1000
+    elif 'tr' in s or 'triệu' in s or 'm' in s: multiplier = 1000000
+    elif 'tỷ' in s or 'b' in s: multiplier = 1000000000
+    clean_str = re.sub(r'[^\d.,]', '', s)
+    if not clean_str: return 0.0
     try:
-        return float(s)
-    except Exception:
-        return 0.0
+        if ',' in clean_str and '.' in clean_str: clean_str = clean_str.replace(',', '') 
+        elif ',' in clean_str: clean_str = clean_str.replace(',', '.') 
+        elif '.' in clean_str: 
+            parts = clean_str.split('.')
+            if len(parts) > 1 and len(parts[-1]) == 3 and len(parts) > 2: clean_str = clean_str.replace('.', '') 
+        return float(clean_str) * multiplier
+    except: return 0.0
 
-
-def map_columns(df: pd.DataFrame):
-    """
-    Fuzzy match DataFrame columns to required fields.
-    Handles case variations, underscores, spaces, and Vietnamese characters.
-    """
-    col_map = {}
-    normalized = {_norm(c): c for c in df.columns}
+def smart_preprocess(df):
+    keywords = ['ngày', 'date', 'sản phẩm', 'product', 'doanh thu', 'revenue', 'số lượng', 'quantity', 'khu vực', 'region']
+    best_header_idx = 0
+    max_matches = 0
+    current_cols = [str(c).lower() for c in df.columns]
     
-    for target, keys in REQUIRED_MAP.items():
-        found = False
-        
-        # First pass: exact normalized match
-        for raw, original in normalized.items():
-            for key in keys:
-                if raw == _norm(key):
-                    col_map[target] = original
-                    found = True
-                    break
-            if found:
-                break
-        
-        # Second pass: partial/substring match
-        if not found:
-            for raw, original in normalized.items():
-                for key in keys:
-                    norm_key = _norm(key)
-                    if norm_key in raw or raw in norm_key:
-                        col_map[target] = original
-                        found = True
-                        break
-                if found:
-                    break
+    if sum(1 for c in current_cols if any(k in c for k in keywords)) < 2:
+        for idx, row in df.head(10).iterrows():
+            row_str = " ".join([str(val).lower() for val in row.values])
+            matches = sum(1 for k in keywords if k in row_str)
+            if matches > max_matches:
+                max_matches = matches
+                best_header_idx = idx + 1 
+        if best_header_idx > 0:
+            new_header = df.iloc[best_header_idx - 1]
+            df = df[best_header_idx:]
+            df.columns = new_header
+            df.reset_index(drop=True, inplace=True)
+
+    df = df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+    for col in df.columns:
+        try: pd.to_numeric(df[col].dropna().iloc[:10])
+        except: df[col] = df[col].ffill()
+    return df
+
+def find_column(cols, keywords):
+    for col in cols:
+        col_lower = str(col).lower().strip()
+        if any(k in col_lower for k in keywords): return col
+    return None
+
+def parse_date_series(series):
+    try: return pd.to_datetime(series, errors='coerce')
+    except Exception: return pd.to_datetime(series.astype(str), errors='coerce')
+
+def analyze_data(df):
+    # 1. Dọn dẹp & Nhận diện
+    df = smart_preprocess(df)
+    original_cols = list(df.columns)
+    df = df.rename(columns={c: str(c).strip() for c in original_cols})
+    cols = list(df.columns)
+
+    date_col = find_column(cols, ['date', 'ngay', 'thời gian', 'năm', 'tháng'])
+    product_col = find_column(cols, ['product', 'sản phẩm', 'tên hàng', 'mặt hàng', 'item', 'mã', 'name', 'tên'])
+    quantity_col = find_column(cols, ['quantity', 'số lượng', 'sl', 'qty', 'vol'])
+    revenue_col = find_column(cols, ['revenue', 'doanh', 'sales', 'tien', 'amount', 'giá', 'trị giá', 'price', 'thành tiền'])
+    cogs_col = find_column(cols, ['cogs', 'cost', 'gia_von', 'vốn'])
+    profit_col = find_column(cols, ['profit', 'loinhuan', 'lợi nhuận', 'lãi'])
+    region_col = find_column(cols, ['region', 'khu vực', 'tỉnh', 'thành phố', 'chi nhánh'])
+    brand_col = find_column(cols, ['brand', 'thương hiệu', 'nhãn hiệu', 'hãng'])
+    category_col = find_column(cols, ['category', 'danh mục', 'phân loại', 'loại', 'nhóm'])
     
-    return col_map
+    # 2. Làm sạch số liệu
+    if revenue_col: df[revenue_col] = df[revenue_col].apply(clean_currency_text).fillna(0)
+    if cogs_col: df[cogs_col] = df[cogs_col].apply(clean_currency_text).fillna(0)
+    if profit_col: df[profit_col] = df[profit_col].apply(clean_currency_text).fillna(0)
+    if quantity_col: df[quantity_col] = pd.to_numeric(df[quantity_col], errors='coerce').fillna(0)
 
+    if date_col:
+        df[date_col] = parse_date_series(df[date_col])
+        df['year_month'] = df[date_col].dt.to_period('M').astype(str)
+    else:
+        df['year_month'] = 'N/A'
 
-def analyze_data(df: pd.DataFrame):
-    df = df.copy()
-    df.columns = [str(c).strip() for c in df.columns]
-    col_map = map_columns(df)
+    if not profit_col and revenue_col and cogs_col:
+        df['profit_computed'] = df[revenue_col] - df[cogs_col]
+        profit_col = 'profit_computed'
 
-    universal = []
-    revenue_by_month = {}
-    product_metrics = {}
+    # 3. TẠO UNIVERSAL DATA (Raw Data)
+    universal_data = []
+    export_df = df.head(5000).copy()
+    
+    for col in export_df.columns:
+        if pd.api.types.is_datetime64_any_dtype(export_df[col]):
+            export_df[col] = export_df[col].dt.strftime('%Y-%m-%d')
 
-    for _, row in df.iterrows():
-        name = str(row.get(col_map.get("product"), "Unknown")).strip()
-        brand = str(row.get(col_map.get("brand"), "Other")).strip()
-        cat = str(row.get(col_map.get("category"), "General")).strip()
-        date_val = row.get(col_map.get("date")) if col_map.get("date") else None
+    for _, row in export_df.iterrows():
+        record = row.to_dict()
+        record['date'] = str(row[date_col]) if date_col and pd.notnull(row[date_col]) else ''
+        record['month'] = str(row['year_month'])
+        record['region'] = str(row[region_col]) if region_col and pd.notnull(row[region_col]) else 'Khác'
+        record['product'] = str(row[product_col]) if product_col and pd.notnull(row[product_col]) else 'Unknown'
+        record['brand'] = str(row[brand_col]) if brand_col and pd.notnull(row[brand_col]) else 'N/A'
+        record['category'] = str(row[category_col]) if category_col and pd.notnull(row[category_col]) else 'N/A'
+        
+        record['revenue'] = float(row[revenue_col]) if revenue_col else 0
+        record['profit'] = float(row[profit_col]) if profit_col and profit_col in row else 0
+        record['quantity'] = float(row[quantity_col]) if quantity_col else 0
+        
+        clean_record = {k: ("" if pd.isna(v) else v) for k,v in record.items()}
+        universal_data.append(clean_record)
 
-        qty = clean_number(row.get(col_map.get("quantity"), 0))
-        price = clean_number(row.get(col_map.get("price"), 0))
-        revenue = clean_number(row.get(col_map.get("revenue"), 0))
-        profit = clean_number(row.get(col_map.get("profit"), 0))
+    # 4. TÍNH TOÁN KPI
+    total_rev = float(df[revenue_col].sum()) if revenue_col else 0
+    total_prof = float(df[profit_col].sum()) if profit_col else 0
+    total_qty = int(df[quantity_col].sum()) if quantity_col else 0
 
-        if revenue == 0 and price and qty:
-            revenue = price * qty
-        if price == 0 and revenue and qty:
-            price = revenue / qty if qty else 0
+    statistics = {
+        'total_revenue': total_rev,
+        'total_profit': total_prof,
+        'total_quantity': total_qty
+    }
 
-        if revenue == 0 and qty == 0 and price == 0 and profit == 0 and name == "Unknown":
-            continue
+    # Top Products Simple
+    top_products_simple = []
+    if product_col and revenue_col:
+        grp = df.groupby(product_col)[revenue_col].sum().nlargest(5)
+        for p, v in grp.items():
+            top_products_simple.append({'name': str(p), 'revenue': float(v)})
 
-        item = {
-            "product": name or "Unknown",
-            "brand": brand or "Other",
-            "category": cat or "General",
-            "date": str(date_val) if date_val is not None else "N/A",
-            "quantity": float(qty or 0),
-            "price": float(price or 0),
-            "revenue": float(revenue or 0),
-            "profit": float(profit or 0),
+    # --- 5. TẠO SMART SUMMARY (QUAN TRỌNG: ĐỔI TÊN CỘT VỀ CHUẨN) ---
+    smart_summary = {}
+    
+    if revenue_col and brand_col:
+        brand_analysis = df.groupby(brand_col)[revenue_col].sum().nlargest(5).to_dict()
+        smart_summary['brand'] = {str(k): float(v) for k,v in brand_analysis.items()}
+        
+    if revenue_col and category_col:
+        category_analysis = df.groupby(category_col)[revenue_col].sum().nlargest(5).to_dict()
+        smart_summary['category'] = {str(k): float(v) for k,v in category_analysis.items()}
+    
+    product_details = []
+    if product_col and quantity_col and revenue_col:
+        agg_dict = {quantity_col: 'sum', revenue_col: 'sum'}
+        if profit_col: agg_dict[profit_col] = 'sum'
+            
+        prod_grp = df.groupby(product_col).agg(agg_dict).reset_index()
+        
+        # --- FIX: Đổi tên tất cả cột về chuẩn key (revenue, quantity, profit) ---
+        rename_map = {
+            product_col: 'product',
+            revenue_col: 'revenue', 
+            quantity_col: 'quantity'
         }
-        universal.append(item)
+        if profit_col: rename_map[profit_col] = 'profit'
+        
+        prod_grp = prod_grp.rename(columns=rename_map)
+        # -----------------------------------------------------------------------
+        
+        if brand_col:
+            brand_map = df.groupby(product_col)[brand_col].first()
+            prod_grp['brand'] = prod_grp['product'].map(brand_map)
+        
+        if category_col:
+            cat_map = df.groupby(product_col)[category_col].first()
+            prod_grp['category'] = prod_grp['product'].map(cat_map)
+        
+        # Sort bằng key chuẩn 'revenue'
+        product_details = prod_grp.nlargest(10, 'revenue').to_dict('records')
+    
+    smart_summary['product_details'] = product_details
+    average_margin = (total_prof / total_rev * 100) if total_rev > 0 else 0
+    smart_summary['average_margin'] = float(average_margin)
+    
+    # 6. TẠO CÁC BẢNG (Dùng tên cột chuẩn cho dễ render)
+    product_inventory = []
+    sales_summary = []
+    profit_analysis = []
+    category_overview = []
+    brand_performance = []
 
-        pm = product_metrics.setdefault(name, {"revenue": 0, "profit": 0, "quantity": 0, "margin": 0})
-        pm["revenue"] += item["revenue"]
-        pm["profit"] += item["profit"]
-        pm["quantity"] += item["quantity"]
+    def safe_rename(dframe, old, new):
+        if old in dframe.columns: return dframe.rename(columns={old: new})
+        return dframe
 
-        if date_val not in [None, "", "N/A"]:
-            parsed = pd.to_datetime(date_val, errors="coerce")
-            if pd.notna(parsed):
-                mk = parsed.strftime("%Y-%m")
-                revenue_by_month[mk] = revenue_by_month.get(mk, 0) + item["revenue"]
+    if product_col and revenue_col and quantity_col:
+        inv = df.groupby(product_col).agg({quantity_col:'sum', revenue_col:'sum'}).reset_index()
+        inv = safe_rename(inv, product_col, 'Product')
+        # Chuẩn hóa tên cột
+        inv = safe_rename(inv, quantity_col, 'Quantity')
+        inv = safe_rename(inv, revenue_col, 'Revenue')
+        product_inventory = inv.to_dict('records')
 
-    for m in product_metrics.values():
-        if m["revenue"] > 0:
-            m["margin"] = (m["profit"] / m["revenue"]) * 100  # Margin as percentage
-        else:
-            m["margin"] = 0
+        group_keys = [product_col]
+        if category_col: group_keys.append(category_col)
+        sales = df.groupby(group_keys).agg({quantity_col:'sum', revenue_col:'sum'}).reset_index()
+        sales = safe_rename(sales, product_col, 'Product')
+        if category_col: sales = safe_rename(sales, category_col, 'Category')
+        sales = safe_rename(sales, quantity_col, 'Quantity')
+        sales = safe_rename(sales, revenue_col, 'Revenue')
+        sales_summary = sales.to_dict('records')
 
-    stats = {
-        "total_revenue": sum(x["revenue"] for x in universal),
-        "total_profit": sum(x["profit"] for x in universal),
-        "total_quantity": sum(x["quantity"] for x in universal),
-        "row_count": len(universal),
-        "average_margin": (sum(x["profit"] for x in universal) / sum(x["revenue"] for x in universal) * 100) if sum(x["revenue"] for x in universal) > 0 else 0,
-    }
+        if profit_col:
+            prof = df.groupby(product_col).agg({revenue_col:'sum', profit_col:'sum'}).reset_index()
+            prof['Margin'] = (prof[profit_col]/prof[revenue_col]*100).fillna(0).round(1)
+            prof = safe_rename(prof, product_col, 'Product')
+            prof = safe_rename(prof, revenue_col, 'Revenue')
+            prof = safe_rename(prof, profit_col, 'Profit')
+            profit_analysis = prof.to_dict('records')
 
-    top_products = sorted(
-        [{"name": n, "revenue": m["revenue"], "profit": m["profit"], "margin": m.get("margin", 0)} for n, m in product_metrics.items()],
-        key=lambda x: x["revenue"],
-        reverse=True
-    )[:10]
+    if category_col and revenue_col:
+        cat = df.groupby(category_col).agg({revenue_col:'sum', quantity_col:'sum'}).reset_index()
+        cat = safe_rename(cat, category_col, 'Category')
+        cat = safe_rename(cat, revenue_col, 'Revenue')
+        cat = safe_rename(cat, quantity_col, 'Quantity')
+        category_overview = cat.to_dict('records')
 
-    smart_sum = {
-        "top_products": {p["name"]: p["revenue"] for p in top_products[:5]},
-        "detected_columns": col_map,
-    }
+    if brand_col and revenue_col:
+        br = df.groupby(brand_col).agg({revenue_col:'sum', quantity_col:'sum'}).reset_index()
+        br = safe_rename(br, brand_col, 'Brand')
+        br = safe_rename(br, revenue_col, 'Revenue')
+        br = safe_rename(br, quantity_col, 'Quantity')
+        brand_performance = br.to_dict('records')
 
-    time_analysis = {"revenue_by_month": revenue_by_month}
-    region_analysis = {}
-    product_analysis = {"top_products": top_products}
-    customer_analysis = {}
-    columns = list(col_map.values())
+    smart_summary['product_inventory_table'] = product_inventory
+    smart_summary['sales_summary_table'] = sales_summary
+    smart_summary['profit_analysis_table'] = profit_analysis
+    smart_summary['category_overview_table'] = category_overview
+    smart_summary['brand_performance_table'] = brand_performance
 
-    return (
-        stats,
-        time_analysis,
-        product_analysis,
-        region_analysis,
-        customer_analysis,
-        top_products,
-        revenue_by_month,
-        product_metrics,
-        universal,
-        columns,
-        smart_sum,
-    )
+    return (statistics, {}, {}, {}, {}, top_products_simple, {}, {}, universal_data, list(df.columns), smart_summary)

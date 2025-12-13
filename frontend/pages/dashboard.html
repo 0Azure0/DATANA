@@ -14,131 +14,41 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* --- 1. CSS GIAO DIỆN (Đã chỉnh sửa Full Màn Hình) --- */
-    body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        background-color: #0f172a;
-        margin: 0;
-    }
-
-    /* Header Styles */
-    .site-header {
-        background: rgba(15, 23, 42, 0.95); /* Tăng độ đậm nền để dễ đọc */
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        position: sticky; top: 0; z-index: 1000;
-        width: 100%;
-    }
-    .site-header .container {
-        display: flex; align-items: center; justify-content: space-between;
-        max-width: 100%; /* Full width header */
-        margin: 0 auto; padding: 15px 40px; /* Padding rộng hơn */
-    }
-    .brand span { font-size: 1.5rem; font-weight: bold; color: #fff; }
-    .brand img { height: 32px; margin-right: 10px; vertical-align: middle; }
-    
-    .site-header nav ul {
-        display: flex; gap: 30px; list-style: none; margin: 0; padding: 0;
-    }
-    .nav-link {
-        color: #94a3b8; text-decoration: none; font-weight: 500; transition: 0.3s;
-        display: flex; align-items: center; gap: 8px;
-    }
-    .nav-link:hover, .nav-link.active { color: #fff; }
-
-    /* Footer Styles */
+    /* CSS RIÊNG CHO FOOTER */
     .site-footer {
-        background-color: #0f172a;
-        color: #cbd5e1;
-        padding: 60px 0 30px;
-        font-size: 0.9rem;
+        background-color: #0f111a;
+        color: #9ca3af;
+        padding-top: 60px;
+        padding-bottom: 20px;
+        font-family: sans-serif;
+        border-top: 1px solid #1f2937;
         margin-top: auto;
-        border-top: 1px solid rgba(255,255,255,0.05);
     }
-    .footer-content {
-        display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px;
-        max-width: 1400px; /* Giới hạn footer cho đẹp */
-        margin: 0 auto; padding: 0 20px;
-    }
-    .footer-col h4 { color: #fff; margin-bottom: 20px; }
-    .footer-col ul { list-style: none; padding: 0; }
-    .footer-col ul li { margin-bottom: 10px; }
-    .footer-col ul li a { color: #94a3b8; text-decoration: none; }
-    .footer-col ul li a:hover { color: #fff; }
-    .social-links { display: flex; gap: 15px; margin-top: 15px; }
-    .social-btn {
-        width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%;
-        display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none;
-    }
-    .footer-bottom {
-        border-top: 1px solid rgba(255,255,255,0.1); padding-top: 25px;
-        display: flex; justify-content: space-between; align-items: center;
-        max-width: 1400px; margin: 0 auto; padding: 0 20px;
-    }
-    .payment-icons { font-size: 1.5rem; display: flex; gap: 10px; }
+    .footer-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand h3 { color: #fff; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .footer-desc { line-height: 1.6; font-size: 14px; margin-bottom: 20px; }
+    .footer-socials { display: flex; gap: 10px; }
+    .social-btn { width: 36px; height: 36px; background-color: #1f2937; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; transition: 0.3s; }
+    .social-btn:hover { background-color: #3b82f6; }
+    .footer-col h4 { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .footer-links { list-style: none; padding: 0; margin: 0; }
+    .footer-links li { margin-bottom: 12px; }
+    .footer-links a { color: #9ca3af; text-decoration: none; font-size: 14px; transition: 0.2s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid #1f2937; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .payment-icons { display: flex; gap: 15px; font-size: 24px; color: #d1d5db; }
 
-    /* --- 2. LAYOUT DASHBOARD (SỬA LỖI TRỐNG MỘT NỬA TẠI ĐÂY) --- */
-    .app-wrapper {
-        display: block !important;
-        width: 100%;
-        flex: 1;
-    }
+    /* CSS BỔ SUNG CHO BẢNG MỚI */
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .badge-profit { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-hot { background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
     
-    .main-content {
-        margin: 0 !important;
-        /* SỬA: Cho phép rộng tối đa 100% thay vì 1200px */
-        width: 100% !important;
-        max-width: 100% !important; 
-        padding: 30px 40px !important; /* Thêm padding 2 bên cho thoáng */
-        box-sizing: border-box;
-    }
-    
-    .dashboard-container {
-        /* SỬA: Giới hạn 1600px để không bị quá bè trên màn hình siêu rộng, nhưng đủ lớn */
-        max-width: 1600px; 
-        width: 100%;
-        margin: 0 auto; /* Căn giữa màn hình */
-    }
-
-    /* Ép Grid hiển thị full width */
-    .charts-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); /* Chia đôi màn hình */
-        gap: 20px;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-    
-    /* KPI Cards dàn đều 3 cột */
-    .kpis {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        width: 100%;
-        margin-bottom: 30px;
-    }
-
-    /* Ẩn Sidebar cũ */
-    .sidebar { display: none !important; }
-
-    /* Header Dashboard */
-    .dashboard-header-wrapper {
-        display: flex; justify-content: space-between; align-items: flex-end;
-        margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
-        max-width: 1600px; margin-left: auto; margin-right: auto; /* Căn giữa theo content */
-    }
-    .user-mini-profile {
-        background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 30px;
-        display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    /* Responsive cho màn nhỏ */
-    @media (max-width: 1024px) {
-        .charts-grid, .kpis { grid-template-columns: 1fr; } /* Về 1 cột trên iPad/Mobile */
-        .site-header nav ul { display: none; }
-        .main-content { padding: 20px; }
+    @media (max-width: 768px) {
+        .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+        .footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
+        .filter-bar { flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -146,9 +56,7 @@
 
 <header class="site-header">
     <div class="container">
-      <a href="../index.html" class="brand" style="text-decoration: none;">
-        <span>DATANA</span>
-      </a>
+      <a href="../index.html" class="brand" style="text-decoration: none;"><span>DATANA</span></a>
       <nav>
         <ul>
           <li><a href="../index.html" class="nav-link"><i class="fas fa-home"></i> Trang chủ</a></li>
@@ -176,7 +84,21 @@
         </div>
 
         <div class="dashboard-container">
+            
+            <div id="pdfCoverPage" class="pdf-cover-page">
+                <div class="cover-content">
+                    <div class="cover-logo">DATANA REPORT</div>
+                    <h1 id="printTitleDisplay">BÁO CÁO KINH DOANH</h1>
+                    <p id="printDateDisplay">Ngày xuất bản: ...</p>
+                    <div class="cover-footer">Powered by Datana AI</div>
+                </div>
+            </div>
+            
             <div class="filter-bar glass-effect">
+                <div class="filter-group" style="flex-grow: 1;">
+                    <label>TÊN BÁO CÁO</label>
+                    <input type="text" id="reportTitleInput" class="filter-input" placeholder="Nhập tên báo cáo..." style="width: 100%;">
+                </div>
                 <div class="filter-group">
                     <label>TỪ NGÀY</label>
                     <input type="date" id="startDate" class="filter-input">
@@ -202,12 +124,12 @@
             </div>
 
             <div class="tabs">
-                 <button class="tab-btn active" data-tab="tab-overview">Tổng quan</button>
-                 <button class="tab-btn" data-tab="tab-tables">📋 Bảng Phân Tích</button>
+                 <button class="tab-btn" data-tab="tab-overview">Tổng quan</button>
+                 <button class="tab-btn active" data-tab="tab-tables">📋 Bảng Phân Tích</button>
                  <button class="tab-btn" data-tab="tab-forecast">🔮 Dự báo & AI</button>
             </div>
             
-            <div id="tab-overview" class="tab-content active">
+            <div id="tab-overview" class="tab-content">
                 <section class="kpis">
                   <div class="kpi glow-card purple">
                       <p>TỔNG DOANH THU</p>
@@ -222,7 +144,6 @@
                       <h4 id="kpi_topprod">-</h4>
                   </div>
                 </section>
-
                 <div class="charts-grid">
                     <div class="chart-card glass-card">
                         <div class="chart-title">📈 Xu hướng Doanh thu</div>
@@ -233,32 +154,91 @@
                         <div class="chart-canvas"><canvas id="chartBar"></canvas></div>
                     </div>
                 </div>
-                
                 <div class="charts-grid" style="grid-template-columns: 1fr;">
                     <div class="chart-card glass-card" style="height: 450px;">
                         <div class="chart-title">🍰 Top Sản phẩm & Tỷ trọng</div>
                         <div class="chart-canvas"><canvas id="chartDonut"></canvas></div>
                     </div>
                 </div>
-
                 <div class="charts-grid">
                     <div class="chart-card glass-card"><div class="chart-title">📊 Bán hàng theo Danh mục</div><div class="chart-canvas"><canvas id="chartCategoryBar"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-title">💰 Lợi nhuận theo Sản phẩm</div><div class="chart-canvas"><canvas id="chartProfitBar"></canvas></div></div>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card"><div class="chart-title">📍 Giá vs Số lượng bán</div><div class="chart-canvas"><canvas id="chartScatterPrice"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-title">🎯 Lợi nhuận vs Số lượng</div><div class="chart-canvas"><canvas id="chartScatterProfit"></canvas></div></div>
-                </div>
-                <div class="charts-grid" style="grid-template-columns: 1fr;">
-                    <div class="chart-card glass-card"><div class="chart-title">🏢 Thị phần Thương hiệu</div><div class="chart-canvas"><canvas id="chartBrandPie"></canvas></div></div>
-                </div>
             </div>
 
-            <div id="tab-tables" class="tab-content">
+            <div id="tab-tables" class="tab-content active">
                 <div class="tables-grid">
-                    <div class="table-card blue glass-card"><div class="table-title">📦 Kho Hàng</div><div class="table-wrapper"><table id="productTable"><thead><tr><th>Sản phẩm</th><th>Tổng SL</th><th>Doanh thu</th><th>Tỷ lệ %</th></tr></thead><tbody></tbody></table></div></div>
-                    <div class="table-card green glass-card"><div class="table-title">📊 Tóm Tắt</div><div class="table-wrapper"><table id="salesTable"><thead><tr><th>Danh mục</th><th>Sản phẩm</th><th>Số lượng</th><th>Tổng giá</th></tr></thead><tbody></tbody></table></div></div>
-                    <div class="table-card purple glass-card"><div class="table-title">💰 Lợi Nhuận</div><div class="table-wrapper"><table id="profitTable"><thead><tr><th>Sản phẩm</th><th>Số lượng</th><th>Lợi nhuận</th><th>Lợi nhuận %</th></tr></thead><tbody></tbody></table></div></div>
+                    
+                    <div class="table-card glass-card">
+                        <div class="table-title">🏷️ 1. Doanh thu theo Thương hiệu</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Thương hiệu</th><th class="text-right">Doanh thu</th><th class="text-right">Lợi nhuận</th></tr></thead>
+                                <tbody id="tbl_brand"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-card glass-card">
+                        <div class="table-title">📂 2. Phân tích theo Danh mục</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Danh mục</th><th class="text-center">Số lượng</th><th class="text-right">Doanh thu</th><th class="text-right">Lợi nhuận</th></tr></thead>
+                                <tbody id="tbl_category"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-card glass-card">
+                        <div class="table-title">💰 3. Lợi nhuận theo Sản phẩm</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Tên sản phẩm</th><th class="text-right">Lợi nhuận</th><th class="text-right">Doanh thu</th><th class="text-center">SL</th></tr></thead>
+                                <tbody id="tbl_profit_product"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-card glass-card">
+                        <div class="table-title">🔥 4. Sản phẩm bán chạy nhất (SL)</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Tên sản phẩm</th><th class="text-center">Đã bán</th><th class="text-right">Giá bán TB</th><th class="text-right">Lợi nhuận</th></tr></thead>
+                                <tbody id="tbl_bestseller"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-card glass-card">
+                        <div class="table-title">📊 5. Theo dõi giá trị trung bình</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Tên sản phẩm</th><th class="text-right">Giá TB/SP</th><th class="text-right">Lợi nhuận TB/SP</th></tr></thead>
+                                <tbody id="tbl_avg"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-card glass-card">
+                        <div class="table-title">💲 6. Phân tích Lợi nhuận theo Giá</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Phân nhóm giá</th><th class="text-right">Tổng lợi nhuận</th><th class="text-right">Tổng doanh thu</th></tr></thead>
+                                <tbody id="tbl_price_range"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-card glass-card" style="grid-column: span 1;">
+                        <div class="table-title">🌍 7. Phân bổ Doanh thu theo Khu vực</div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr><th>Khu vực</th><th class="text-right">Tổng doanh thu</th><th class="text-right">Lợi nhuận</th><th class="text-center">SL Bán</th></tr></thead>
+                                <tbody id="tbl_region"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -278,57 +258,34 @@
 </div>
 
 <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-col">
-          <a href="#" class="brand" style="text-decoration: none; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <span style="color: #fff; font-weight: bold;">DATANA</span>
-          </a>
-          <p class="brand-desc">
-            Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
-            <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
-          </div>
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-col footer-brand">
+                <h3><i class="fas fa-bolt" style="color: #3b82f6;"></i> DATANA</h3>
+                <p class="footer-desc">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME. Đơn giản, nhanh chóng và bảo mật tuyệt đối.</p>
+                <div class="footer-socials">
+                    <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Sản phẩm</h4>
+                <ul class="footer-links"><li><a href="#">Phân tích Excel</a></li><li><a href="#">Trợ lý AI</a></li><li><a href="#">Báo cáo mẫu</a></li><li><a href="#">Tính năng mới</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <ul class="footer-links"><li><a href="#">Về chúng tôi</a></li><li><a href="#">Tuyển dụng</a></li><li><a href="#">Đối tác</a></li><li><a href="#">Liên hệ</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul class="footer-links"><li><a href="#">Trung tâm trợ giúp</a></li><li><a href="#">Điều khoản sử dụng</a></li><li><a href="#">Chính sách bảo mật</a></li><li><a href="#">Gửi phản hồi</a></li></ul>
+            </div>
         </div>
-
-        <div class="footer-col">
-          <h4>Sản phẩm</h4>
-          <ul>
-            <li><a href="#">Phân tích Excel</a></li>
-            <li><a href="#">Trợ lý AI</a></li>
-            <li><a href="#">Báo cáo mẫu</a></li>
-          </ul>
+        <div class="footer-bottom">
+            <p>© 2025 DATANA Analytics. All rights reserved.</p>
+            <div class="payment-icons"><i class="fab fa-cc-visa"></i><i class="fab fa-cc-mastercard"></i><i class="fab fa-cc-paypal"></i></div>
         </div>
-
-        <div class="footer-col">
-          <h4>Công ty</h4>
-          <ul>
-            <li><a href="#">Về chúng tôi</a></li>
-            <li><a href="#">Liên hệ</a></li>
-            <li><a href="#">Đối tác</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>Hỗ trợ</h4>
-          <ul>
-            <li><a href="#">Trung tâm trợ giúp</a></li>
-            <li><a href="#">Chính sách bảo mật</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>© 2025 DATANA Analytics. All rights reserved.</p>
-        <div class="payment-icons">
-          <i class="fab fa-cc-visa"></i>
-          <i class="fab fa-cc-mastercard"></i>
-          <i class="fab fa-cc-paypal"></i>
-        </div>
-      </div>
     </div>
 </footer>
 

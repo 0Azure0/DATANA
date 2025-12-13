@@ -2,14 +2,21 @@
 
 /* 1. Định hình khung chứa ô nhập (Input Area) */
 .input-area {
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.3); /* Nền tối mờ phía dưới cùng */
+    padding: 15px 20px; /* Giảm padding để giảm chiều cao tổng thể */
+    background: #0f172a; /* Nền tối cố định (Giúp che phần dưới khi cuộn) */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    position: sticky;
-    bottom: 0;
+    
+    /* ***** CỐ ĐỊNH TUYỆT ĐỐI BẰNG POSITION ***** */
+    position: absolute; 
+    bottom: 0;           
+    left: 0;             
+    right: 0;           
+    z-index: 10;         
+    /* ***** HẾT CỐ ĐỊNH ***** */
+    
     width: 100%;
     box-sizing: border-box; /* Đảm bảo padding không làm vỡ khung */
-    flex-shrink: 0; /* Quan trọng: Ngăn nó co lại */
+    flex-shrink: 0; /* Giữ để an toàn */
 }
 
 /* 2. Cái bao bên ngoài ô nhập (Tạo bo tròn, viền sáng) */
@@ -18,7 +25,7 @@
     align-items: center; /* Căn giữa nút gửi và ô nhập */
     gap: 12px;
     background: rgba(255, 255, 255, 0.08); /* Nền xám trong suốt */
-    padding: 10px 20px;
+    padding: 8px 18px; /* Giảm padding bên trong wrapper */
     border-radius: 30px; /* Bo tròn viên thuốc */
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
@@ -31,7 +38,7 @@
     box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
 }
 
-/* 3. Ô nhập liệu chính (Textarea) - SỬA LỖI TRẮNG Ở ĐÂY */
+/* 3. Ô nhập liệu chính (Textarea) */
 #chatInput {
     flex: 1; /* Chiếm hết khoảng trống còn lại */
     background: transparent !important; /* Bắt buộc trong suốt (Xóa nền trắng) */
@@ -86,12 +93,25 @@
     flex-shrink: 0;
     padding: 20px;
 }
+/* Rất quan trọng: Đảm bảo chat-window chiếm 100% chiều cao khả dụng */
 .chat-window {
     flex: 1;
     display: flex;
     flex-direction: column; /* Đảm bảo bố cục dọc */
     min-height: 0;
+    height: 100%; /* Cố định chiều cao */
 }
+
+/* THÊM STYLE CHO WRAPPER MỚI (BOX) */
+.chat-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Cố định chiều cao */
+    overflow-y: hidden; /* Ngăn không cho wrapper này cuộn */
+    position: relative; /* Rất quan trọng: Neo Input Area (absolute) vào đây */
+}
+
 
 /* 9. STYLE PHỤ (HEADER, SIDEBAR) */
 .chat-header {
@@ -161,7 +181,9 @@
     flex-direction: column;
     gap: 15px; /* Khoảng cách giữa các tin nhắn */
     background: transparent;
-    padding-bottom: 40px; /* Thêm padding dưới để tin nhắn cuối không bị che */
+    
+    /* RẤT QUAN TRỌNG: Tăng padding dưới cùng để tránh tin nhắn bị thanh nhập che */
+    padding-bottom: 110px; 
 }
 
 /* Tin nhắn đơn */
@@ -294,4 +316,16 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow-x: auto;
     white-space: pre-wrap;
+}
+/* Code MỚI (đã sửa) */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+    
+    /* THÊM DÒNG NÀY ĐỂ CĂN GIỮA KHUNG CHAT */
+    align-items: center; 
 }

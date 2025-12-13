@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error(e); }
     }
 
-    // Nếu không có dữ liệu thật -> Tạo giả
     if (!ALL_DATA || ALL_DATA.length === 0) {
         ALL_DATA = generateMockData();
     }
@@ -28,30 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDashboard(ALL_DATA);
 });
 
-// --- XỬ LÝ NÚT PHÂN TÍCH AI & XUẤT PDF ---
-
-// 1. Hàm gọi AI (Dùng cho cả nút bấm và khi xuất PDF)
+// --- XỬ LÝ NÚT PHÂN TÍCH AI ---
 async function triggerAIAnalysis() {
     const aiDiv = document.getElementById('aiForecastResult');
     const btn = document.getElementById('btnAiForecast');
     
-    // Nếu đang không có session ID (dữ liệu giả)
     if (!CURRENT_SESSION_ID) {
-        aiDiv.innerHTML = `<div style="padding:20px; border:1px dashed #f59e0b; color:#f59e0b; border-radius:8px;">
-            ⚠️ Đang xem dữ liệu mẫu. Vui lòng <strong>Tải lên file Excel</strong> để AI phân tích thật.
-        </div>`;
+        aiDiv.innerHTML = `<div style="padding:20px; border:1px dashed #f59e0b; color:#f59e0b; border-radius:8px;">⚠️ Đang xem dữ liệu mẫu. Vui lòng <strong>Tải lên file Excel</strong> để AI phân tích thật.</div>`;
         return false;
     }
 
-    if(btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang suy nghĩ...';
-    }
+    if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang suy nghĩ...'; }
     
-    aiDiv.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">
-        <div class="typing-indicator"><span></span><span></span><span></span></div>
-        <p style="margin-top:10px">AI đang đọc dữ liệu và viết báo cáo...</p>
-    </div>`;
+    aiDiv.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;"><div class="typing-indicator"><span></span><span></span><span></span></div><p style="margin-top:10px">AI đang đọc dữ liệu và viết báo cáo...</p></div>`;
 
     try {
         const response = await fetch('/api/forecast', {
@@ -64,7 +52,7 @@ async function triggerAIAnalysis() {
         if (data.html_content) {
             aiDiv.innerHTML = data.html_content;
             if(btn) { btn.disabled = false; btn.innerHTML = '✨ Phân tích lại'; }
-            return true; // Thành công
+            return true;
         } else {
             aiDiv.innerHTML = `<p style="color:red">Lỗi: ${data.error || 'AI không trả lời'}</p>`;
         }
@@ -76,53 +64,60 @@ async function triggerAIAnalysis() {
     return false;
 }
 
-// 2. Hàm Xuất PDF (Sửa lỗi thiếu nội dung)
+// --- XỬ LÝ XUẤT PDF (CÓ TRANG BÌA) ---
 async function handleExportPDF() {
     const loader = document.getElementById('loadingOverlay');
     const btn = document.getElementById('printPreviewBtn');
     
-    // Bật màn hình chờ
+    // 1. CẬP NHẬT NỘI DUNG TRANG BÌA
+    const titleInput = document.getElementById('reportTitleInput').value;
+    const printTitle = document.getElementById('printTitleDisplay');
+    const printDate = document.getElementById('printDateDisplay');
+    
+    // Nếu không nhập thì lấy mặc định
+    printTitle.innerText = titleInput.trim() !== "" ? titleInput : "BÁO CÁO HIỆU QUẢ KINH DOANH";
+    
+    // Cập nhật ngày
+    const today = new Date();
+    printDate.innerText = `Ngày xuất bản: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
+    // 2. HIỆN LOADER
     if (loader) {
         loader.classList.add('active');
-        loader.querySelector('.loading-text').innerText = "🔄 Đang chuẩn bị dữ liệu báo cáo...";
+        loader.querySelector('.loading-text').innerText = "🔄 Đang chuẩn bị trang bìa & dữ liệu...";
     }
     if (btn) btn.disabled = true;
 
-    // Tắt animation biểu đồ để in cho nét
+    // 3. TẮT ANIMATION CHART
     Object.values(charts).forEach(c => { c.options.animation = false; c.update(); });
 
-    // Kiểm tra xem AI đã phân tích chưa, nếu chưa thì gọi AI trước
+    // 4. KIỂM TRA AI (Gọi nếu chưa có)
     const aiContent = document.getElementById('aiForecastResult').innerText.trim();
     if (aiContent.length < 50 || aiContent.includes("Bấm nút")) {
         if (loader) loader.querySelector('.loading-text').innerText = "🧠 AI đang viết báo cáo chiến lược...";
-        await triggerAIAnalysis(); // Đợi AI viết xong
+        await triggerAIAnalysis(); 
     }
 
-    // Đợi 1 giây để trình duyệt render lại HTML (Bảng + AI)
+    // 5. IN
     setTimeout(() => {
         if (loader) loader.querySelector('.loading-text').innerText = "🖨️ Đang mở bảng in...";
-        
-        window.print(); // Gọi lệnh in
+        window.print(); 
 
-        // Sau khi in xong
+        // Reset sau khi in
         if (loader) loader.classList.remove('active');
         if (btn) btn.disabled = false;
-        
-        // Bật lại animation
         Object.values(charts).forEach(c => { c.options.animation = true; c.update(); });
     }, 1500);
 }
 
 // --- SETUP SỰ KIỆN ---
 function setupEventListeners() {
-    // Dropdown
     const dropdownBtn = document.getElementById('regionDropdownBtn');
     if (dropdownBtn) {
         dropdownBtn.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('regionList').classList.toggle('show'); });
     }
     window.addEventListener('click', () => { document.getElementById('regionList')?.classList.remove('show'); });
 
-    // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tabName = e.target.getAttribute('data-tab');
@@ -134,20 +129,17 @@ function setupEventListeners() {
         });
     });
 
-    // Nút Xuất PDF
     const printBtn = document.getElementById('printPreviewBtn');
     if(printBtn) printBtn.addEventListener('click', handleExportPDF);
 
-    // Nút AI (SỬA LỖI KHÔNG BẤM ĐƯỢC)
     const aiBtn = document.getElementById('btnAiForecast');
     if(aiBtn) aiBtn.addEventListener('click', triggerAIAnalysis);
 }
 
-// --- CÁC HÀM VẼ CHART & BẢNG (GIỮ NGUYÊN) ---
+// --- LOGIC DỮ LIỆU & VẼ BIỂU ĐỒ ---
 function updateDashboard(data) {
     if(!data || data.length === 0) return;
     
-    // Tính toán
     const totalRev = data.reduce((s, r) => s + (r.revenue||0), 0);
     const totalProf = data.reduce((s, r) => s + (r.profit||0), 0);
     
@@ -168,62 +160,247 @@ function updateDashboard(data) {
     safeSetText('kpi_profit', fmtMoney(totalProf));
     safeSetText('kpi_topprod', Object.keys(prodMap).sort((a,b) => prodMap[b]-prodMap[a])[0] || '-');
 
-    // Vẽ
     const months = Object.keys(timeMap).sort((a, b) => parseInt(a.replace('Tháng ', '')) - parseInt(b.replace('Tháng ', '')));
     drawChart('chartLine', 'line', months, months.map(m=>timeMap[m]), 'Doanh thu');
     drawChart('chartBar', 'bar', Object.keys(regMap), Object.values(regMap), 'Doanh thu vùng');
     drawChart('chartDonut', 'doughnut', processTop5(prodMap).labels, processTop5(prodMap).values, 'Sản phẩm');
-    drawChart('chartBrandPie', 'pie', processTop5(brandMap).labels, processTop5(brandMap).values, 'Thị phần');
     drawChart('chartCategoryBar', 'bar', Object.keys(categoryMap), Object.values(categoryMap), 'Số lượng bán');
     
-    const scatterData = data.slice(0, 50).map(r => ({ x: r.quantity, y: r.revenue }));
-    drawScatterChart('chartScatterPrice', scatterData, 'Số lượng', 'Doanh thu');
-    const scatterProfit = data.slice(0, 50).map(r => ({ x: r.quantity, y: r.profit }));
-    drawScatterChart('chartScatterProfit', scatterProfit, 'Số lượng', 'Lợi nhuận');
-
-    updateTables(data, prodMap, profitMap, categoryMap, brandMap, totalRev);
+    // Gọi hàm cập nhật bảng mới
+    updateTables(data);
 }
 
-function updateTables(data, prodMap, profitMap, categoryMap, brandMap, totalRev) {
-    const tbodyProd = document.querySelector('#productTable tbody');
-    if (tbodyProd) {
-        tbodyProd.innerHTML = '';
-        Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).slice(0, 8).forEach(([prod, revenue]) => {
-            const pct = totalRev > 0 ? ((revenue/totalRev)*100).toFixed(1) : 0;
-            tbodyProd.innerHTML += `<tr><td style="color:#fbbf24">${prod}</td><td class="text-right">-</td><td class="text-right">${fmtMoney(revenue)}</td><td><span class="badge-percent">${pct}%</span></td></tr>`;
-        });
+// --- HÀM CẬP NHẬT BẢNG CHI TIẾT (MỚI) ---
+function updateTables(data) {
+    if (!data || data.length === 0) return;
+
+    // 1. Khởi tạo
+    let statsBrand = {};
+    let statsCategory = {};
+    let statsProduct = {};
+    let statsRegion = {};
+    let statsPriceRange = {
+        'low': { label: 'Dưới 5 triệu', profit: 0, revenue: 0 },
+        'mid': { label: 'Từ 5 - 15 triệu', profit: 0, revenue: 0 },
+        'high': { label: 'Trên 15 triệu', profit: 0, revenue: 0 }
+    };
+
+    // 2. Tính toán gom nhóm
+    data.forEach(r => {
+        const rev = r.revenue || 0;
+        const prof = r.profit || 0;
+        const qty = r.quantity || 0;
+        const brand = r.brand || 'Khác';
+        const cat = r.category || 'Khác';
+        const prod = r.product || 'Unknown';
+        const region = r.region || 'Chưa xác định';
+        
+        const unitPrice = qty > 0 ? (rev / qty) : 0;
+
+        // Brand
+        if (!statsBrand[brand]) statsBrand[brand] = { rev: 0, prof: 0 };
+        statsBrand[brand].rev += rev;
+        statsBrand[brand].prof += prof;
+
+        // Category
+        if (!statsCategory[cat]) statsCategory[cat] = { qty: 0, rev: 0, prof: 0 };
+        statsCategory[cat].qty += qty;
+        statsCategory[cat].rev += rev;
+        statsCategory[cat].prof += prof;
+
+        // Product
+        if (!statsProduct[prod]) statsProduct[prod] = { qty: 0, rev: 0, prof: 0 };
+        statsProduct[prod].qty += qty;
+        statsProduct[prod].rev += rev;
+        statsProduct[prod].prof += prof;
+
+        // Region
+        if (!statsRegion[region]) statsRegion[region] = { qty: 0, rev: 0, prof: 0 };
+        statsRegion[region].qty += qty;
+        statsRegion[region].rev += rev;
+        statsRegion[region].prof += prof;
+
+        // Price Range
+        if (unitPrice < 5000000) {
+            statsPriceRange.low.profit += prof;
+            statsPriceRange.low.revenue += rev;
+        } else if (unitPrice <= 15000000) {
+            statsPriceRange.mid.profit += prof;
+            statsPriceRange.mid.revenue += rev;
+        } else {
+            statsPriceRange.high.profit += prof;
+            statsPriceRange.high.revenue += rev;
+        }
+    });
+
+    // 3. Render ra HTML
+
+    // Bảng 1: Thương hiệu
+    const sortedBrands = Object.entries(statsBrand).sort((a, b) => b[1].rev - a[1].rev);
+    renderTable('tbl_brand', sortedBrands, (key, val) => `
+        <tr>
+            <td>${key}</td>
+            <td class="text-right">${fmtMoney(val.rev)}</td>
+            <td class="text-right" style="color:${val.prof>0?'#34d399':'#ef4444'}">${fmtMoney(val.prof)}</td>
+        </tr>
+    `);
+
+    // Bảng 2: Danh mục
+    const sortedCats = Object.entries(statsCategory).sort((a, b) => b[1].rev - a[1].rev);
+    renderTable('tbl_category', sortedCats, (key, val) => `
+        <tr>
+            <td>${key}</td>
+            <td class="text-center">${val.qty}</td>
+            <td class="text-right">${fmtMoney(val.rev)}</td>
+            <td class="text-right">${fmtMoney(val.prof)}</td>
+        </tr>
+    `);
+
+    // Bảng 3: Lợi nhuận SP
+    const sortedByProfit = Object.entries(statsProduct).sort((a, b) => b[1].prof - a[1].prof).slice(0, 10);
+    renderTable('tbl_profit_product', sortedByProfit, (key, val) => `
+        <tr>
+            <td>${key}</td>
+            <td class="text-right"><span class="badge-profit">${fmtMoney(val.prof)}</span></td>
+            <td class="text-right">${fmtMoney(val.rev)}</td>
+            <td class="text-center">${val.qty}</td>
+        </tr>
+    `);
+
+    // Bảng 4: Bán chạy nhất
+    const sortedByQty = Object.entries(statsProduct).sort((a, b) => b[1].qty - a[1].qty).slice(0, 10);
+    renderTable('tbl_bestseller', sortedByQty, (key, val) => {
+        const avgPrice = val.qty > 0 ? val.rev / val.qty : 0;
+        return `
+        <tr>
+            <td>${key}</td>
+            <td class="text-center"><span class="badge-hot">${val.qty}</span></td>
+            <td class="text-right">${fmtMoney(avgPrice)}</td>
+            <td class="text-right">${fmtMoney(val.prof)}</td>
+        </tr>`;
+    });
+
+    // Bảng 5: Giá trị TB
+    const sortedByRev = Object.entries(statsProduct).sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
+    renderTable('tbl_avg', sortedByRev, (key, val) => {
+        const avgPrice = val.qty > 0 ? val.rev / val.qty : 0;
+        const avgProf = val.qty > 0 ? val.prof / val.qty : 0;
+        return `
+        <tr>
+            <td>${key}</td>
+            <td class="text-right">${fmtMoney(avgPrice)}</td>
+            <td class="text-right" style="color:#6ee7b7">${fmtMoney(avgProf)}</td>
+        </tr>`;
+    });
+
+    // Bảng 6: Phân khúc giá
+    renderTable('tbl_price_range', Object.values(statsPriceRange), (item) => `
+        <tr>
+            <td>${item.label}</td>
+            <td class="text-right"><span class="badge-profit">${fmtMoney(item.profit)}</span></td>
+            <td class="text-right">${fmtMoney(item.revenue)}</td>
+        </tr>
+    `, true);
+
+    // Bảng 7: Khu vực
+    const sortedRegions = Object.entries(statsRegion).sort((a, b) => b[1].rev - a[1].rev);
+    renderTable('tbl_region', sortedRegions, (key, val) => `
+        <tr>
+            <td>${key}</td>
+            <td class="text-right">${fmtMoney(val.rev)}</td>
+            <td class="text-right">${fmtMoney(val.prof)}</td>
+            <td class="text-center">${val.qty}</td>
+        </tr>
+    `);
+}
+
+// Helper render
+function renderTable(elementId, dataArray, rowGenerator, isSimpleArray = false) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.innerHTML = '';
+    
+    if (dataArray.length === 0) {
+        el.innerHTML = '<tr><td colspan="4" class="text-center">Chưa có dữ liệu</td></tr>';
+        return;
     }
-    const tbodySales = document.querySelector('#salesTable tbody');
-    if (tbodySales) {
-        tbodySales.innerHTML = '';
-        const summary = {};
-        data.forEach(r => { if(!summary[r.product]) summary[r.product]={cat:r.category||'-',qty:0,rev:0}; summary[r.product].qty+=r.quantity; summary[r.product].rev+=r.revenue; });
-        Object.entries(summary).sort((a,b)=>b[1].rev-a[1].rev).slice(0,8).forEach(([p,v])=>{
-            tbodySales.innerHTML += `<tr><td style="color:#a5b4fc">${v.cat}</td><td>${p}</td><td class="text-right">${v.qty}</td><td class="text-right">${fmtMoney(v.rev)}</td></tr>`;
-        });
-    }
-    // (Giữ nguyên logic các bảng còn lại như code trước)
-    const tbodyProfit = document.querySelector('#profitTable tbody');
-    if (tbodyProfit) {
-        tbodyProfit.innerHTML = '';
-        Object.entries(profitMap).sort((a,b)=>b[1].profit-a[1].profit).slice(0,8).forEach(([p,v])=>{
-            tbodyProfit.innerHTML += `<tr><td style="color:#f472b6">${p}</td><td class="text-right">${v.qty}</td><td class="text-right">${fmtMoney(v.profit)}</td><td><span class="badge-percent">High</span></td></tr>`;
-        });
-    }
+
+    let html = '';
+    dataArray.forEach(item => {
+        if (isSimpleArray) html += rowGenerator(item);
+        else html += rowGenerator(item[0], item[1]);
+    });
+    el.innerHTML = html;
 }
 
 function drawChart(id, type, labels, dataArr, label) {
-    const ctx = document.getElementById(id); if(!ctx) return; if(charts[id]) charts[id].destroy();
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    if (charts[id]) charts[id].destroy();
+
     charts[id] = new Chart(ctx, {
         type: type,
-        data: { labels: labels, datasets: [{ label: label, data: dataArr, backgroundColor: ['#8b5cf6','#10b981','#f43f5e','#3b82f6','#f59e0b'], borderColor: '#8b5cf6', borderWidth: 1, tension: 0.4, fill: type==='line' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: type.includes('pie')||type.includes('doughnut'), position:'right', labels:{color:'#fff'}}, tooltip: { callbacks: { label: function(context) { let val = context.parsed.y!==undefined?context.parsed.y:context.parsed; return ` ${context.label}: ${fmtMoney(val)}`; }}} }, scales: { y: {ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.05)'}, display: !type.includes('pie')&&!type.includes('doughnut')}, x: {ticks:{color:'#94a3b8'}, grid:{display:false}, display: !type.includes('pie')&&!type.includes('doughnut')} } }
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: dataArr,
+                backgroundColor: ['#8b5cf6', '#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#ec4899', '#6366f1'],
+                borderColor: '#1e293b', 
+                borderWidth: 2,
+                tension: 0.4,
+                fill: type === 'line'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: type.includes('pie') || type.includes('doughnut'),
+                    position: 'right',
+                    labels: { color: '#fff', padding: 20 }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#cbd5e1',
+                    padding: 12,
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
+                            let formattedVal = fmtMoney(val);
+                            
+                            // TÍNH % CHO PIE/DONUT
+                            if (type === 'pie' || type === 'doughnut') {
+                                let dataset = context.dataset;
+                                let total = dataset.data.reduce((prev, curr) => prev + curr, 0);
+                                let percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                return ` ${context.label}: ${percentage}% (${formattedVal})`;
+                            }
+                            return ` ${context.label}: ${formattedVal}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    display: !type.includes('pie') && !type.includes('doughnut')
+                },
+                x: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { display: false },
+                    display: !type.includes('pie') && !type.includes('doughnut')
+                }
+            }
+        }
     });
 }
-function drawScatterChart(id, data, x, y) {
-    const ctx = document.getElementById(id); if(!ctx) return; if(charts[id]) charts[id].destroy();
-    charts[id] = new Chart(ctx, { type: 'scatter', data: { datasets: [{ label: 'Data', data: data, backgroundColor: '#f472b6' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x: {title:{display:true,text:x,color:'#fff'}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#94a3b8'}}, y: {title:{display:true,text:y,color:'#fff'}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#94a3b8'}} } } });
-}
+
 function generateMockData() { return []; }
 function safeSetText(id, t) { const e = document.getElementById(id); if(e) e.innerText = t; }
 function processTop5(m) { const s = Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5); return { labels: s.map(i=>i[0]), values: s.map(i=>i[1]) }; }

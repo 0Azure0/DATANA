@@ -1,113 +1,124 @@
-// chat.js
+// FILE: frontend/js/chat.js
 
 const chatWindow = document.getElementById('chatWindow');
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 
-// Tự động chỉnh độ cao ô nhập liệu
+// --- 1. XỬ LÝ GIAO DIỆN NHẬP LIỆU ---
 if (chatInput) {
+    // Tự động chỉnh độ cao ô nhập liệu
     chatInput.addEventListener('input', function() {
         this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-        if(this.value === '') this.style.height = '24px';
+        const newHeight = Math.min(this.scrollHeight, 120); 
+        this.style.height = newHeight + 'px';
+        if(this.value === '') this.style.height = '24px'; // Reset về 1 dòng nếu rỗng
+    });
+
+    // Gửi bằng phím Enter (giữ Shift để xuống dòng)
+    chatInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !e.shiftKey) { 
+            e.preventDefault(); 
+            send(); 
+        }
     });
 }
 
+// --- 2. HÀM CUỘN MÀN HÌNH ---
 function scrollToBottom() {
-    chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+    if(chatWindow) {
+        // Cuộn xuống dưới cùng
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 }
 
-function append(role, text, id=null) {
+// --- 3. HIỂN THỊ TIN NHẮN ---
+// Hàm này trả về phần tử Bubble để chúng ta update nội dung khi stream
+function append(role, text) {
     const div = document.createElement('div');
     div.className = `message ${role}`;
-    if(id) div.id = id;
 
-    let contentHtml = text;
-
-    // --- XỬ LÝ MARKDOWN CHO AI ---
-    if (role === 'ai') {
-        if (typeof marked !== 'undefined') {
-            // Cấu hình marked (bắt buộc ngắt dòng)
-            marked.setOptions({ breaks: true, gfm: true });
-            contentHtml = marked.parse(text);
-        } else {
-            // Fallback nếu chưa load thư viện marked
-            contentHtml = contentHtml.replace(/\n/g, '<br>');
-        }
+    const bubble = document.createElement('div');
+    // Nếu là AI thì thêm class markdown để CSS xử lý style
+    bubble.className = `bubble ${role === 'ai' ? 'markdown-content' : ''}`;
+    
+    // Nếu là User: Text thuần (tránh lỗi bảo mật XSS)
+    // Nếu là AI: HTML (để hiển thị Markdown)
+    if (role === 'user') {
+        bubble.innerText = text;
     } else {
-        // Escape HTML cho tin nhắn user để bảo mật
-        contentHtml = contentHtml
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/\n/g, '<br>');
+        bubble.innerHTML = text; // Ban đầu có thể là icon loading
     }
 
-    // Thêm class 'markdown-content' để CSS có thể style bảng biểu
-    div.innerHTML = `<div class="bubble fade-in ${role === 'ai' ? 'markdown-content' : ''}">${contentHtml}</div>`;
+    div.appendChild(bubble);
     chatWindow.appendChild(div);
     scrollToBottom();
+
+    return bubble; // Trả về bong bóng chat để lát nữa stream dữ liệu vào
 }
 
-function appendLoading(id) {
-    const div = document.createElement('div');
-    div.className = 'message ai';
-    div.id = id;
-    div.innerHTML = `<div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
-    chatWindow.appendChild(div);
-    scrollToBottom();
-}
-
+// --- 4. GỬI TIN NHẮN (LOGIC CHÍNH) ---
 async function send() {
     if (!chatInput) return;
     const txt = chatInput.value.trim();
     if(!txt) return;
 
-    // Lấy Session ID
-    const sid = localStorage.getItem('datana_session_id');
-    
-    if (!sid) {
-        append('ai', '⚠️ **Chưa có dữ liệu!**\nVui lòng tải lên file Excel/CSV trước tại trang Upload.');
-        return;
-    }
+    // Lấy Session ID (nếu có logic đăng nhập/upload file)
+    const sid = localStorage.getItem('datana_session_id') || 'guest';
 
-    // 1. Hiển thị tin nhắn User
+    // 1. Hiện tin nhắn User ngay lập tức
     append('user', txt);
+    
+    // Reset ô nhập liệu
     chatInput.value = '';
-    chatInput.style.height = '24px';
+    chatInput.style.height = '24px'; 
 
-    // 2. Hiển thị Loading
-    const loadId = 'load-'+Date.now();
-    appendLoading(loadId);
+    // 2. Tạo bong bóng chat AI với trạng thái "Đang suy nghĩ..."
+    const aiBubble = append('ai', '<i class="fas fa-circle-notch fa-spin"></i> Đang suy nghĩ...');
 
     try {
-        const res = await fetch('/api/chat', {
+        // --- BẮT ĐẦU GỌI API ---
+        const res = await fetch('/api/chat', { // Đảm bảo đường dẫn API đúng
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ message: txt, session_id: sid })
         });
-        const data = await res.json();
+
+        if (!res.ok) throw new Error('Lỗi kết nối Server');
+
+        // --- XỬ LÝ STREAM (KHẮC PHỤC LỖI TIẾNG VIỆT) ---
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
         
-        // Xóa loading
-        const loader = document.getElementById(loadId);
-        if(loader) loader.remove();
-        
-        if (data.error) {
-            append('ai', '❌ Lỗi hệ thống: ' + data.error);
-        } else {
-            // Hiển thị kết quả từ AI
-            append('ai', data.assistant || data.response);
+        // Xóa icon loading để bắt đầu hiện chữ
+        aiBubble.innerHTML = ''; 
+        let fullText = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // QUAN TRỌNG: { stream: true } giúp giữ lại các byte lẻ của ký tự tiếng Việt
+            // chờ ghép với chunk sau, ngăn chặn việc vỡ font/ký tự lạ.
+            const chunk = decoder.decode(value, { stream: true });
+            
+            fullText += chunk;
+            
+            // Parse Markdown và cập nhật ngay lập tức vào bong bóng
+            // Việc cập nhật liên tục này chính là "Hiệu ứng gõ chữ" (Typewriter) xịn nhất
+            if (typeof marked !== 'undefined') {
+                aiBubble.innerHTML = marked.parse(fullText);
+            } else {
+                aiBubble.innerHTML = fullText.replace(/\n/g, '<br>');
+            }
+
+            scrollToBottom();
         }
 
     } catch(e) {
-        const loader = document.getElementById(loadId);
-        if(loader) loader.remove();
         console.error(e);
-        append('ai', '❌ Không thể kết nối đến máy chủ.');
+        aiBubble.innerHTML = `<span style="color:#ef4444;">❌ Lỗi: Không thể kết nối hoặc Server gặp sự cố.</span>`;
     }
 }
 
+// Gắn sự kiện click cho nút gửi
 if(sendBtn) sendBtn.addEventListener('click', send);
-if(chatInput) chatInput.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-});

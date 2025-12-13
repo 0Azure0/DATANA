@@ -4,281 +4,290 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Trợ lý AI — DATANA</title>
+    
+    <link rel="icon" type="image/jpg" href="../images/logo.jpg">
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="../css/main.css" />
-    <link rel="stylesheet" href="../css/chat.css" />
-
+    
     <style>
-        /* --- ĐỒNG BỘ GIAO DIỆN VỚI DASHBOARD --- */
+        /* --- GIAO DIỆN CHAT HIỆN ĐẠI & FIX CĂN GIỮA --- */
         body {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            background-color: #0f172a; /* Màu nền Dashboard */
+            height: 100vh;
+            background-color: #0f172a;
             margin: 0;
             font-family: 'Inter', sans-serif;
+            overflow: hidden;
         }
 
-        /* Header Styles (Giống Dashboard) */
+        /* HEADER */
         .site-header {
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            position: sticky; top: 0; z-index: 1000;
-            width: 100%;
+            height: 60px;
+            flex-shrink: 0;
+            display: flex; align-items: center; z-index: 100;
         }
         .site-header .container {
             display: flex; align-items: center; justify-content: space-between;
-            max-width: 100%; margin: 0 auto; padding: 15px 40px;
+            width: 100%; padding: 0 30px;
         }
-        .brand span { font-size: 1.5rem; font-weight: bold; color: #fff; }
-        .nav-link {
-            color: #94a3b8; text-decoration: none; font-weight: 500; transition: 0.3s;
-            display: flex; align-items: center; gap: 8px;
-        }
+        .brand span { font-size: 1.4rem; font-weight: bold; color: #fff; }
+        .nav-link { color: #94a3b8; text-decoration: none; font-weight: 500; margin-left: 20px; transition:0.3s;}
         .nav-link:hover, .nav-link.active { color: #fff; }
 
-        /* Layout Wrapper */
+        /* KHUNG CHÍNH */
         .app-wrapper {
-            display: flex; /* Thay đổi thành flex để main-content giãn ra */
+            display: flex;
+            flex: 1; 
+            height: calc(100vh - 60px); 
+            overflow: hidden;
+            position: relative;
             width: 100%;
-            flex: 1; /* Quan trọng: Đảm bảo app-wrapper chiếm hết không gian còn lại */
+            /* Căn giữa nội dung chính */
+            justify-content: center; 
+            background-color: #0f172a;
         }
+
         .main-content {
             width: 100%;
-            max-width: 100%;
-            padding: 30px 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px; /* Tạo khoảng hở trên dưới */
             box-sizing: border-box;
-            /* Điều chỉnh chiều cao: Tính toán chiều cao của header (ước tính 60px) */
-            min-height: calc(100vh - 60px); 
-            flex: 1; /* Quan trọng: Cho phép nó giãn nở */
-            display: flex;
-            flex-direction: column;
+            align-items: center; /* Quan trọng: Căn giữa theo trục dọc */
         }
 
-        /* Container cho Chat (Giới hạn chiều rộng giống Dashboard) */
+        /* [SỬA LẠI] BỐ CỤC CHAT CĂN GIỮA TUYỆT ĐỐI */
         .chat-container-wrapper {
-            max-width: 1600px;
+            display: flex;
+            gap: 20px;
+            /* Thay đổi quan trọng để căn giữa: */
             width: 100%;
-            margin: 0 auto;
-            flex: 1; /* Quan trọng: Giúp nó chiếm hết chiều cao */
+            max-width: 1400px; /* Giới hạn chiều rộng để không bị loãng */
+            height: 100%;      /* Chiếm hết chiều cao cho phép */
+            margin: 0 auto;    /* Tự động căn lề trái phải bằng nhau */
+        }
+
+        /* Sidebar */
+        .chat-sidebar {
+            width: 280px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex; flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        /* Cửa sổ Chat */
+        .chat-window {
+            flex: 1; /* Tự động giãn nở phần còn lại */
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            position: relative;
         }
 
-        /* Tiêu đề trang */
-        .page-header {
+        .chat-header-pane {
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .page-title h1 { margin: 0; color: #fff; font-size: 1.5rem; }
-        .page-title p { margin: 5px 0 0; color: #94a3b8; font-size: 0.9rem; }
-
-        /* Footer Styles (Giống Dashboard) */
-        .site-footer {
-            background-color: #0f172a;
-            color: #cbd5e1;
-            padding: 40px 0 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            margin-top: auto;
-        }
-        .footer-content {
-            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
-            max-width: 1400px; margin: 0 auto; padding: 0 20px;
-        }
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 30px;
-            display: flex; justify-content: space-between; align-items: center;
-            max-width: 1400px; margin: 0 auto; padding: 0 20px;
+            flex-shrink: 0;
         }
 
-        /* Override Chat CSS để fit vào layout mới */
-        .chat-layout {
-            height: 100%; /* Chiếm hết chiều cao của wrapper */
-            flex: 1; /* Quan trọng: Giúp nó chiếm hết chiều cao */
-            display: flex; /* Bổ sung để đảm bảo flex */
-            gap: 20px;
+        /* VÙNG TIN NHẮN */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex; flex-direction: column; gap: 18px;
+            scroll-behavior: smooth;
+        }
+        .messages-area::-webkit-scrollbar { width: 6px; }
+        .messages-area::-webkit-scrollbar-track { background: transparent; }
+        .messages-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+        .message { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
+        .message.user { justify-content: flex-end; }
+        .message.ai { justify-content: flex-start; }
+        
+        .bubble {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            position: relative;
+            word-wrap: break-word;
         }
         
-        /* Thêm style cho chat-window để nó giãn hết chiều dọc */
-        .chat-window {
-            flex: 1; /* Chiếm hết chiều ngang */
-            display: flex;
-            flex-direction: column; /* Quan trọng: Bật flex dọc cho cửa sổ chat */
-            min-height: 0; /* Cho phép nó co lại */
+        .message.user .bubble { 
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white; 
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .message.ai .bubble { 
+            background: rgba(255,255,255,0.08); 
+            color: #e2e8f0; 
+            border-bottom-left-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        @media (max-width: 1024px) {
-            .site-header nav ul { display: none; }
-            .main-content { padding: 15px; height: auto; }
-            .chat-layout { flex-direction: column; height: 80vh; }
-            .chat-sidebar { width: 100%; height: 150px; }
-            .footer-content { grid-template-columns: 1fr; gap: 20px; }
+        /* Markdown Styles */
+        .markdown-content h3 { margin: 10px 0 5px; font-size: 1.1rem; color: #fff; }
+        .markdown-content ul, .markdown-content ol { padding-left: 20px; margin: 8px 0; }
+        .markdown-content li { margin-bottom: 4px; }
+        .markdown-content strong { color: #fff; font-weight: 600; }
+        .markdown-content code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #f472b6; }
+        .markdown-content p { margin: 0 0 10px 0; }
+        .markdown-content p:last-child { margin-bottom: 0; }
+
+        /* INPUT AREA */
+        .input-area {
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
         }
+        .input-wrapper {
+            display: flex; gap: 12px; align-items: flex-end;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: border-color 0.2s;
+        }
+        .input-wrapper:focus-within { border-color: #6366f1; }
+        
+        #chatInput {
+            flex: 1; background: transparent; border: none; color: #fff;
+            resize: none; outline: none; font-family: inherit; font-size: 0.95rem;
+            max-height: 120px; overflow-y: auto; line-height: 1.5;
+        }
+        #sendBtn {
+            background: #6366f1; border: none; width: 40px; height: 40px;
+            border-radius: 10px; color: white; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #sendBtn:hover { background: #4f46e5; transform: translateY(-2px); }
+
+        /* Responsive Mobile */
+        @media (max-width: 900px) {
+            .chat-sidebar { display: none; }
+            .chat-container-wrapper { width: 100%; max-width: 100%; padding: 0 10px; }
+            .chat-window { border-radius: 0; border: none; }
+            .main-content { padding: 0; } /* Bỏ padding trên mobile cho rộng */
+            .site-header .container { padding: 0 15px; }
+            .nav-link span { display: none; }
+            .nav-link { margin-left: 15px; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <header class="site-header">
         <div class="container">
             <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-                <img src="../images/logo.svg" alt="DATANA" style="height: 32px; display: none;"> <span>DATANA</span>
+                <img src="../images/logo.svg" alt="DATANA" style="height: 32px;" onerror="this.style.display='none'"> 
+                <span>DATANA</span>
             </a>
             <nav>
-                <ul>
-                    <li><a href="../index.html" class="nav-link"><i class="fas fa-home"></i> Trang chủ</a></li>
-                    <li><a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
-                    <li><a href="dashboard.html" class="nav-link"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
-                    <li><a href="chat.html" class="nav-link active" style="color: #fff;"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
-                    <li><a href="login.html" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
-                </ul>
+                <a href="../index.html" class="nav-link"><i class="fas fa-home"></i> <span>Trang chủ</span></a>
+                <a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> <span>Tải lên</span></a>
+                <a href="dashboard.html" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Báo cáo</span></a>
+                <a href="chat.html" class="nav-link active" style="color:#6366f1;"><i class="fas fa-robot"></i> <span>AI Chat</span></a>
             </nav>
+            <div id="userSection">
+                <a href="login.html" style="color:#94a3b8; text-decoration:none; font-size:0.9rem;">Đăng nhập</a>
+            </div>
         </div>
     </header>
 
     <div class="app-wrapper">
-        <main class="main-content">
+        <div class="main-content">
             <div class="chat-container-wrapper">
                 
-                <div class="page-header">
-                    <div class="page-title">
-                        <h1>✨ Trợ lý Phân tích AI</h1>
-                        <p>Hỏi đáp dữ liệu thông minh & Tra cứu xu hướng thị trường</p>
+                <aside class="chat-sidebar">
+                    <div style="color:#94a3b8; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-history"></i> Lịch sử phiên
                     </div>
-                    <div id="userSection">
-                        <a href="login.html" class="btn-primary" style="padding: 6px 15px; border-radius: 20px; font-size: 0.9rem; text-decoration: none; background: #6366f1; color: white;">Đăng nhập</a>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="background:rgba(99, 102, 241, 0.1); color:#818cf8; padding:12px; border-radius:8px; font-size:0.9rem; cursor:pointer; border:1px solid rgba(99, 102, 241, 0.2);">
+                            <i class="fas fa-comments"></i> Cuộc hội thoại hiện tại
+                        </div>
                     </div>
-                </div>
+                </aside>
 
-                <div class="chat-layout">
-                    <aside class="chat-sidebar glass-panel">
-                        <div class="sidebar-header">
-                            <i class="fas fa-clock"></i> Lịch sử trò chuyện
-                        </div>
-                        <div class="history-list">
-                            <div class="history-item active">
-                                <i class="fas fa-comment-dots"></i> Phiên hiện tại
+                <section class="chat-window">
+                    <div class="chat-header-pane">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:40px; height:40px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 0 15px rgba(99,102,241,0.4);">
+                                <i class="fas fa-robot"></i>
                             </div>
-                            <div class="history-item" style="opacity: 0.6;">
-                                <i class="fas fa-file-invoice-dollar"></i> Phân tích Q3/2024
-                            </div>
-                            <div class="history-item" style="opacity: 0.6;">
-                                <i class="fas fa-chart-line"></i> Xu hướng iPhone 15
-                            </div>
-                        </div>
-                    </aside>
-
-                    <section class="chat-window glass-panel">
-                        <div class="chat-header">
-                            <div class="ai-info">
-                                <div class="ai-avatar-glow">
-                                    <i class="fas fa-robot"></i>
-                                </div>
-                                <div>
-                                    <h4 style="margin:0; color:#fff; font-weight:700;">DATANA AI Analyst</h4>
-                                    <div style="display:flex; align-items:center; gap:5px; margin-top:2px;">
-                                        <span class="status-dot"></span>
-                                        <span style="font-size:0.75rem; color:#a7f3d0;">Sẵn sàng hỗ trợ</span>
-                                    </div>
+                            <div>
+                                <h4 style="margin:0; color:#fff; font-size:1rem;">Trợ lý Phân tích Dữ liệu</h4>
+                                <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                                    <span style="width:6px; height:6px; background:#4ade80; border-radius:50%; box-shadow:0 0 5px #4ade80;"></span>
+                                    <span style="font-size:0.75rem; color:#a7f3d0;">Đang trực tuyến</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div id="chatWindow" class="messages-area">
-                            <div class="message ai">
-                                <div class="bubble">
-                                    <strong>Xin chào! 👋</strong><br>
-                                    Tôi là trợ lý dữ liệu của bạn. Hãy hỏi tôi về:
-                                    <ul>
-                                        <li>Top 5 sản phẩm bán chạy nhất tháng này?</li>
-                                        <li>So sánh doanh thu giữa các vùng?</li>
-                                        <li>Xu hướng thị trường iPhone hiện nay ra sao?</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="input-area">
-                            <div class="input-wrapper">
-                                <textarea id="chatInput" placeholder="Nhập câu hỏi về dữ liệu của bạn... (Enter để gửi)" rows="1"></textarea>
-                                <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-                            </div>
-                            <div class="disclaimer">AI có thể mắc lỗi. Vui lòng kiểm tra lại số liệu quan trọng.</div>
-                        </div>
-                    </section>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-col">
-                    <a href="#" class="brand" style="text-decoration: none; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <span style="color: #fff; font-weight: bold;">DATANA</span>
-                    </a>
-                    <p class="brand-desc">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+                        <button onclick="location.reload()" style="background:transparent; border:none; color:#64748b; cursor:pointer;" title="Làm mới"><i class="fas fa-sync-alt"></i></button>
                     </div>
-                </div>
-                <div class="footer-col">
-                    <h4>Sản phẩm</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="#" style="color: #94a3b8; text-decoration: none;">Phân tích Excel</a></li>
-                        <li><a href="#" style="color: #94a3b8; text-decoration: none;">Trợ lý AI</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Hỗ trợ</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="#" style="color: #94a3b8; text-decoration: none;">Hướng dẫn sử dụng</a></li>
-                        <li><a href="#" style="color: #94a3b8; text-decoration: none;">Liên hệ</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Công ty</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="#" style="color: #94a3b8; text-decoration: none;">Về chúng tôi</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>© 2025 DATANA Analytics. All rights reserved.</p>
-                <div style="font-size: 1.5rem; display: flex; gap: 10px;">
-                    <i class="fab fa-cc-visa"></i>
-                    <i class="fab fa-cc-mastercard"></i>
-                </div>
+
+                    <div id="chatWindow" class="messages-area">
+                        <div class="message ai">
+                            <div class="bubble markdown-content">
+                                <strong>Xin chào! 👋</strong><br>
+                                Tôi là trợ lý AI của bạn. Hãy hỏi tôi về:
+                                <ul>
+                                    <li>Doanh thu tháng này thế nào?</li>
+                                    <li>Top sản phẩm bán chạy nhất?</li>
+                                    <li>Xu hướng thị trường sắp tới?</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-area">
+                        <div class="input-wrapper">
+                            <textarea id="chatInput" placeholder="Nhập câu hỏi... (Shift+Enter để xuống dòng)" rows="1"></textarea>
+                            <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                        <div style="text-align:center; margin-top:10px; font-size:0.75rem; color:#475569;">
+                            AI có thể mắc lỗi. Vui lòng kiểm tra lại số liệu quan trọng.
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </div>
-    </footer>
+    </div>
 
     <script src="../js/chat.js"></script>
+    
     <script>
-        // Logic hiển thị User Info từ LocalStorage (Đồng bộ với logic Dashboard)
-        function checkUserLogin() {
-            const userSec = document.getElementById('userSection');
-            const username = localStorage.getItem('datana_user'); 
-            if (username) {
-                const initial = username.charAt(0).toUpperCase();
-                userSec.innerHTML = `
-                    <div onclick="logout()" style="display:flex; align-items:center; gap:10px; cursor:pointer; background:rgba(255,255,255,0.1); padding:6px 12px; border-radius:20px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="width:32px; height:32px; background:#6366f1; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${initial}</div>
-                        <span style="color:#fff; font-size:0.9rem; font-weight:500;">${username}</span>
-                    </div>
-                `;
-            }
+        // Hiển thị User Info
+        const u = localStorage.getItem('datana_user');
+        if(u) {
+            document.getElementById('userSection').innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="if(confirm('Đăng xuất?')){localStorage.removeItem('datana_user');location.reload();}">
+                    <div style="width:32px; height:32px; background:#475569; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${u.charAt(0).toUpperCase()}</div>
+                    <span style="color:white; font-size:0.9rem;">${u}</span>
+                </div>`;
         }
-        function logout() {
-            if(confirm('Bạn có muốn đăng xuất?')) { localStorage.removeItem('datana_user'); window.location.reload(); }
-        }
-        checkUserLogin();
     </script>
 </body>
 </html>

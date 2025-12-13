@@ -7,8 +7,3 @@ openpyxl
 google-generativeai
 werkzeug
 requests
-groq
-
-beautifulsoup4
-
-numpy

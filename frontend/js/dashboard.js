@@ -7,7 +7,7 @@ let charts = {};
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 
-    // 1. Lấy Session ID và Dữ liệu từ LocalStorage
+    // Lấy Session ID
     let raw = localStorage.getItem('datana_last_analysis');
     if (raw) {
         try {
@@ -24,18 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ALL_DATA = generateMockData();
     }
 
-    // 2. Render ngay lập tức (Tổng quan & Bảng biểu)
     updateDashboard(ALL_DATA);
-
-    // 3. Kích hoạt AI chạy ngầm ngay lập tức (Nếu có session)
-    if (CURRENT_SESSION_ID) {
-        console.log("🚀 Đang kích hoạt AI chạy ngầm...");
-        triggerAIAnalysis(true); // true = chế độ chạy nền
-    }
 });
 
-// --- XỬ LÝ NÚT PHÂN TÍCH AI (Đã sửa để hỗ trợ chạy nền) ---
-async function triggerAIAnalysis(isBackground = false) {
+// --- XỬ LÝ NÚT PHÂN TÍCH AI ---
+async function triggerAIAnalysis() {
     const aiDiv = document.getElementById('aiForecastResult');
     const btn = document.getElementById('btnAiForecast');
     
@@ -44,17 +37,9 @@ async function triggerAIAnalysis(isBackground = false) {
         return false;
     }
 
-    // Kiểm tra nếu đã có nội dung rồi thì không chạy lại khi load trang
-    if (isBackground && aiDiv.innerText.length > 100) {
-        return true; 
-    }
-
     if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang suy nghĩ...'; }
     
-    // Chỉ hiện hiệu ứng loading nếu chưa có nội dung (tránh nhấp nháy khi chạy ngầm)
-    if (!isBackground || aiDiv.innerText.trim() === "") {
-        aiDiv.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;"><div class="typing-indicator"><span></span><span></span><span></span></div><p style="margin-top:10px">AI đang đọc dữ liệu và viết báo cáo...</p></div>`;
-    }
+    aiDiv.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;"><div class="typing-indicator"><span></span><span></span><span></span></div><p style="margin-top:10px">AI đang đọc dữ liệu và viết báo cáo...</p></div>`;
 
     try {
         const response = await fetch('/api/forecast', {
@@ -67,18 +52,12 @@ async function triggerAIAnalysis(isBackground = false) {
         if (data.html_content) {
             aiDiv.innerHTML = data.html_content;
             if(btn) { btn.disabled = false; btn.innerHTML = '✨ Phân tích lại'; }
-            if (isBackground) console.log("✅ AI đã hoàn tất phân tích ngầm.");
             return true;
         } else {
             aiDiv.innerHTML = `<p style="color:red">Lỗi: ${data.error || 'AI không trả lời'}</p>`;
         }
     } catch (e) {
-        // Nếu chạy nền mà lỗi thì log ra console thôi, đừng hiện đỏ lòm xấu giao diện
-        if (isBackground) {
-            console.error("Lỗi AI background:", e);
-        } else {
-            aiDiv.innerHTML = `<p style="color:red">Lỗi kết nối: ${e.message}</p>`;
-        }
+        aiDiv.innerHTML = `<p style="color:red">Lỗi kết nối: ${e.message}</p>`;
     }
     
     if(btn) { btn.disabled = false; btn.innerHTML = '✨ Phân tích ngay'; }
@@ -95,7 +74,10 @@ async function handleExportPDF() {
     const printTitle = document.getElementById('printTitleDisplay');
     const printDate = document.getElementById('printDateDisplay');
     
+    // Nếu không nhập thì lấy mặc định
     printTitle.innerText = titleInput.trim() !== "" ? titleInput : "BÁO CÁO HIỆU QUẢ KINH DOANH";
+    
+    // Cập nhật ngày
     const today = new Date();
     printDate.innerText = `Ngày xuất bản: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
 
@@ -109,11 +91,11 @@ async function handleExportPDF() {
     // 3. TẮT ANIMATION CHART
     Object.values(charts).forEach(c => { c.options.animation = false; c.update(); });
 
-    // 4. KIỂM TRA AI (Gọi nếu chưa có hoặc đang loading dở)
+    // 4. KIỂM TRA AI (Gọi nếu chưa có)
     const aiContent = document.getElementById('aiForecastResult').innerText.trim();
-    if (aiContent.length < 50 || aiContent.includes("đang đọc dữ liệu")) {
+    if (aiContent.length < 50 || aiContent.includes("Bấm nút")) {
         if (loader) loader.querySelector('.loading-text').innerText = "🧠 AI đang viết báo cáo chiến lược...";
-        await triggerAIAnalysis(false); // Gọi chế độ thường để đảm bảo lấy được kết quả
+        await triggerAIAnalysis(); 
     }
 
     // 5. IN
@@ -139,7 +121,7 @@ function setupEventListeners() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tabName = e.target.getAttribute('data-tab');
-            switchTab(tabName);
+            switchTab(tabName); // Sử dụng hàm switchTab mới
         });
     });
 
@@ -147,33 +129,31 @@ function setupEventListeners() {
     if(printBtn) printBtn.addEventListener('click', handleExportPDF);
 
     const aiBtn = document.getElementById('btnAiForecast');
-    if(aiBtn) aiBtn.addEventListener('click', () => triggerAIAnalysis(false));
+    if(aiBtn) aiBtn.addEventListener('click', triggerAIAnalysis);
 }
 
-// --- HÀM CHUYỂN TAB CƠ BẢN (đã sửa ở bước trước) ---
+// --- HÀM CHUYỂN TAB CƠ BẢN (Cho các nút tab) ---
 function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     
-    // Tìm button tương ứng và active nó
     const targetButton = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
     if (targetButton) targetButton.classList.add('active');
 
-    document.getElementById(tabName).style.display = 'block';
+    document.getElementById(tabName).classList.add('active');
     
-    // Fix lỗi chart bị méo khi chuyển tab: Trigger resize
     setTimeout(() => { 
         window.dispatchEvent(new Event('resize')); 
         Object.values(charts).forEach(c => c.resize());
     }, 50);
 }
 
-// --- HÀM LIÊN KẾT (đã sửa ở bước trước) ---
+// --- HÀM LIÊN KẾT (Cho các card trên tab Tổng quan) ---
 function switchTabAndScroll(tabId, elementId) {
     // 1. Chuyển sang tab đích
     switchTab(tabId); 
 
-    // 2. Chờ 50ms để tab chuyển đổi xong
+    // 2. Cuộn đến phần tử đích
     setTimeout(() => {
         const targetElement = document.getElementById(elementId);
         if (targetElement) {
@@ -185,12 +165,11 @@ function switchTabAndScroll(tabId, elementId) {
             // Tạm thời highlight bảng để người dùng dễ nhìn
             targetElement.style.border = '2px solid #f59e0b';
             setTimeout(() => {
-                targetElement.style.border = '1px solid #1f2937';
+                targetElement.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             }, 2000); 
         }
     }, 50); 
 }
-// Đảm bảo hàm liên kết được định nghĩa ở phạm vi toàn cục
 window.switchTabAndScroll = switchTabAndScroll; 
 window.switchTab = switchTab; 
 
@@ -211,7 +190,7 @@ function updateDashboard(data) {
         profitMap[r.product].profit += (r.profit||0);
         if(r.month) timeMap[r.month] = (timeMap[r.month]||0) + r.revenue;
         regMap[r.region||'Khác'] = (regMap[r.region||'Khác']||0) + r.revenue;
-        categoryMap[r.category||'Khác'] = (categoryMap[r.category||'Khác']||0) + (r.quantity||0); // Category tracks quantity
+        categoryMap[r.category||'Khác'] = (categoryMap[r.category||'Khác']||0) + (r.quantity||0);
         brandMap[r.brand||'Khác'] = (brandMap[r.brand||'Khác']||0) + (r.quantity||0);
     });
 
@@ -223,16 +202,20 @@ function updateDashboard(data) {
     drawChart('chartLine', 'line', months, months.map(m=>timeMap[m]), 'Doanh thu');
     drawChart('chartBar', 'bar', Object.keys(regMap), Object.values(regMap), 'Doanh thu vùng');
     drawChart('chartDonut', 'doughnut', processTop5(prodMap).labels, processTop5(prodMap).values, 'Sản phẩm');
-    drawChart('chartCategoryBar', 'bar', Object.keys(categoryMap), Object.values(categoryMap), 'Số lượng bán'); // Category chart data is quantity
-    drawChart('chartProfitBar', 'bar', Object.keys(profitMap).sort((a, b) => profitMap[b].profit - profitMap[a].profit).slice(0, 10), Object.keys(profitMap).sort((a, b) => profitMap[b].profit - profitMap[a].profit).slice(0, 10).map(k => profitMap[k].profit), 'Lợi nhuận'); // Profit chart
+    drawChart('chartCategoryBar', 'bar', Object.keys(categoryMap), Object.values(categoryMap), 'Số lượng bán');
     
+    // ĐÃ SỬA: Đổi label thành 'Top Lợi nhuận' và giới hạn 5 mục
+    drawChart('chartProfitBar', 'bar', Object.keys(profitMap).sort((a, b) => profitMap[b].profit - profitMap[a].profit).slice(0, 5), Object.keys(profitMap).sort((a, b) => profitMap[b].profit - profitMap[a].profit).slice(0, 5).map(k => profitMap[k].profit), 'Top Lợi nhuận'); 
+    
+    // Gọi hàm cập nhật bảng mới
     updateTables(data);
 }
 
-// --- HÀM CẬP NHẬT BẢNG CHI TIẾT (Giữ nguyên) ---
+// --- HÀM CẬP NHẬT BẢNG CHI TIẾT (MỚI) ---
 function updateTables(data) {
     if (!data || data.length === 0) return;
 
+    // 1. Khởi tạo
     let statsBrand = {};
     let statsCategory = {};
     let statsProduct = {};
@@ -243,6 +226,7 @@ function updateTables(data) {
         'high': { label: 'Trên 15 triệu', profit: 0, revenue: 0 }
     };
 
+    // 2. Tính toán gom nhóm
     data.forEach(r => {
         const rev = r.revenue || 0;
         const prof = r.profit || 0;
@@ -254,25 +238,30 @@ function updateTables(data) {
         
         const unitPrice = qty > 0 ? (rev / qty) : 0;
 
+        // Brand
         if (!statsBrand[brand]) statsBrand[brand] = { rev: 0, prof: 0 };
         statsBrand[brand].rev += rev;
         statsBrand[brand].prof += prof;
 
+        // Category
         if (!statsCategory[cat]) statsCategory[cat] = { qty: 0, rev: 0, prof: 0 };
         statsCategory[cat].qty += qty;
         statsCategory[cat].rev += rev;
         statsCategory[cat].prof += prof;
 
+        // Product
         if (!statsProduct[prod]) statsProduct[prod] = { qty: 0, rev: 0, prof: 0 };
         statsProduct[prod].qty += qty;
         statsProduct[prod].rev += rev;
         statsProduct[prod].prof += prof;
 
+        // Region
         if (!statsRegion[region]) statsRegion[region] = { qty: 0, rev: 0, prof: 0 };
         statsRegion[region].qty += qty;
         statsRegion[region].rev += rev;
         statsRegion[region].prof += prof;
 
+        // Price Range
         if (unitPrice < 5000000) {
             statsPriceRange.low.profit += prof;
             statsPriceRange.low.revenue += rev;
@@ -285,7 +274,9 @@ function updateTables(data) {
         }
     });
 
-    // Render Bảng
+    // 3. Render ra HTML
+
+    // Bảng 1: Thương hiệu (Không giới hạn)
     const sortedBrands = Object.entries(statsBrand).sort((a, b) => b[1].rev - a[1].rev);
     renderTable('tbl_brand', sortedBrands, (key, val) => `
         <tr>
@@ -295,6 +286,7 @@ function updateTables(data) {
         </tr>
     `);
 
+    // Bảng 2: Danh mục (Không giới hạn)
     const sortedCats = Object.entries(statsCategory).sort((a, b) => b[1].rev - a[1].rev);
     renderTable('tbl_category', sortedCats, (key, val) => `
         <tr>
@@ -305,7 +297,8 @@ function updateTables(data) {
         </tr>
     `);
 
-    const sortedByProfit = Object.entries(statsProduct).sort((a, b) => b[1].prof - a[1].prof).slice(0, 10);
+    // Bảng 3: Lợi nhuận SP - GIỚI HẠN 5 MỤC (ĐÃ XÁC NHẬN GIỚI HẠN LÀ 5)
+    const sortedByProfit = Object.entries(statsProduct).sort((a, b) => b[1].prof - a[1].prof).slice(0, 5); 
     renderTable('tbl_profit_product', sortedByProfit, (key, val) => `
         <tr>
             <td>${key}</td>
@@ -315,7 +308,8 @@ function updateTables(data) {
         </tr>
     `);
 
-    const sortedByQty = Object.entries(statsProduct).sort((a, b) => b[1].qty - a[1].qty).slice(0, 10);
+    // Bảng 4: Bán chạy nhất - GIỚI HẠN 5 MỤC (ĐÃ XÁC NHẬN GIỚI HẠN LÀ 5)
+    const sortedByQty = Object.entries(statsProduct).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
     renderTable('tbl_bestseller', sortedByQty, (key, val) => {
         const avgPrice = val.qty > 0 ? val.rev / val.qty : 0;
         return `
@@ -327,7 +321,8 @@ function updateTables(data) {
         </tr>`;
     });
 
-    const sortedByRev = Object.entries(statsProduct).sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
+    // Bảng 5: Giá trị TB - GIỚI HẠN 5 MỤC
+    const sortedByRev = Object.entries(statsProduct).sort((a, b) => b[1].rev - a[1].rev).slice(0, 5);
     renderTable('tbl_avg', sortedByRev, (key, val) => {
         const avgPrice = val.qty > 0 ? val.rev / val.qty : 0;
         const avgProf = val.qty > 0 ? val.prof / val.qty : 0;
@@ -339,6 +334,7 @@ function updateTables(data) {
         </tr>`;
     });
 
+    // Bảng 6: Phân khúc giá (Không giới hạn)
     renderTable('tbl_price_range', Object.values(statsPriceRange), (item) => `
         <tr>
             <td>${item.label}</td>
@@ -347,6 +343,7 @@ function updateTables(data) {
         </tr>
     `, true);
 
+    // Bảng 7: Khu vực (Không giới hạn)
     const sortedRegions = Object.entries(statsRegion).sort((a, b) => b[1].rev - a[1].rev);
     renderTable('tbl_region', sortedRegions, (key, val) => `
         <tr>
@@ -358,6 +355,7 @@ function updateTables(data) {
     `);
 }
 
+// Helper render
 function renderTable(elementId, dataArray, rowGenerator, isSimpleArray = false) {
     const el = document.getElementById(elementId);
     if (!el) return;

@@ -73,7 +73,8 @@
 #printPreviewBtn { background: linear-gradient(135deg, #3b82f6, #6366f1); border-color: rgba(59, 130, 246, 0.3); }
 
 /* KPI & Charts */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 30px; }
+/* ĐÃ FIX: Buộc KPI chỉ có 1 cột để mỗi card chiếm 1 dòng */
+.kpis { display: grid; grid-template-columns: 1fr !important; gap: 25px; margin-bottom: 30px; }
 .kpi {
     background: rgba(30, 41, 59, 0.4); padding: 25px; border-radius: 20px; text-align: center;
     border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(15px); animation: fadeInUp 0.8s ease-out forwards;
@@ -111,6 +112,17 @@ th, td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .percent-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; }
 
 @media (max-width: 768px) { .filter-bar { flex-direction: column; } .filter-actions { margin-left: 0; } }
+
+/* ================================================================= */
+/* CUSTOM STYLES ADDED BY GEMINI */
+/* ================================================================= */
+
+/* Bố cục bảng 1 cột và chiếm trọn chiều rộng */
+.tables-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Chỉ 1 cột */
+    gap: 25px; /* Giữ gap nhất quán */
+}
 
 /* ================================================================= */
 /* CẤU HÌNH IN ẤN - FIX TRIỆT ĐỂ: MẤT NỀN, TRÀN KHUNG, ĂN DÒNG       */

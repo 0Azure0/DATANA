@@ -161,7 +161,7 @@
             </div>
             
             <div id="tab-overview" class="tab-content active">
-                <section class="kpis">
+                <section class="kpis" style="display: flex; flex-direction: column; gap: 25px;">
                   <div class="kpi glow-card purple glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_brand')">
                       <p>TỔNG DOANH THU</p>
                       <h4 id="kpi_rev">0 VNĐ</h4>
@@ -197,7 +197,7 @@
                         <div class="chart-canvas"><canvas id="chartCategoryBar"></canvas></div>
                     </div>
                     <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_profit_product')">
-                        <div class="chart-title">💰 Lợi nhuận theo Sản phẩm</div>
+                        <div class="chart-title">💰 Top Lợi nhuận theo Sản phẩm</div>
                         <div class="chart-canvas"><canvas id="chartProfitBar"></canvas></div>
                     </div>
                 </div>
@@ -227,7 +227,7 @@
                     </div>
 
                     <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">💰 3. Lợi nhuận theo Sản phẩm</div>
+                        <div class="table-title">💰 3. Top Lợi nhuận theo Sản phẩm</div>
                         <div class="table-wrapper">
                             <table>
                                 <thead><tr><th>Tên sản phẩm</th><th class="text-right">Lợi nhuận</th><th class="text-right">Doanh thu</th><th class="text-center">SL</th></tr></thead>
@@ -266,7 +266,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card glow-on-hover" style="grid-column: span 1;">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">🌍 7. Phân bổ Doanh thu theo Khu vực</div>
                         <div class="table-wrapper">
                             <table>

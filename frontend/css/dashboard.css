@@ -54,6 +54,15 @@ body {
 #printPreviewBtn { background: #6366f1; color: #fff; box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
 #printPreviewBtn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
 
+/* KPI CARDS - ĐÃ SỬA CHỮA ĐỂ CÓ THỂ ĐỊNH DẠNG LẠI (SỬ DỤNG LẠI TÊN CLASS TỪ dashboard_local_styles.css) */
+/* Thêm !important để ghi đè mọi quy tắc khác */
+.kpis { 
+    display: grid; 
+    grid-template-columns: 1fr !important; 
+    gap: 25px; 
+    margin-bottom: 30px;
+}
+
 /* BIỂU ĐỒ (CHARTS) */
 .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px; }
 
@@ -70,7 +79,8 @@ body {
 .chart-canvas { flex: 1; position: relative; width: 100%; height: 100%; }
 
 /* BẢNG DỮ LIỆU (TABLES) */
-.tables-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+/* Cần đảm bảo rằng TABLES cũng là 1 cột */
+.tables-grid { display: grid; grid-template-columns: 1fr !important; gap: 20px; }
 
 .table-card {
     background-color: rgba(30, 41, 59, 0.7);

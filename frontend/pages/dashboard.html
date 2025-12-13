@@ -45,6 +45,37 @@
     .badge-profit { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
     .badge-hot { background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
     
+    /* CSS CẬP NHẬT: HIỆU ỨNG PHÁT SÁNG & PHÓNG TO */
+    .glow-on-hover {
+        /* Bổ sung transform cho hiệu ứng phóng to */
+        transition: box-shadow 0.3s ease-in-out, border 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+    .glow-on-hover:hover {
+        /* Màu sáng nhẹ, phù hợp với nền tối */
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+        /* Thêm viền màu để nổi bật hơn */
+        border: 1px solid rgba(59, 130, 246, 0.5); 
+        /* Phóng to nhẹ 1% */
+        transform: scale(1.01); 
+    }
+    
+    /* HIỆU ỨNG RIÊNG CHO KPI CARD */
+    /* Màu tím (Purple: Tổng doanh thu) */
+    .kpi.purple.glow-on-hover:hover {
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
+        border: 1px solid rgba(168, 85, 247, 0.5);
+    }
+    /* Màu xanh lá (Green: Tổng lợi nhuận) */
+    .kpi.green.glow-on-hover:hover {
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6), 0 0 20px rgba(16, 185, 129, 0.4);
+        border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+    /* Màu hồng (Pink: Top sản phẩm) */
+    .kpi.pink.glow-on-hover:hover {
+        box-shadow: 0 0 10px rgba(244, 63, 94, 0.6), 0 0 20px rgba(244, 63, 94, 0.4);
+        border: 1px solid rgba(244, 63, 94, 0.5);
+    }
+    
     @media (max-width: 768px) {
         .footer-grid { grid-template-columns: 1fr; gap: 30px; }
         .footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
@@ -63,7 +94,7 @@
           <li><a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
           <li><a href="dashboard.html" class="nav-link active" style="color: #fff;"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
           <li><a href="chat.html" class="nav-link"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
-          <li><a href="login.html" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+          <li><a href="#" id="btnLogout" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
         </ul>
       </nav>
     </div>
@@ -78,8 +109,8 @@
                 <p class="subtitle">Dữ liệu cập nhật thời gian thực</p>
             </div>
             <div class="user-mini-profile">
-                <span>Admin User</span>
-                <div class="avatar-circle">AD</div>
+                <span>Loading...</span>
+                <div class="avatar-circle">...</div>
             </div>
         </div>
 
@@ -124,52 +155,58 @@
             </div>
 
             <div class="tabs">
-                 <button class="tab-btn" data-tab="tab-overview">Tổng quan</button>
-                 <button class="tab-btn active" data-tab="tab-tables">📋 Bảng Phân Tích</button>
+                 <button class="tab-btn active" data-tab="tab-overview">Tổng quan</button>
+                 <button class="tab-btn" data-tab="tab-tables">📋 Bảng Phân Tích</button>
                  <button class="tab-btn" data-tab="tab-forecast">🔮 Dự báo & AI</button>
             </div>
             
-            <div id="tab-overview" class="tab-content">
+            <div id="tab-overview" class="tab-content active">
                 <section class="kpis">
-                  <div class="kpi glow-card purple">
+                  <div class="kpi glow-card purple glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_brand')">
                       <p>TỔNG DOANH THU</p>
                       <h4 id="kpi_rev">0 VNĐ</h4>
                   </div>
-                  <div class="kpi glow-card green">
+                  <div class="kpi glow-card green glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_profit_product')">
                       <p style="color: #6ee7b7;">TỔNG LỢI NHUẬN</p>
                       <h4 id="kpi_profit">0 VNĐ</h4>
                   </div>
-                  <div class="kpi glow-card pink">
+                  <div class="kpi glow-card pink glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_bestseller')">
                       <p style="color: #fda4af;">TOP SẢN PHẨM</p>
                       <h4 id="kpi_topprod">-</h4>
                   </div>
                 </section>
                 <div class="charts-grid">
-                    <div class="chart-card glass-card">
+                    <div class="chart-card glass-card glow-on-hover">
                         <div class="chart-title">📈 Xu hướng Doanh thu</div>
                         <div class="chart-canvas"><canvas id="chartLine"></canvas></div>
                     </div>
-                    <div class="chart-card glass-card">
+                    <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_region')">
                         <div class="chart-title">📊 Phân bổ theo Vùng</div>
                         <div class="chart-canvas"><canvas id="chartBar"></canvas></div>
                     </div>
                 </div>
                 <div class="charts-grid" style="grid-template-columns: 1fr;">
-                    <div class="chart-card glass-card" style="height: 450px;">
+                    <div class="chart-card glass-card glow-on-hover" style="height: 450px;" onclick="switchTabAndScroll('tab-tables', 'tbl_bestseller')">
                         <div class="chart-title">🍰 Top Sản phẩm & Tỷ trọng</div>
                         <div class="chart-canvas"><canvas id="chartDonut"></canvas></div>
                     </div>
                 </div>
                 <div class="charts-grid">
-                    <div class="chart-card glass-card"><div class="chart-title">📊 Bán hàng theo Danh mục</div><div class="chart-canvas"><canvas id="chartCategoryBar"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-title">💰 Lợi nhuận theo Sản phẩm</div><div class="chart-canvas"><canvas id="chartProfitBar"></canvas></div></div>
+                    <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_category')">
+                        <div class="chart-title">📊 Bán hàng theo Danh mục</div>
+                        <div class="chart-canvas"><canvas id="chartCategoryBar"></canvas></div>
+                    </div>
+                    <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_profit_product')">
+                        <div class="chart-title">💰 Lợi nhuận theo Sản phẩm</div>
+                        <div class="chart-canvas"><canvas id="chartProfitBar"></canvas></div>
+                    </div>
                 </div>
             </div>
 
-            <div id="tab-tables" class="tab-content active">
+            <div id="tab-tables" class="tab-content">
                 <div class="tables-grid">
                     
-                    <div class="table-card glass-card">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">🏷️ 1. Doanh thu theo Thương hiệu</div>
                         <div class="table-wrapper">
                             <table>
@@ -179,7 +216,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">📂 2. Phân tích theo Danh mục</div>
                         <div class="table-wrapper">
                             <table>
@@ -189,7 +226,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">💰 3. Lợi nhuận theo Sản phẩm</div>
                         <div class="table-wrapper">
                             <table>
@@ -199,7 +236,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">🔥 4. Sản phẩm bán chạy nhất (SL)</div>
                         <div class="table-wrapper">
                             <table>
@@ -209,7 +246,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">📊 5. Theo dõi giá trị trung bình</div>
                         <div class="table-wrapper">
                             <table>
@@ -219,7 +256,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card">
+                    <div class="table-card glass-card glow-on-hover">
                         <div class="table-title">💲 6. Phân tích Lợi nhuận theo Giá</div>
                         <div class="table-wrapper">
                             <table>
@@ -229,7 +266,7 @@
                         </div>
                     </div>
 
-                    <div class="table-card glass-card" style="grid-column: span 1;">
+                    <div class="table-card glass-card glow-on-hover" style="grid-column: span 1;">
                         <div class="table-title">🌍 7. Phân bổ Doanh thu theo Khu vực</div>
                         <div class="table-wrapper">
                             <table>
@@ -243,7 +280,7 @@
             </div>
 
             <div id="tab-forecast" class="tab-content">
-                <div class="chart-card glass-card" style="height: auto; min-height: 400px;">
+                <div class="chart-card glass-card glow-on-hover">
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <div><h5 style="color:#fff; margin:0;">🤖 AI Phân tích</h5></div>
                         <button id="btnAiForecast" class="btn-primary glow-btn">✨ Phân tích ngay</button>
@@ -271,15 +308,30 @@
             </div>
             <div class="footer-col">
                 <h4>Sản phẩm</h4>
-                <ul class="footer-links"><li><a href="#">Phân tích Excel</a></li><li><a href="#">Trợ lý AI</a></li><li><a href="#">Báo cáo mẫu</a></li><li><a href="#">Tính năng mới</a></li></ul>
+                <ul class="footer-links">
+                    <li><a href="dashboard.html">Phân tích Excel</a></li>
+                    <li><a href="chat.html">Trợ lý AI</a></li>
+                    <li><a href="#">Báo cáo mẫu</a></li>
+                    <li><a href="#">Tính năng mới</a></li>
+                </ul>
             </div>
             <div class="footer-col">
                 <h4>Công ty</h4>
-                <ul class="footer-links"><li><a href="#">Về chúng tôi</a></li><li><a href="#">Tuyển dụng</a></li><li><a href="#">Đối tác</a></li><li><a href="#">Liên hệ</a></li></ul>
+                <ul class="footer-links">
+                    <li><a href="about.html">Về chúng tôi</a></li>
+                    <li><a href="#">Tuyển dụng</a></li>
+                    <li><a href="#">Đối tác</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
             </div>
             <div class="footer-col">
                 <h4>Hỗ trợ</h4>
-                <ul class="footer-links"><li><a href="#">Trung tâm trợ giúp</a></li><li><a href="#">Điều khoản sử dụng</a></li><li><a href="#">Chính sách bảo mật</a></li><li><a href="#">Gửi phản hồi</a></li></ul>
+                <ul class="footer-links">
+                    <li><a href="#">Trung tâm trợ giúp</a></li>
+                    <li><a href="#">Điều khoản sử dụng</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
+                    <li><a href="#">Gửi phản hồi</a></li>
+                </ul>
             </div>
         </div>
         <div class="footer-bottom">
@@ -295,6 +347,8 @@
     <div class="loading-sub">Vui lòng đợi trong giây lát</div>
 </div>
 
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
 <script src="../js/dashboard.js"></script>
 </body>
 </html>

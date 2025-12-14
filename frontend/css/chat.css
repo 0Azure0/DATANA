@@ -1,331 +1,208 @@
-/* --- FILE: css/chat.css --- */
-
-/* 1. Định hình khung chứa ô nhập (Input Area) */
-.input-area {
-    padding: 15px 20px; /* Giảm padding để giảm chiều cao tổng thể */
-    background: #0f172a; /* Nền tối cố định (Giúp che phần dưới khi cuộn) */
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    
-    /* ***** CỐ ĐỊNH TUYỆT ĐỐI BẰNG POSITION ***** */
-    position: absolute; 
-    bottom: 0;           
-    left: 0;             
-    right: 0;           
-    z-index: 10;         
-    /* ***** HẾT CỐ ĐỊNH ***** */
-    
-    width: 100%;
-    box-sizing: border-box; /* Đảm bảo padding không làm vỡ khung */
-    flex-shrink: 0; /* Giữ để an toàn */
-}
-
-/* 2. Cái bao bên ngoài ô nhập (Tạo bo tròn, viền sáng) */
-.input-wrapper {
-    display: flex;
-    align-items: center; /* Căn giữa nút gửi và ô nhập */
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.08); /* Nền xám trong suốt */
-    padding: 8px 18px; /* Giảm padding bên trong wrapper */
-    border-radius: 30px; /* Bo tròn viên thuốc */
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-}
-
-/* Hiệu ứng khi bấm vào */
-.input-wrapper:focus-within {
-    border-color: #6366f1; /* Viền tím khi gõ */
-    background: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-}
-
-/* 3. Ô nhập liệu chính (Textarea) */
-#chatInput {
-    flex: 1; /* Chiếm hết khoảng trống còn lại */
-    background: transparent !important; /* Bắt buộc trong suốt (Xóa nền trắng) */
-    border: none !important; /* Xóa viền xấu */
-    color: #fff !important; /* Chữ màu trắng */
-    font-size: 1rem;
-    font-family: inherit;
-    outline: none;
-    resize: none; /* Không cho kéo to nhỏ */
-    max-height: 120px;
-    padding: 0;
-    line-height: 1.5;
-}
-
-/* Màu chữ placeholder (Dòng chữ mờ gợi ý) */
-#chatInput::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-/* 4. Nút gửi (Máy bay giấy) */
-#sendBtn {
-    background: transparent;
-    border: none;
-    color: #a7f3d0; /* Màu xanh nhạt */
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-}
-
-#sendBtn:hover {
-    color: #fff;
-    transform: scale(1.2) rotate(-10deg); /* Hiệu ứng bay lên */
-}
-
-/* 5. Dòng lưu ý nhỏ bên dưới */
-.disclaimer {
-    text-align: center;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.3);
-    margin-top: 10px;
-}
-
-/* 6. CÁC STYLE MỚI CHO GIAO DIỆN CHAT */
-
-.chat-sidebar {
-    width: 300px;
-    min-width: 250px;
-    flex-shrink: 0;
-    padding: 20px;
-}
-/* Rất quan trọng: Đảm bảo chat-window chiếm 100% chiều cao khả dụng */
+/* --- 1. KHUNG CHAT TỔNG THỂ --- */
 .chat-window {
     flex: 1;
     display: flex;
-    flex-direction: column; /* Đảm bảo bố cục dọc */
-    min-height: 0;
-    height: 100%; /* Cố định chiều cao */
+    flex-direction: column; /* Xếp dọc: Header -> Messages -> Input */
+    height: 100%;
+    background: #1e293b;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
 }
 
-/* THÊM STYLE CHO WRAPPER MỚI (BOX) */
-.chat-content-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Cố định chiều cao */
-    overflow-y: hidden; /* Ngăn không cho wrapper này cuộn */
-    position: relative; /* Rất quan trọng: Neo Input Area (absolute) vào đây */
-}
-
-
-/* 9. STYLE PHỤ (HEADER, SIDEBAR) */
+/* --- 2. HEADER --- */
 .chat-header {
     padding: 15px 20px;
+    background: #0f172a;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    flex-shrink: 0;
+    justify-content: space-between;
+    flex-shrink: 0; /* Không cho phép header bị co lại */
+    color: #fff;
+    font-weight: 600;
 }
+
 .ai-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
+
 .ai-avatar-glow {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #a7f3d0;
+    background: linear-gradient(135deg, #a7f3d0, #34d399);
     color: #0f172a;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    box-shadow: 0 0 10px #a7f3d0;
-}
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #a7f3d0;
+    box-shadow: 0 0 15px rgba(52, 211, 153, 0.4);
 }
 
-.sidebar-header {
-    font-size: 1.1rem;
-    color: #fff;
-    font-weight: 600;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.history-item {
-    padding: 10px 15px;
-    margin-bottom: 5px;
-    color: #94a3b8;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.95rem;
-}
-.history-item:hover, .history-item.active {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-}
-
-
-/* 7. KHU VỰC HIỂN THỊ TIN NHẮN (MESSAGES-AREA) */
-
+/* --- 3. KHUNG TIN NHẮN (MESSAGES AREA) --- */
 .messages-area {
-    flex: 1; /* Chiếm hết khoảng trống giữa header và input */
-    overflow-y: auto; /* Tạo thanh cuộn khi tin nhắn nhiều */
+    flex: 1; /* Chiếm toàn bộ khoảng trống còn lại */
+    overflow-y: auto; /* Chỉ cuộn khu vực này */
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Khoảng cách giữa các tin nhắn */
-    background: transparent;
+    gap: 18px;
+    scroll-behavior: smooth;
     
-    /* RẤT QUAN TRỌNG: Tăng padding dưới cùng để tránh tin nhắn bị thanh nhập che */
-    padding-bottom: 110px; 
+    /* QUAN TRỌNG: Không cần padding-bottom lớn nữa vì Input không còn đè lên */
+    padding-bottom: 20px; 
 }
 
-/* Tin nhắn đơn */
+/* Tin nhắn chung */
 .message {
     display: flex;
     width: 100%;
+    animation: fadeIn 0.3s ease-out;
 }
 
-/* Bong bóng chat chung */
 .bubble {
     padding: 12px 18px;
-    border-radius: 20px;
+    border-radius: 18px;
     max-width: 80%;
-    word-wrap: break-word; /* Đảm bảo từ dài không tràn khung */
+    word-wrap: break-word;
     font-size: 0.95rem;
     line-height: 1.6;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Tin nhắn của USER */
+/* User Message */
 .message.user {
-    justify-content: flex-end; /* Đẩy tin nhắn qua phải */
+    justify-content: flex-end;
 }
 .message.user .bubble {
-    background: #6366f1; /* Màu tím đậm cho User */
+    background: #3b82f6;
     color: #fff;
-    border-bottom-right-radius: 5px; /* Góc nhọn ở đáy bên phải */
+    border-bottom-right-radius: 4px;
 }
 
-/* Tin nhắn của AI */
+/* AI Message */
 .message.ai {
-    justify-content: flex-start; /* Giữ tin nhắn bên trái */
+    justify-content: flex-start;
 }
 .message.ai .bubble {
-    background: rgba(255, 255, 255, 0.05); /* Nền xám nhạt cho AI */
-    color: #fff;
+    background: #334155;
+    color: #e2e8f0;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom-left-radius: 5px; /* Góc nhọn ở đáy bên trái */
+    border-bottom-left-radius: 4px;
 }
 
-/* Hiệu ứng mờ dần khi load tin nhắn */
-.fade-in {
-    animation: fadeIn 0.5s ease-out;
+/* Markdown Styles */
+.message.ai strong { color: #38bdf8; font-weight: 700; }
+.message.ai ul, .message.ai ol { margin: 8px 0 8px 20px; padding: 0; }
+.message.ai li { margin-bottom: 4px; }
+.message.ai table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.9rem; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
+.message.ai th, .message.ai td { padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); }
+.message.ai th { background: rgba(255,255,255,0.05); color: #a7f3d0; }
+
+/* --- 4. KHUNG NHẬP LIỆU (INPUT AREA) - ĐÃ SỬA LỖI --- */
+.input-area {
+    /* FIX: Dùng relative thay vì absolute để nó nằm dưới cùng tự nhiên */
+    position: relative; 
+    flex-shrink: 0; /* Đảm bảo không bị co lại khi tin nhắn nhiều */
+    
+    background: #0f172a;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* --- 5. GỢI Ý THÔNG MINH --- */
+.suggestion-container {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    white-space: nowrap;
+    scrollbar-width: none; 
+}
+.suggestion-container::-webkit-scrollbar { display: none; }
+
+.chip {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.chip:hover {
+    background: #3b82f6; color: #fff; border-color: #3b82f6;
+    transform: translateY(-2px);
+}
+
+/* --- 6. Ô NHẬP LIỆU (WRAPPER) --- */
+.input-wrapper {
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 16px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s;
+}
+.input-wrapper:focus-within {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #3b82f6;
+}
+
+#chatInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    padding: 0;
+    max-height: 120px; /* Giới hạn chiều cao khi gõ dài */
+    overflow-y: auto;
+}
+
+#sendBtn {
+    background: transparent;
+    border: none;
+    color: #a7f3d0;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+    flex-shrink: 0; /* Không cho nút bị bóp méo */
+}
+#sendBtn:hover { color: #fff; transform: scale(1.1); }
+
+/* Typing Indicator */
+.typing-container { margin-bottom: 10px; }
+.typing-indicator { display: flex; align-items: center; padding: 0 5px; }
+.typing-indicator span {
+    width: 6px; height: 6px; margin: 0 2px;
+    background-color: #a7f3d0; border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-/* 8. HIỂN THỊ TRẠNG THÁI TYPING */
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    padding: 0 5px;
-}
-.typing-indicator span {
-    width: 8px;
-    height: 8px;
-    margin: 0 2px;
-    background-color: #a7f3d0;
-    border-radius: 50%;
-    opacity: 0.5;
-    animation: bounce 1.4s infinite ease-in-out;
-}
-.typing-indicator span:nth-child(2) {
-    animation-delay: -1.2s;
-}
-.typing-indicator span:nth-child(3) {
-    animation-delay: -1.0s;
-}
-@keyframes bounce {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1.0); }
-}
-
-/* 9. STYLE CHO NỘI DUNG MARKDOWN (LIST, TABLES) */
-
-.message.ai .bubble ul,
-.message.ai .bubble ol {
-    padding-left: 20px;
-    margin: 10px 0;
-}
-
-.message.ai .bubble strong {
-    color: #a7f3d0; /* Highlight chữ quan trọng */
-    font-weight: 600;
-}
-
-/* Bảng biểu Markdown */
-.markdown-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
-    font-size: 0.9rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    overflow: hidden; /* Cần thiết cho border-radius hoạt động */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.markdown-content th, .markdown-content td {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    text-align: left;
-}
-
-.markdown-content th {
-    background-color: rgba(99, 102, 241, 0.3); /* Màu nền header bảng */
-    color: #fff;
-    font-weight: bold;
-}
-
-.markdown-content tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.02);
-}
-
-/* Code block inline và block */
-.markdown-content code {
-    background-color: rgba(99, 102, 241, 0.2);
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 0.9em;
-}
-.markdown-content pre code {
-    display: block;
-    padding: 10px;
-    background-color: #0f172a; /* Nền tối hơn cho code block */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow-x: auto;
-    white-space: pre-wrap;
-}
-/* Code MỚI (đã sửa) */
-.main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    box-sizing: border-box;
-    height: 100%;
-    
-    /* THÊM DÒNG NÀY ĐỂ CĂN GIỮA KHUNG CHAT */
-    align-items: center; 
 }

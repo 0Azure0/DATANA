@@ -10,27 +10,16 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/main.css" />
-    
-    <style>
-        /* --- GIAO DIỆN CHAT HIỆN ĐẠI & FIX CĂN GIỮA --- */
+    <link rel="stylesheet" href="../css/chat.css" /> <style>
+        /* --- CÁC STYLE CƠ BẢN GIỮ NGUYÊN --- */
         body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #0f172a;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
+            display: flex; flex-direction: column; height: 100vh;
+            background-color: #0f172a; margin: 0; font-family: 'Inter', sans-serif; overflow: hidden;
         }
-
-        /* HEADER */
         .site-header {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            height: 60px;
-            flex-shrink: 0;
-            display: flex; align-items: center; z-index: 100;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.1); height: 60px;
+            flex-shrink: 0; display: flex; align-items: center; z-index: 100;
         }
         .site-header .container {
             display: flex; align-items: center; justify-content: space-between;
@@ -40,160 +29,31 @@
         .nav-link { color: #94a3b8; text-decoration: none; font-weight: 500; margin-left: 20px; transition:0.3s;}
         .nav-link:hover, .nav-link.active { color: #fff; }
 
-        /* KHUNG CHÍNH */
         .app-wrapper {
-            display: flex;
-            flex: 1; 
-            height: calc(100vh - 60px); 
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-            /* Căn giữa nội dung chính */
-            justify-content: center; 
-            background-color: #0f172a;
+            display: flex; flex: 1; height: calc(100vh - 60px); 
+            overflow: hidden; position: relative; width: 100%;
+            justify-content: center; background-color: #0f172a;
         }
-
         .main-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 20px; /* Tạo khoảng hở trên dưới */
-            box-sizing: border-box;
-            align-items: center; /* Quan trọng: Căn giữa theo trục dọc */
+            width: 100%; height: 100%; display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; align-items: center;
         }
-
-        /* [SỬA LẠI] BỐ CỤC CHAT CĂN GIỮA TUYỆT ĐỐI */
         .chat-container-wrapper {
-            display: flex;
-            gap: 20px;
-            /* Thay đổi quan trọng để căn giữa: */
-            width: 100%;
-            max-width: 1400px; /* Giới hạn chiều rộng để không bị loãng */
-            height: 100%;      /* Chiếm hết chiều cao cho phép */
-            margin: 0 auto;    /* Tự động căn lề trái phải bằng nhau */
+            display: flex; gap: 20px; width: 100%; max-width: 1400px;
+            height: 100%; margin: 0 auto;
         }
-
-        /* Sidebar */
         .chat-sidebar {
-            width: 280px;
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex; flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        /* Cửa sổ Chat */
-        .chat-window {
-            flex: 1; /* Tự động giãn nở phần còn lại */
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .chat-header-pane {
-            padding: 15px 20px;
-            background: rgba(255,255,255,0.03);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex; justify-content: space-between; align-items: center;
-            flex-shrink: 0;
-        }
-
-        /* VÙNG TIN NHẮN */
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex; flex-direction: column; gap: 18px;
-            scroll-behavior: smooth;
-        }
-        .messages-area::-webkit-scrollbar { width: 6px; }
-        .messages-area::-webkit-scrollbar-track { background: transparent; }
-        .messages-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
-        .message { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
-        .message.user { justify-content: flex-end; }
-        .message.ai { justify-content: flex-start; }
-        
-        .bubble {
-            max-width: 80%;
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            position: relative;
-            word-wrap: break-word;
+            width: 280px; background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            padding: 15px; display: flex; flex-direction: column; flex-shrink: 0;
         }
         
-        .message.user .bubble { 
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            color: white; 
-            border-bottom-right-radius: 2px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-        
-        .message.ai .bubble { 
-            background: rgba(255,255,255,0.08); 
-            color: #e2e8f0; 
-            border-bottom-left-radius: 2px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Markdown Styles */
-        .markdown-content h3 { margin: 10px 0 5px; font-size: 1.1rem; color: #fff; }
-        .markdown-content ul, .markdown-content ol { padding-left: 20px; margin: 8px 0; }
-        .markdown-content li { margin-bottom: 4px; }
-        .markdown-content strong { color: #fff; font-weight: 600; }
-        .markdown-content code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #f472b6; }
-        .markdown-content p { margin: 0 0 10px 0; }
-        .markdown-content p:last-child { margin-bottom: 0; }
-
-        /* INPUT AREA */
-        .input-area {
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.95);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            flex-shrink: 0;
-        }
-        .input-wrapper {
-            display: flex; gap: 12px; align-items: flex-end;
-            background: rgba(255,255,255,0.05);
-            padding: 10px 15px; border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: border-color 0.2s;
-        }
-        .input-wrapper:focus-within { border-color: #6366f1; }
-        
-        #chatInput {
-            flex: 1; background: transparent; border: none; color: #fff;
-            resize: none; outline: none; font-family: inherit; font-size: 0.95rem;
-            max-height: 120px; overflow-y: auto; line-height: 1.5;
-        }
-        #sendBtn {
-            background: #6366f1; border: none; width: 40px; height: 40px;
-            border-radius: 10px; color: white; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        #sendBtn:hover { background: #4f46e5; transform: translateY(-2px); }
-
         /* Responsive Mobile */
         @media (max-width: 900px) {
             .chat-sidebar { display: none; }
-            .chat-container-wrapper { width: 100%; max-width: 100%; padding: 0 10px; }
-            .chat-window { border-radius: 0; border: none; }
-            .main-content { padding: 0; } /* Bỏ padding trên mobile cho rộng */
-            .site-header .container { padding: 0 15px; }
-            .nav-link span { display: none; }
-            .nav-link { margin-left: 15px; }
+            .chat-container-wrapper { width: 100%; padding: 0 10px; }
+            .main-content { padding: 0; }
         }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -223,51 +83,48 @@
                     <div style="color:#94a3b8; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
                         <i class="fas fa-history"></i> Lịch sử phiên
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <div style="background:rgba(99, 102, 241, 0.1); color:#818cf8; padding:12px; border-radius:8px; font-size:0.9rem; cursor:pointer; border:1px solid rgba(99, 102, 241, 0.2);">
-                            <i class="fas fa-comments"></i> Cuộc hội thoại hiện tại
+                    
+                    <button id="new-analysis-btn" style="width:100%; padding:10px; background:linear-gradient(135deg, #6366f1, #a855f7); border:none; border-radius:8px; color:white; cursor:pointer; font-weight:600; margin-bottom:15px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fas fa-plus"></i> Cuộc trò chuyện mới
+                    </button>
+
+                    <div id="history-list" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1;">
                         </div>
-                    </div>
                 </aside>
 
                 <section class="chat-window">
-                    <div class="chat-header-pane">
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <div style="width:40px; height:40px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 0 15px rgba(99,102,241,0.4);">
+                    <div class="chat-header">
+                        <div class="ai-info">
+                            <div class="ai-avatar-glow">
                                 <i class="fas fa-robot"></i>
                             </div>
                             <div>
-                                <h4 style="margin:0; color:#fff; font-size:1rem;">Trợ lý Phân tích Dữ liệu</h4>
+                                <h4 style="margin:0; color:#fff; font-size:1.1rem;">Trợ lý Dữ liệu Datana</h4>
                                 <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-                                    <span style="width:6px; height:6px; background:#4ade80; border-radius:50%; box-shadow:0 0 5px #4ade80;"></span>
-                                    <span style="font-size:0.75rem; color:#a7f3d0;">Đang trực tuyến</span>
+                                    <span class="status-dot" style="width:6px; height:6px; background:#4ade80; border-radius:50%;"></span>
+                                    <span style="font-size:0.8rem; color:#a7f3d0;">Sẵn sàng hỗ trợ</span>
                                 </div>
                             </div>
                         </div>
                         <button onclick="location.reload()" style="background:transparent; border:none; color:#64748b; cursor:pointer;" title="Làm mới"><i class="fas fa-sync-alt"></i></button>
                     </div>
 
-                    <div id="chatWindow" class="messages-area">
+                    <div id="chatMessages" class="messages-area">
                         <div class="message ai">
                             <div class="bubble markdown-content">
                                 <strong>Xin chào! 👋</strong><br>
-                                Tôi là trợ lý AI của bạn. Hãy hỏi tôi về:
-                                <ul>
-                                    <li>Doanh thu tháng này thế nào?</li>
-                                    <li>Top sản phẩm bán chạy nhất?</li>
-                                    <li>Xu hướng thị trường sắp tới?</li>
-                                </ul>
+                                Tôi là trợ lý AI chuyên về phân tích dữ liệu. Bạn có thể hỏi tôi bất cứ điều gì về file Excel vừa tải lên.
                             </div>
                         </div>
                     </div>
 
                     <div class="input-area">
+                        <div id="suggestionChips" class="suggestion-container">
+                            </div>
+
                         <div class="input-wrapper">
-                            <textarea id="chatInput" placeholder="Nhập câu hỏi... (Shift+Enter để xuống dòng)" rows="1"></textarea>
+                            <input type="text" id="chatInput" placeholder="Hỏi gì đó về dữ liệu..." autocomplete="off">
                             <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-                        </div>
-                        <div style="text-align:center; margin-top:10px; font-size:0.75rem; color:#475569;">
-                            AI có thể mắc lỗi. Vui lòng kiểm tra lại số liệu quan trọng.
                         </div>
                     </div>
                 </section>

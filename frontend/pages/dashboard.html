@@ -1,354 +1,261 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Báo cáo — DATANA</title>
-  
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <link rel="stylesheet" href="../css/dashboard_local_styles.css">
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Báo cáo Quản trị — DATANA</title>
+    <link rel="icon" type="image/jpg" href="../images/logo.jpg">
 
-  <style>
-    /* CSS RIÊNG CHO FOOTER */
-    .site-footer {
-        background-color: #0f111a;
-        color: #9ca3af;
-        padding-top: 60px;
-        padding-bottom: 20px;
-        font-family: sans-serif;
-        border-top: 1px solid #1f2937;
-        margin-top: auto;
-    }
-    .footer-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-    .footer-brand h3 { color: #fff; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .footer-desc { line-height: 1.6; font-size: 14px; margin-bottom: 20px; }
-    .footer-socials { display: flex; gap: 10px; }
-    .social-btn { width: 36px; height: 36px; background-color: #1f2937; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; transition: 0.3s; }
-    .social-btn:hover { background-color: #3b82f6; }
-    .footer-col h4 { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
-    .footer-links { list-style: none; padding: 0; margin: 0; }
-    .footer-links li { margin-bottom: 12px; }
-    .footer-links a { color: #9ca3af; text-decoration: none; font-size: 14px; transition: 0.2s; }
-    .footer-links a:hover { color: #fff; }
-    .footer-bottom { border-top: 1px solid #1f2937; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-    .payment-icons { display: flex; gap: 15px; font-size: 24px; color: #d1d5db; }
-
-    /* CSS BỔ SUNG CHO BẢNG MỚI */
-    .text-right { text-align: right !important; }
-    .text-center { text-align: center !important; }
-    .badge-profit { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-    .badge-hot { background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    /* CSS CẬP NHẬT: HIỆU ỨNG PHÁT SÁNG & PHÓNG TO */
-    .glow-on-hover {
-        /* Bổ sung transform cho hiệu ứng phóng to */
-        transition: box-shadow 0.3s ease-in-out, border 0.3s ease-in-out, transform 0.3s ease-in-out;
-    }
-    .glow-on-hover:hover {
-        /* Màu sáng nhẹ, phù hợp với nền tối */
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
-        /* Thêm viền màu để nổi bật hơn */
-        border: 1px solid rgba(59, 130, 246, 0.5); 
-        /* Phóng to nhẹ 1% */
-        transform: scale(1.01); 
-    }
+    <link rel="stylesheet" href="../css/main.css" />
     
-    /* HIỆU ỨNG RIÊNG CHO KPI CARD */
-    /* Màu tím (Purple: Tổng doanh thu) */
-    .kpi.purple.glow-on-hover:hover {
-        box-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
-        border: 1px solid rgba(168, 85, 247, 0.5);
-    }
-    /* Màu xanh lá (Green: Tổng lợi nhuận) */
-    .kpi.green.glow-on-hover:hover {
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6), 0 0 20px rgba(16, 185, 129, 0.4);
-        border: 1px solid rgba(16, 185, 129, 0.5);
-    }
-    /* Màu hồng (Pink: Top sản phẩm) */
-    .kpi.pink.glow-on-hover:hover {
-        box-shadow: 0 0 10px rgba(244, 63, 94, 0.6), 0 0 20px rgba(244, 63, 94, 0.4);
-        border: 1px solid rgba(244, 63, 94, 0.5);
-    }
-    
-    @media (max-width: 768px) {
-        .footer-grid { grid-template-columns: 1fr; gap: 30px; }
-        .footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
-        .filter-bar { flex-wrap: wrap; }
-    }
-  </style>
+    <style>
+        /* CSS Layout riêng cho Dashboard */
+        .dashboard-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; flex-wrap: wrap; gap: 15px;
+        }
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px; margin-bottom: 30px;
+        }
+        .charts-grid {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;
+        }
+        .charts-grid.half { grid-template-columns: 1fr 1fr; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .tab-btn {
+            background: transparent; border: none; color: #94a3b8; padding: 8px 16px;
+            cursor: pointer; font-weight: 600; border-radius: 6px; transition: 0.2s;
+        }
+        .tab-btn:hover, .tab-btn.active { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        
+        /* Responsive */
+        @media (max-width: 1000px) { .charts-grid, .charts-grid.half { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
-
-<header class="site-header">
-    <div class="container">
-      <a href="../index.html" class="brand" style="text-decoration: none;"><span>DATANA</span></a>
-      <nav>
-        <ul>
-          <li><a href="../index.html" class="nav-link"><i class="fas fa-home"></i> Trang chủ</a></li>
-          <li><a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> Tải lên</a></li>
-          <li><a href="dashboard.html" class="nav-link active" style="color: #fff;"><i class="fas fa-chart-pie"></i> Báo cáo</a></li>
-          <li><a href="chat.html" class="nav-link"><i class="fas fa-robot"></i> Trợ lý AI</a></li>
-          <li><a href="#" id="btnLogout" class="nav-link" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
-        </ul>
-      </nav>
-    </div>
-</header>
-
-<div class="app-wrapper">
-    <main class="main-content">
-        
-        <div class="dashboard-header-wrapper">
-            <div class="header-titles">
-                <h1 class="dashboard-title-new">✨ Hiệu quả Kinh doanh</h1>
-                <p class="subtitle">Dữ liệu cập nhật thời gian thực</p>
-            </div>
-            <div class="user-mini-profile">
-                <span>Loading...</span>
-                <div class="avatar-circle">...</div>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                <img src="../images/logo.svg" alt="DATANA" style="height: 32px;" onerror="this.style.display='none'"> 
+                <span>DATANA</span>
+            </a>
+            <nav>
+                <a href="../index.html" class="nav-link"><i class="fas fa-home"></i> <span>Trang chủ</span></a>
+                <a href="upload.html" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> <span>Tải lên</span></a>
+                <a href="dashboard.html" class="nav-link active" style="color:#6366f1;"><i class="fas fa-chart-pie"></i> <span>Báo cáo</span></a>
+                <a href="chat.html" class="nav-link"><i class="fas fa-robot"></i> <span>AI Chat</span></a>
+            </nav>
+            <div id="userSection">
+                <a href="login.html" style="color:#94a3b8; text-decoration:none; font-size:0.9rem;">Đăng nhập</a>
             </div>
         </div>
+    </header>
 
-        <div class="dashboard-container">
-            
-            <div id="pdfCoverPage" class="pdf-cover-page">
-                <div class="cover-content">
-                    <div class="cover-logo">DATANA REPORT</div>
-                    <h1 id="printTitleDisplay">BÁO CÁO KINH DOANH</h1>
-                    <p id="printDateDisplay">Ngày xuất bản: ...</p>
-                    <div class="cover-footer">Powered by Datana AI</div>
+    <div class="app-wrapper">
+        <div class="main-content" style="overflow-y: auto;">
+            <div class="container" style="padding-top: 30px; padding-bottom: 50px;">
+                
+                <div class="dashboard-header">
+                    <div>
+                        <h2 style="margin:0; color:white; font-size: 1.8rem;">Tổng quan Kinh doanh</h2>
+                        <p style="margin:5px 0 0; color:#94a3b8;">Dữ liệu được cập nhật từ file Excel của bạn</p>
+                    </div>
+                    <div class="controls" style="display:flex; gap:10px;">
+                        <button id="printPreviewBtn" class="btn-secondary" style="background:#fff; color:#0f172a; border:none; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-file-pdf" style="color:#ef4444;"></i> Xuất Báo Cáo
+                        </button>
+                        <a href="upload.html" class="btn-primary" style="text-decoration:none; background:#6366f1; color:white; padding:10px 18px; border-radius:8px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-upload"></i> Tải file mới
+                        </a>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="filter-bar glass-effect">
-                <div class="filter-group" style="flex-grow: 1;">
-                    <label>TÊN BÁO CÁO</label>
-                    <input type="text" id="reportTitleInput" class="filter-input" placeholder="Nhập tên báo cáo..." style="width: 100%;">
+
+                <div class="kpi-grid">
+                    <div class="card">
+                        <div class="stat-label"><i class="fas fa-wallet" style="color:#34d399; margin-right:5px;"></i> TỔNG DOANH THU</div>
+                        <div class="stat-value" id="kpi_rev">0 ₫</div>
+                        <div style="font-size:0.85rem; color:#34d399;">Dòng tiền thực tế</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-label"><i class="fas fa-coins" style="color:#f472b6; margin-right:5px;"></i> LỢI NHUẬN RÒNG</div>
+                        <div class="stat-value" id="kpi_profit">0 ₫</div>
+                        <div style="font-size:0.85rem; color:#f472b6;">Hiệu quả kinh doanh</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-label"><i class="fas fa-crown" style="color:#f59e0b; margin-right:5px;"></i> SẢN PHẨM TOP 1</div>
+                        <div class="stat-value" id="kpi_topprod" style="font-size:1.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">-</div>
+                        <div style="font-size:0.85rem; color:#f59e0b;">Bán chạy nhất kỳ này</div>
+                    </div>
                 </div>
-                <div class="filter-group">
-                    <label>TỪ NGÀY</label>
-                    <input type="date" id="startDate" class="filter-input">
+
+                <div class="ai-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0; color:#fff; display:flex; align-items:center; gap:10px;">
+                            <i class="fas fa-brain" style="color:#a855f7;"></i> Phân tích & Dự báo Chiến lược (AI)
+                        </h3>
+                        <button id="btnAiForecast" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.9rem;">
+                            ✨ Phân tích ngay
+                        </button>
+                    </div>
+                    <div id="aiForecastResult" style="color:#e2e8f0; line-height:1.6; font-size:0.95rem;">
+                        <p style="color:#94a3b8; font-style:italic;">Bấm nút trên để AI đọc dữ liệu và đưa ra nhận định thị trường...</p>
+                    </div>
                 </div>
-                <div class="filter-group">
-                    <label>ĐẾN NGÀY</label>
-                    <input type="date" id="endDate" class="filter-input">
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="tab-overview"><i class="fas fa-chart-line"></i> Biểu đồ Tổng quan</button>
+                    <button class="tab-btn" data-tab="tab-details"><i class="fas fa-table"></i> Chi tiết Số liệu</button>
                 </div>
-                <div class="filter-group">
-                    <label>KHU VỰC</label>
-                    <div class="custom-dropdown" id="regionDropdown">
-                        <div class="dropdown-btn" id="regionDropdownBtn">
-                            <span id="selectedRegionText">Tất cả khu vực</span>
-                            <i class="fas fa-chevron-down"></i>
+
+                <div id="tab-overview" class="tab-content active">
+                    <div class="charts-grid">
+                        <div class="card">
+                            <h3 style="color:#fff; font-size:1rem; margin-bottom:15px;">Xu hướng Doanh thu & Dự báo</h3>
+                            <div class="chart-container"><canvas id="chartLine"></canvas></div>
                         </div>
-                        <div class="dropdown-content" id="regionList"></div>
+                        <div class="card">
+                            <h3 style="color:#fff; font-size:1rem; margin-bottom:15px;">Tỷ trọng Sản phẩm</h3>
+                            <div class="chart-container" style="height:250px;"><canvas id="chartDonut"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="charts-grid half">
+                        <div class="card">
+                            <h3 style="color:#fff; font-size:1rem; margin-bottom:15px;">Doanh thu theo Vùng</h3>
+                            <div class="chart-container"><canvas id="chartBar"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <h3 style="color:#fff; font-size:1rem; margin-bottom:15px;">Top 5 Lợi nhuận</h3>
+                            <div class="chart-container"><canvas id="chartProfitBar"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="charts-grid half">
+                        <div class="card">
+                            <h3 style="color:#fff; font-size:1rem; margin-bottom:5px;"><i class="fas fa-soap" style="color:#a7f3d0;"></i> Hiệu suất Thương hiệu</h3>
+                            <p style="color:#64748b; font-size:0.8rem; margin-bottom:15px;">(X: Doanh thu, Y: Lợi nhuận, Bóng: Số lượng)</p>
+                            <div class="chart-container" style="height: 320px;"><canvas id="chartBrandBubble"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <h3 style="color:#fff; font-size:1rem; margin-bottom:5px;"><i class="fas fa-chart-area" style="color:#f472b6;"></i> Xu hướng Kép</h3>
+                            <p style="color:#64748b; font-size:0.8rem; margin-bottom:15px;">(Cột: Doanh thu - Trái | Đường: Lợi nhuận - Phải)</p>
+                            <div class="chart-container" style="height: 320px;"><canvas id="chartRevProfitDual"></canvas></div>
+                        </div>
                     </div>
                 </div>
-                <div class="filter-actions">
-                    <button id="resetFilterBtn">↺ Đặt lại</button>
-                    <button id="printPreviewBtn" class="btn-glow"><i class="fas fa-print"></i> Xuất PDF</button>
-                </div>
-            </div>
 
-            <div class="tabs">
-                 <button class="tab-btn active" data-tab="tab-overview">Tổng quan</button>
-                 <button class="tab-btn" data-tab="tab-tables">📋 Bảng Phân Tích</button>
-                 <button class="tab-btn" data-tab="tab-forecast">🔮 Dự báo & AI</button>
-            </div>
-            
-            <div id="tab-overview" class="tab-content active">
-                <section class="kpis" style="display: flex; flex-direction: column; gap: 25px;">
-                  <div class="kpi glow-card purple glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_brand')">
-                      <p>TỔNG DOANH THU</p>
-                      <h4 id="kpi_rev">0 VNĐ</h4>
-                  </div>
-                  <div class="kpi glow-card green glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_profit_product')">
-                      <p style="color: #6ee7b7;">TỔNG LỢI NHUẬN</p>
-                      <h4 id="kpi_profit">0 VNĐ</h4>
-                  </div>
-                  <div class="kpi glow-card pink glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_bestseller')">
-                      <p style="color: #fda4af;">TOP SẢN PHẨM</p>
-                      <h4 id="kpi_topprod">-</h4>
-                  </div>
-                </section>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card glow-on-hover">
-                        <div class="chart-title">📈 Xu hướng Doanh thu</div>
-                        <div class="chart-canvas"><canvas id="chartLine"></canvas></div>
-                    </div>
-                    <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_region')">
-                        <div class="chart-title">📊 Phân bổ theo Vùng</div>
-                        <div class="chart-canvas"><canvas id="chartBar"></canvas></div>
-                    </div>
-                </div>
-                <div class="charts-grid" style="grid-template-columns: 1fr;">
-                    <div class="chart-card glass-card glow-on-hover" style="height: 450px;" onclick="switchTabAndScroll('tab-tables', 'tbl_bestseller')">
-                        <div class="chart-title">🍰 Top Sản phẩm & Tỷ trọng</div>
-                        <div class="chart-canvas"><canvas id="chartDonut"></canvas></div>
-                    </div>
-                </div>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_category')">
-                        <div class="chart-title">📊 Bán hàng theo Danh mục</div>
-                        <div class="chart-canvas"><canvas id="chartCategoryBar"></canvas></div>
-                    </div>
-                    <div class="chart-card glass-card glow-on-hover" onclick="switchTabAndScroll('tab-tables', 'tbl_profit_product')">
-                        <div class="chart-title">💰 Top Lợi nhuận theo Sản phẩm</div>
-                        <div class="chart-canvas"><canvas id="chartProfitBar"></canvas></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-tables" class="tab-content">
-                <div class="tables-grid">
+                <div id="tab-details" class="tab-content">
                     
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">🏷️ 1. Doanh thu theo Thương hiệu</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Thương hiệu</th><th class="text-right">Doanh thu</th><th class="text-right">Lợi nhuận</th></tr></thead>
-                                <tbody id="tbl_brand"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">📂 2. Phân tích theo Danh mục</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Danh mục</th><th class="text-center">Số lượng</th><th class="text-right">Doanh thu</th><th class="text-right">Lợi nhuận</th></tr></thead>
-                                <tbody id="tbl_category"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">💰 3. Top Lợi nhuận theo Sản phẩm</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Tên sản phẩm</th><th class="text-right">Lợi nhuận</th><th class="text-right">Doanh thu</th><th class="text-center">SL</th></tr></thead>
-                                <tbody id="tbl_profit_product"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">🔥 4. Sản phẩm bán chạy nhất (SL)</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Tên sản phẩm</th><th class="text-center">Đã bán</th><th class="text-right">Giá bán TB</th><th class="text-right">Lợi nhuận</th></tr></thead>
+                    <div class="card table-card" style="margin-bottom:20px;">
+                        <h3 style="color:#fff; margin-bottom:15px;">🔥 Top Sản phẩm Bán chạy</h3>
+                        <div style="overflow-x:auto;">
+                            <table class="datana-table">
+                                <thead><tr><th>Sản phẩm</th><th style="text-align:center;">Số lượng</th><th style="text-align:right;">Giá TB</th><th style="text-align:right;">Lợi nhuận</th></tr></thead>
                                 <tbody id="tbl_bestseller"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">📊 5. Theo dõi giá trị trung bình</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Tên sản phẩm</th><th class="text-right">Giá TB/SP</th><th class="text-right">Lợi nhuận TB/SP</th></tr></thead>
-                                <tbody id="tbl_avg"></tbody>
+                    <div class="charts-grid half">
+                        <div class="card table-card">
+                            <h3 style="color:#fff; margin-bottom:15px;">Thống kê Thương hiệu</h3>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="datana-table"><thead><tr><th>Thương hiệu</th><th style="text-align:right;">Doanh thu</th><th style="text-align:right;">Lợi nhuận</th></tr></thead><tbody id="tbl_brand"></tbody></table>
+                            </div>
+                        </div>
+                        <div class="card table-card">
+                            <h3 style="color:#fff; margin-bottom:15px;">Thống kê Ngành hàng</h3>
+                             <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="datana-table"><thead><tr><th>Ngành hàng</th><th style="text-align:center;">SL</th><th style="text-align:right;">Doanh thu</th></tr></thead><tbody id="tbl_category"></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card table-card" style="margin-top: 20px;">
+                        <h3 style="color:#fff; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>📊 Báo cáo Hiệu quả Chi tiết</span>
+                            <span style="font-size:0.8rem; font-weight:normal; opacity:0.8;">(Tự động tính Biên lợi nhuận)</span>
+                        </h3>
+                        <div style="overflow-x:auto;">
+                            <table class="datana-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30%;">Tên Sản phẩm</th>
+                                        <th style="width: 15%;">Danh mục</th>
+                                        <th style="text-align:center;">Đã bán</th>
+                                        <th style="text-align:right;">Doanh thu</th>
+                                        <th style="text-align:right;">Lợi nhuận</th>
+                                        <th style="text-align:center;">Biên LN (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl_full_products"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">💲 6. Phân tích Lợi nhuận theo Giá</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Phân nhóm giá</th><th class="text-right">Tổng lợi nhuận</th><th class="text-right">Tổng doanh thu</th></tr></thead>
-                                <tbody id="tbl_price_range"></tbody>
+                    <div class="card table-card" style="margin-top: 20px;">
+                        <h3 style="color:#fff; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>📅 Báo cáo Tăng trưởng theo Tháng</span>
+                            <span style="font-size:0.8rem; font-weight:normal; opacity:0.8;">(So sánh với tháng trước đó)</span>
+                        </h3>
+                        <div style="overflow-x:auto;">
+                            <table class="datana-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%;">Tháng</th>
+                                        <th style="text-align:right;">Doanh thu</th>
+                                        <th style="text-align:right;">Lợi nhuận</th>
+                                        <th style="text-align:center;">Số lượng</th>
+                                        <th style="text-align:center;">Tăng trưởng (MoM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl_monthly_growth"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="table-card glass-card glow-on-hover">
-                        <div class="table-title">🌍 7. Phân bổ Doanh thu theo Khu vực</div>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead><tr><th>Khu vực</th><th class="text-right">Tổng doanh thu</th><th class="text-right">Lợi nhuận</th><th class="text-center">SL Bán</th></tr></thead>
-                                <tbody id="tbl_region"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div id="tab-forecast" class="tab-content">
-                <div class="chart-card glass-card glow-on-hover">
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <div><h5 style="color:#fff; margin:0;">🤖 AI Phân tích</h5></div>
-                        <button id="btnAiForecast" class="btn-primary glow-btn">✨ Phân tích ngay</button>
-                    </div>
-                    <div id="aiForecastResult" style="color: #e2e8f0;">
-                        <div style="text-align: center; padding: 40px; color: #64748b;">Bấm nút để AI bắt đầu làm việc.</div>
+                    <div style="display:none;">
+                        <tbody id="tbl_profit_product"></tbody><tbody id="tbl_avg"></tbody><tbody id="tbl_price_range"></tbody><tbody id="tbl_region"></tbody><canvas id="chartCategoryBar"></canvas>
                     </div>
                 </div>
-            </div>
-        </div>
-    </main>
-</div>
 
-<footer class="site-footer">
-    <div class="footer-container">
-        <div class="footer-grid">
-            <div class="footer-col footer-brand">
-                <h3><i class="fas fa-bolt" style="color: #3b82f6;"></i> DATANA</h3>
-                <p class="footer-desc">Giải pháp phân tích dữ liệu kinh doanh dành cho doanh nghiệp SME. Đơn giản, nhanh chóng và bảo mật tuyệt đối.</p>
-                <div class="footer-socials">
-                    <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
-                </div>
             </div>
-            <div class="footer-col">
-                <h4>Sản phẩm</h4>
-                <ul class="footer-links">
-                    <li><a href="dashboard.html">Phân tích Excel</a></li>
-                    <li><a href="chat.html">Trợ lý AI</a></li>
-                    <li><a href="#">Báo cáo mẫu</a></li>
-                    <li><a href="#">Tính năng mới</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Công ty</h4>
-                <ul class="footer-links">
-                    <li><a href="about.html">Về chúng tôi</a></li>
-                    <li><a href="#">Tuyển dụng</a></li>
-                    <li><a href="#">Đối tác</a></li>
-                    <li><a href="#">Liên hệ</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Hỗ trợ</h4>
-                <ul class="footer-links">
-                    <li><a href="#">Trung tâm trợ giúp</a></li>
-                    <li><a href="#">Điều khoản sử dụng</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
-                    <li><a href="#">Gửi phản hồi</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2025 DATANA Analytics. All rights reserved.</p>
-            <div class="payment-icons"><i class="fab fa-cc-visa"></i><i class="fab fa-cc-mastercard"></i><i class="fab fa-cc-paypal"></i></div>
         </div>
     </div>
-</footer>
 
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-text">🚀 Đang tạo bản in PDF...</div>
-    <div class="loading-sub">Vui lòng đợi trong giây lát</div>
-</div>
+    <div id="loadingOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.95); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="width:50px; height:50px; border:4px solid rgba(255,255,255,0.1); border-top:4px solid #6366f1; border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <p class="loading-text" style="color:white; margin-top:15px;">Đang xử lý dữ liệu...</p>
+    </div>
+    <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 
-<script src="../js/utils.js"></script>
-<script src="../js/auth.js"></script>
-<script src="../js/dashboard.js"></script>
+    <div id="printCover" style="display:none;">
+        <div style="text-align:center; padding-top:20vh;">
+            <img src="../images/logo.jpg" alt="DATANA" style="width:180px; height:auto; margin-bottom:30px; border-radius:12px;" onerror="this.style.display='none'">
+            
+            <h1 style="font-size:3.5rem; color:#fff; margin-bottom:10px; font-weight:800;">BÁO CÁO QUẢN TRỊ</h1>
+            <h2 id="printTitleDisplay" style="font-size:1.8rem; color:#fff; font-weight:900; margin-bottom:100px;">TỔNG QUAN & CHIẾN LƯỢC KINH DOANH</h2>
+            <div style="color:#94a3b8; font-size:1.2rem;">
+                <p id="printDateDisplay">Ngày xuất bản: ...</p>
+                <p>Thực hiện bởi: Hệ thống AI Datana</p>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="reportTitleInput" value="BÁO CÁO TỔNG HỢP">
+    <script src="../js/dashboard.js"></script>
+    <script>
+        const u = localStorage.getItem('datana_user');
+        if(u) {
+            document.getElementById('userSection').innerHTML = `<div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="if(confirm('Đăng xuất?')){localStorage.removeItem('datana_user');location.reload();}"><div style="width:32px; height:32px; background:#475569; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${u.charAt(0).toUpperCase()}</div><span style="color:white; font-size:0.9rem;">${u}</span></div>`;
+        }
+    </script>
 </body>
 </html>

@@ -104,6 +104,28 @@ td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #cbd
 .badge-profit { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
 .badge-hot { background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
 
+/* ================================================================= */
+/* PHẦN BỔ SUNG: FIX LỖI TRÀN VIỀN PHẦN AI PHÂN TÍCH                  */
+/* ================================================================= */
+
+/* 1. Bỏ chiều cao cố định (400px) của .chart-card chỉ áp dụng cho tab Dự báo & AI, 
+   cho phép chiều cao tự mở rộng theo nội dung (nhưng vẫn giữ min-height) */
+#tab-forecast .chart-card {
+    height: auto; 
+    min-height: 400px;
+}
+
+/* 2. Đảm bảo nội dung AI (text) bên trong #aiForecastResult không bị tràn viền ngang */
+#aiForecastResult {
+    /* Ngắt từ để tránh tràn viền ngang do nội dung dài */
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
+    /* Cho phép cuộn dọc nếu nội dung rất dài */
+    overflow-y: auto; 
+    /* Cho phép nó chiếm toàn bộ không gian còn lại trong .chart-card (do .chart-card là display: flex) */
+    flex-grow: 1; 
+}
+
 /* FOOTER */
 .site-footer {
     background-color: #0b1120; color: #cbd5e1;

@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, UTC # IMPORT MỚI
 import os
 import uuid
 import pandas as pd
@@ -101,8 +101,8 @@ class Analysis(db.Model):
     filename = db.Column(db.String(200))
     result_json = db.Column(db.Text)
     title = db.Column(db.String(255), nullable=False, default='Phân tích Dữ liệu Mới')
-    # THÊM: Timestamp để biết thời điểm tạo phiên (đã có default cho ChatHistory, nhưng cần cho Analysis)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow) 
+    # FIX: Sử dụng datetime.now(UTC) thay cho utcnow()
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(UTC)) 
 
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -110,7 +110,8 @@ class ChatHistory(db.Model):
     session_id = db.Column(db.String(255), nullable=False) 
     sender = db.Column(db.String(10), nullable=False) 
     message = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    # FIX: Sử dụng datetime.now(UTC) thay cho utcnow()
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
 @login_manager.user_loader
 def load_user(uid): return db.session.get(User, int(uid))
@@ -246,7 +247,7 @@ def new_session_endpoint():
                 filename=old_analysis_rec.filename,
                 result_json=old_analysis_rec.result_json, # Giữ nguyên dữ liệu phân tích
                 title=initial_title, # Reset tiêu đề
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(UTC) # FIX: Sử dụng datetime.now(UTC)
             )
             db.session.add(new_analysis)
             db.session.commit()
@@ -317,6 +318,7 @@ def analyze_endpoint():
         data_tuple = analyzer.analyze_data(df)
         
         smart_summary = data_tuple[10]
+        # FIX TYPO: Thay thế smart_sum bằng smart_summary
         brand_analysis = smart_summary.get('brand', {})
         category_analysis = smart_summary.get('category', {})
         product_details = smart_summary.get('product_details', [])
@@ -360,7 +362,7 @@ def analyze_endpoint():
                 filename=f.filename, 
                 result_json=json_res,
                 title=initial_title, 
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(UTC) # FIX: Sử dụng datetime.now(UTC)
             ))
             db.session.commit()
             last = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.id.desc()).first()
@@ -412,7 +414,7 @@ def chat_endpoint():
         elif session_id:
             if session_id not in TEMP_CHAT_HISTORY:
                 TEMP_CHAT_HISTORY[session_id] = []
-            TEMP_CHAT_HISTORY[session_id].append({'sender': 'user', 'message': message, 'timestamp': datetime.utcnow().isoformat()})
+            TEMP_CHAT_HISTORY[session_id].append({'sender': 'user', 'message': message, 'timestamp': datetime.now(UTC).isoformat()}) # FIX: Sử dụng datetime.now(UTC)
         
         current_history = []
         if is_authenticated:
@@ -490,7 +492,7 @@ DỮ LIỆU NỘI BỘ TÓNG HỢP:
             db.session.add(ChatHistory(user_id=user_id, session_id=session_id, sender='ai', message=response))
             db.session.commit()
         elif session_id:
-            TEMP_CHAT_HISTORY[session_id].append({'sender': 'ai', 'message': response, 'timestamp': datetime.utcnow().isoformat()})
+            TEMP_CHAT_HISTORY[session_id].append({'sender': 'ai', 'message': response, 'timestamp': datetime.now(UTC).isoformat()}) # FIX: Sử dụng datetime.now(UTC)
         
         # Cập nhật lịch sử (thêm tin nhắn AI vừa trả lời)
         if not is_authenticated and session_id:
@@ -565,7 +567,7 @@ def chat_history_endpoint():
                 'session_id': session_id_request,
                 'title': title,
                 'filename': filename,
-                'created_at': datetime.utcnow().isoformat()
+                'created_at': datetime.now(UTC).isoformat() # FIX: Sử dụng datetime.now(UTC)
             })
         
         return jsonify({"sessions": response_sessions, "history": current_messages})

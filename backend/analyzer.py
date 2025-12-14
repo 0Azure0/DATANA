@@ -13,13 +13,19 @@ def clean_currency_text(val):
     clean_str = re.sub(r'[^\d.,]', '', s)
     if not clean_str: return 0.0
     try:
-        if ',' in clean_str and '.' in clean_str: clean_str = clean_str.replace(',', '') 
+        # Xử lý format VN/Euro: '.' là nghìn, ',' là thập phân
+        if ',' in clean_str and '.' in clean_str: 
+            clean_str = clean_str.replace('.', '') 
+            clean_str = clean_str.replace(',', '.') 
         elif ',' in clean_str: clean_str = clean_str.replace(',', '.') 
         elif '.' in clean_str: 
             parts = clean_str.split('.')
             if len(parts) > 1 and len(parts[-1]) == 3 and len(parts) > 2: clean_str = clean_str.replace('.', '') 
         return float(clean_str) * multiplier
-    except: return 0.0
+    except: 
+        clean_str = re.sub(r'[^\d]', '', s)
+        if clean_str: return float(clean_str) * multiplier
+        return 0.0
 
 def smart_preprocess(df):
     keywords = ['ngày', 'date', 'sản phẩm', 'product', 'doanh thu', 'revenue', 'số lượng', 'quantity', 'khu vực', 'region']
@@ -65,8 +71,9 @@ def analyze_data(df):
 
     date_col = find_column(cols, ['date', 'ngay', 'thời gian', 'năm', 'tháng'])
     product_col = find_column(cols, ['product', 'sản phẩm', 'tên hàng', 'mặt hàng', 'item', 'mã', 'name', 'tên'])
-    quantity_col = find_column(cols, ['quantity', 'số lượng', 'sl', 'qty', 'vol'])
-    revenue_col = find_column(cols, ['revenue', 'doanh', 'sales', 'tien', 'amount', 'giá', 'trị giá', 'price', 'thành tiền'])
+    quantity_col = find_column(cols, ['quantity', 'số lượng', 'sl', 'qty', 'vol', 'sold'])
+    revenue_col = find_column(cols, ['revenue', 'doanh', 'sales', 'tien', 'amount', 'trị giá', 'thành tiền'])
+    price_col = find_column(cols, ['price', 'giá'])
     cogs_col = find_column(cols, ['cogs', 'cost', 'gia_von', 'vốn'])
     profit_col = find_column(cols, ['profit', 'loinhuan', 'lợi nhuận', 'lãi'])
     region_col = find_column(cols, ['region', 'khu vực', 'tỉnh', 'thành phố', 'chi nhánh'])
@@ -75,9 +82,24 @@ def analyze_data(df):
     
     # 2. Làm sạch số liệu
     if revenue_col: df[revenue_col] = df[revenue_col].apply(clean_currency_text).fillna(0)
+    if price_col: df[price_col] = df[price_col].apply(clean_currency_text).fillna(0)
     if cogs_col: df[cogs_col] = df[cogs_col].apply(clean_currency_text).fillna(0)
     if profit_col: df[profit_col] = df[profit_col].apply(clean_currency_text).fillna(0)
     if quantity_col: df[quantity_col] = pd.to_numeric(df[quantity_col], errors='coerce').fillna(0)
+
+    # 2.5 FIX LỖI TÍNH DOANH THU THỰC TẾ (Sử dụng logic kinh doanh đúng)
+    
+    # Nếu không có cột Revenue (đã tính toán) rõ ràng, nhưng có Price và Quantity, tính tích.
+    if not revenue_col and price_col and quantity_col:
+        df['revenue_computed'] = df[quantity_col] * df[price_col]
+        revenue_col = 'revenue_computed'
+        cols = list(df.columns)
+    elif revenue_col and price_col and quantity_col and str(revenue_col).lower() == 'price':
+         # Nếu cột Price bị nhận diện là revenue_col (do từ khóa), tính tích để có doanh thu thực tế
+         df['revenue_computed_final'] = df[quantity_col] * df[revenue_col]
+         revenue_col = 'revenue_computed_final'
+         cols = list(df.columns)
+
 
     if date_col:
         df[date_col] = parse_date_series(df[date_col])
@@ -106,7 +128,7 @@ def analyze_data(df):
         record['brand'] = str(row[brand_col]) if brand_col and pd.notnull(row[brand_col]) else 'N/A'
         record['category'] = str(row[category_col]) if category_col and pd.notnull(row[category_col]) else 'N/A'
         
-        record['revenue'] = float(row[revenue_col]) if revenue_col else 0
+        record['revenue'] = float(row[revenue_col]) if revenue_col and revenue_col in row else 0
         record['profit'] = float(row[profit_col]) if profit_col and profit_col in row else 0
         record['quantity'] = float(row[quantity_col]) if quantity_col else 0
         
@@ -114,8 +136,8 @@ def analyze_data(df):
         universal_data.append(clean_record)
 
     # 4. TÍNH TOÁN KPI
-    total_rev = float(df[revenue_col].sum()) if revenue_col else 0
-    total_prof = float(df[profit_col].sum()) if profit_col else 0
+    total_rev = float(df[revenue_col].sum()) if revenue_col and revenue_col in df.columns else 0
+    total_prof = float(df[profit_col].sum()) if profit_col and profit_col in df.columns else 0
     total_qty = int(df[quantity_col].sum()) if quantity_col else 0
 
     statistics = {
@@ -126,7 +148,7 @@ def analyze_data(df):
 
     # Top Products Simple
     top_products_simple = []
-    if product_col and revenue_col:
+    if product_col and revenue_col and revenue_col in df.columns:
         grp = df.groupby(product_col)[revenue_col].sum().nlargest(5)
         for p, v in grp.items():
             top_products_simple.append({'name': str(p), 'revenue': float(v)})
@@ -134,16 +156,16 @@ def analyze_data(df):
     # --- 5. TẠO SMART SUMMARY (QUAN TRỌNG: ĐỔI TÊN CỘT VỀ CHUẨN) ---
     smart_summary = {}
     
-    if revenue_col and brand_col:
+    if revenue_col and brand_col and revenue_col in df.columns:
         brand_analysis = df.groupby(brand_col)[revenue_col].sum().nlargest(5).to_dict()
         smart_summary['brand'] = {str(k): float(v) for k,v in brand_analysis.items()}
         
-    if revenue_col and category_col:
+    if revenue_col and category_col and revenue_col in df.columns:
         category_analysis = df.groupby(category_col)[revenue_col].sum().nlargest(5).to_dict()
         smart_summary['category'] = {str(k): float(v) for k,v in category_analysis.items()}
     
     product_details = []
-    if product_col and quantity_col and revenue_col:
+    if product_col and quantity_col and revenue_col and revenue_col in df.columns:
         agg_dict = {quantity_col: 'sum', revenue_col: 'sum'}
         if profit_col: agg_dict[profit_col] = 'sum'
             
@@ -186,7 +208,7 @@ def analyze_data(df):
         if old in dframe.columns: return dframe.rename(columns={old: new})
         return dframe
 
-    if product_col and revenue_col and quantity_col:
+    if product_col and revenue_col and quantity_col and revenue_col in df.columns:
         inv = df.groupby(product_col).agg({quantity_col:'sum', revenue_col:'sum'}).reset_index()
         inv = safe_rename(inv, product_col, 'Product')
         # Chuẩn hóa tên cột
@@ -203,22 +225,23 @@ def analyze_data(df):
         sales = safe_rename(sales, revenue_col, 'Revenue')
         sales_summary = sales.to_dict('records')
 
-        if profit_col:
+        if profit_col and profit_col in df.columns:
             prof = df.groupby(product_col).agg({revenue_col:'sum', profit_col:'sum'}).reset_index()
-            prof['Margin'] = (prof[profit_col]/prof[revenue_col]*100).fillna(0).round(1)
+            # Đảm bảo cột Revenue đã được đổi tên để tính toán Margin
+            prof = prof.rename(columns={revenue_col: 'Revenue'})
+            prof['Margin'] = (prof[profit_col]/prof['Revenue']*100).fillna(0).round(1)
             prof = safe_rename(prof, product_col, 'Product')
-            prof = safe_rename(prof, revenue_col, 'Revenue')
             prof = safe_rename(prof, profit_col, 'Profit')
             profit_analysis = prof.to_dict('records')
 
-    if category_col and revenue_col:
+    if category_col and revenue_col and revenue_col in df.columns:
         cat = df.groupby(category_col).agg({revenue_col:'sum', quantity_col:'sum'}).reset_index()
         cat = safe_rename(cat, category_col, 'Category')
         cat = safe_rename(cat, revenue_col, 'Revenue')
         cat = safe_rename(cat, quantity_col, 'Quantity')
         category_overview = cat.to_dict('records')
 
-    if brand_col and revenue_col:
+    if brand_col and revenue_col and revenue_col in df.columns:
         br = df.groupby(brand_col).agg({revenue_col:'sum', quantity_col:'sum'}).reset_index()
         br = safe_rename(br, brand_col, 'Brand')
         br = safe_rename(br, revenue_col, 'Revenue')

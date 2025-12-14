@@ -4,6 +4,10 @@ Flask-SQLAlchemy
 Flask-Login
 pandas
 openpyxl
-google-generativeai
 werkzeug
 requests
+python-dotenv
+groq
+duckduckgo-search
+beautifulsoup4
+numpy
